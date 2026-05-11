@@ -1,0 +1,175 @@
+.card {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  padding: var(--space-base);
+  transition: all 0.2s ease;
+  animation: fade-in 0.4s ease-out;
+}
+
+.card:hover {
+  box-shadow: var(--shadow-lg);
+  transform: translateY(-2px);
+}
+
+.cardLive {
+  border-color: var(--color-primary);
+  border-width: 2px;
+}
+
+/* Status Row */
+.statusRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--space-md);
+}
+
+.vong {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.liveBadge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 4px 10px;
+  background: var(--color-primary);
+  color: white;
+  font-size: 11px;
+  font-weight: 700;
+  border-radius: var(--radius-full);
+  letter-spacing: 0.03em;
+}
+
+.livePulse {
+  width: 6px;
+  height: 6px;
+  background: white;
+  border-radius: var(--radius-full);
+  animation: pulse-live 1.5s ease-in-out infinite;
+}
+
+.upcomingBadge {
+  padding: 4px 10px;
+  background: var(--color-surface-container);
+  color: var(--color-text-secondary);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+.endBadge {
+  padding: 4px 10px;
+  background: var(--color-bg);
+  color: var(--color-text-muted);
+  font-size: 11px;
+  font-weight: 600;
+  border-radius: var(--radius-full);
+}
+
+/* Scoreboard */
+.scoreboard {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-base);
+  margin-bottom: var(--space-base);
+}
+
+.team {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  flex: 1;
+}
+
+.teamLogo {
+  font-size: 36px;
+  width: 56px;
+  height: 56px;
+  background: var(--color-bg);
+  border-radius: var(--radius-lg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--color-border-light);
+}
+
+.teamName {
+  font-size: 13px;
+  font-weight: 700;
+  text-align: center;
+  color: var(--color-text);
+}
+
+.scoreCenter {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+}
+
+.score {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  background: var(--color-primary-light);
+  padding: var(--space-sm) var(--space-base);
+  border-radius: var(--radius-lg);
+  border: 2px solid rgba(215, 25, 32, 0.15);
+}
+
+.scoreNum {
+  font-family: 'Poppins', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-primary);
+  min-width: 28px;
+  text-align: center;
+}
+
+.scoreSep {
+  font-family: 'Poppins', sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: var(--color-text-muted);
+}
+
+.dealRow {
+  display: flex;
+  gap: var(--space-xl);
+}
+
+.dealBadge {
+  font-size: 11px;
+  font-weight: 700;
+  color: var(--color-primary);
+  background: var(--color-primary-light);
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+}
+
+/* CTA */
+.detailBtn {
+  display: block;
+  width: 100%;
+  text-align: center;
+  padding: var(--space-sm) 0;
+  background: var(--color-bg);
+  color: var(--color-primary);
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  transition: all 0.2s ease;
+}
+
+.detailBtn:hover {
+  background: var(--color-primary);
+  color: white;
+}

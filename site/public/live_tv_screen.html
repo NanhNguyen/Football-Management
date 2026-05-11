@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800&amp;family=Inter:wght@400;600;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .glass-panel {
+            background: rgba(255, 255, 255, 0.12);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.18);
+        }
+        .celebration-glow {
+            box-shadow: 0 0 50px 10px rgba(215, 25, 32, 0.5);
+        }
+        .text-glow {
+            text-shadow: 0 0 15px rgba(215, 25, 32, 0.8);
+        }
+        .stadium-gradient {
+            background: radial-gradient(circle at top, #3A1010 0%, #240B0B 100%);
+        }
+        .ticker-scroll {
+            display: flex;
+            white-space: nowrap;
+            animation: scroll 30s linear infinite;
+        }
+        @keyframes scroll {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+    </style>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "on-secondary-fixed-variant": "#603e3d",
+                      "error": "#ba1a1a",
+                      "on-secondary-container": "#795452",
+                      "primary": "#ae0011",
+                      "on-secondary-fixed": "#2f1413",
+                      "text-main": "#1F2937",
+                      "glass-border": "rgba(255, 255, 255, 0.18)",
+                      "on-surface": "#291715",
+                      "error-container": "#ffdad6",
+                      "outline": "#926f6b",
+                      "secondary-fixed-dim": "#ebbbb9",
+                      "secondary-fixed": "#ffdad8",
+                      "surface-container-high": "#ffe2de",
+                      "live-bg-gradient-start": "#240B0B",
+                      "surface-container-highest": "#fcdbd7",
+                      "inverse-primary": "#ffb4ab",
+                      "on-tertiary-fixed-variant": "#004a79",
+                      "inverse-on-surface": "#ffedea",
+                      "primary-container": "#d71920",
+                      "on-error": "#ffffff",
+                      "surface-variant": "#fcdbd7",
+                      "on-tertiary-container": "#e7f0ff",
+                      "surface-container": "#ffe9e6",
+                      "on-primary": "#ffffff",
+                      "tertiary-fixed": "#d0e4ff",
+                      "surface-container-lowest": "#ffffff",
+                      "inverse-surface": "#402b29",
+                      "on-error-container": "#93000a",
+                      "primary-fixed": "#ffdad6",
+                      "on-primary-container": "#ffece9",
+                      "secondary-container": "#fdcbc9",
+                      "surface-bright": "#fff8f7",
+                      "on-tertiary": "#ffffff",
+                      "tertiary-fixed-dim": "#9acbff",
+                      "glass-fill": "rgba(255, 255, 255, 0.12)",
+                      "surface-tint": "#c00014",
+                      "surface-dim": "#f3d3cf",
+                      "on-background": "#291715",
+                      "on-secondary": "#ffffff",
+                      "on-primary-fixed": "#410002",
+                      "on-tertiary-fixed": "#001d34",
+                      "outline-variant": "#e6bdb8",
+                      "dashboard-bg": "#F4F5F7",
+                      "background": "#fff8f7",
+                      "tertiary": "#00588f",
+                      "primary-fixed-dim": "#ffb4ab",
+                      "on-primary-fixed-variant": "#93000d",
+                      "on-surface-variant": "#5d3f3c",
+                      "tertiary-container": "#0071b6",
+                      "secondary": "#7a5553",
+                      "live-bg-gradient-end": "#3A1010",
+                      "surface": "#fff8f7",
+                      "surface-container-low": "#fff0ee"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "md": "16px",
+                      "lg": "24px",
+                      "base": "8px",
+                      "gutter": "24px",
+                      "sm": "12px",
+                      "xs": "4px",
+                      "xl": "32px",
+                      "xxl": "48px"
+              },
+              "fontFamily": {
+                      "h2": ["Poppins"],
+                      "display-xl": ["Poppins"],
+                      "display-lg": ["Poppins"],
+                      "body-md": ["Inter"],
+                      "h1": ["Poppins"],
+                      "body-sm": ["Inter"],
+                      "score-md": ["Poppins"],
+                      "body-lg": ["Inter"],
+                      "label-md": ["Inter"]
+              },
+              "fontSize": {
+                      "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                      "display-xl": ["72px", {"lineHeight": "1.1", "fontWeight": "700"}],
+                      "display-lg": ["48px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                      "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "score-md": ["36px", {"lineHeight": "1", "fontWeight": "700"}],
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "label-md": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}]
+              }
+            },
+          },
+        }
+    </script>
+</head>
+<body class="stadium-gradient min-h-screen w-full overflow-hidden flex flex-col items-center justify-between p-lg relative">
+<!-- Background Atmospheric Elements -->
+<div class="absolute inset-0 z-0 pointer-events-none opacity-40">
+<img class="w-full h-full object-cover" data-alt="A cinematic, wide-angle shot of a massive football stadium at night, with dramatic upward-facing spotlights creating long beams of light through a misty atmosphere. The color palette is dominated by deep burgundies and warm blacks, echoing a high-energy professional sports broadcast. Soft, floating particles of light drift across the scene, adding a sense of magic and depth to the dark, moody environment." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDMtE_wF4GDNQ6HjPdpr75K1LBmPrZF1VIuUdq83nkd-KKn0d008iSslcq1_9PdnrgQarMo-d5Z01QY-aH1pguvaRp-x02CvFypZEZmPTyc8hCX2q-kHIjLnkyswLCJxPQlp4Xh9Izv8JQPFyqi_htpgHwZHCwQiTNj6cRRoQtn4XlBbJX79k_BMVOVv_SpTsz1NO4WqkV_xyvK9fuM4_A34O-0ZGqXROAeFCKOIqzSZN4lhC4oaNGGAvgZ-H77ArqBK0L2xSmPgwk"/>
+<div class="absolute inset-0 bg-gradient-to-b from-transparent via-live-bg-gradient-start/80 to-live-bg-gradient-end"></div>
+</div>
+<!-- Top AppBar Navigation Shell (Suppressing for Presentation) -->
+<div class="w-full flex justify-between items-center z-10 px-xl h-16">
+<div class="flex items-center gap-md">
+<span class="font-h1 text-h1 text-primary-fixed-dim tracking-tight">Thiên Khôi League</span>
+</div>
+<div class="glass-panel px-md py-xs rounded-full flex items-center gap-sm">
+<span class="material-symbols-outlined text-primary-fixed-dim" style="font-variation-settings: 'FILL' 1;">live_tv</span>
+<span class="font-label-md text-label-md text-on-primary-container">LIVE PRESENTATION</span>
+</div>
+</div>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full grid grid-cols-12 gap-gutter items-center z-10">
+<!-- Scoreboard & Center Display -->
+<div class="col-span-8 flex flex-col items-center gap-xl">
+<!-- Massive Scoreboard -->
+<div class="glass-panel w-full max-w-4xl p-xl rounded-[2rem] flex flex-col items-center gap-lg">
+<div class="flex w-full items-center justify-between">
+<!-- Home Team -->
+<div class="flex flex-col items-center gap-base flex-1">
+<div class="w-24 h-24 rounded-full bg-primary-container flex items-center justify-center border-4 border-glass-border">
+<span class="material-symbols-outlined text-[48px] text-white">shield</span>
+</div>
+<h2 class="font-h1 text-h1 text-white text-center">TK WARRIORS</h2>
+</div>
+<!-- Score -->
+<div class="flex flex-col items-center">
+<div class="font-display-xl text-display-xl text-white tracking-tighter flex items-center gap-md text-glow">
+<span>3</span>
+<span class="text-primary-fixed opacity-50 text-h1">-</span>
+<span>2</span>
+</div>
+<div class="glass-panel px-md py-xs rounded-full mt-base">
+<span class="font-h2 text-h2 text-primary-fixed-dim">78:45</span>
+</div>
+</div>
+<!-- Away Team -->
+<div class="flex flex-col items-center gap-base flex-1">
+<div class="w-24 h-24 rounded-full bg-surface-container-highest flex items-center justify-center border-4 border-glass-border">
+<span class="material-symbols-outlined text-[48px] text-primary">sports_soccer</span>
+</div>
+<h2 class="font-h1 text-h1 text-white text-center">SALE FC</h2>
+</div>
+</div>
+</div>
+<!-- Celebration Popup (Active State) -->
+<div class="absolute inset-0 flex items-center justify-center z-50 pointer-events-none">
+<div class="glass-panel celebration-glow p-xxl rounded-[3rem] w-[700px] flex flex-col items-center text-center gap-lg pointer-events-auto border-2 border-primary-container">
+<div class="w-24 h-24 bg-primary-container rounded-full flex items-center justify-center animate-bounce">
+<span class="material-symbols-outlined text-[48px] text-white" style="font-variation-settings: 'FILL' 1;">home_work</span>
+</div>
+<div>
+<h1 class="font-display-lg text-display-lg text-white mb-xs tracking-tight">SIÊU SALE CHỐT CĂN</h1>
+<p class="font-h2 text-h2 text-primary-fixed-dim uppercase tracking-widest">PHÒNG KD 05 LÊN ĐỈNH</p>
+</div>
+<div class="flex items-baseline gap-base">
+<span class="font-display-xl text-display-xl text-white text-glow">+1</span>
+<span class="font-h1 text-h1 text-primary-fixed-dim">GOAL!</span>
+</div>
+</div>
+</div>
+</div>
+<!-- Right Sidebar Standings -->
+<div class="col-span-4 h-full py-xl flex flex-col gap-lg">
+<div class="glass-panel flex-1 rounded-[1.5rem] p-lg flex flex-col gap-md">
+<div class="flex items-center justify-between border-b border-glass-border pb-md">
+<h3 class="font-h2 text-h2 text-white">LIVE STANDINGS</h3>
+<span class="material-symbols-outlined text-primary-fixed-dim">leaderboard</span>
+</div>
+<div class="space-y-sm">
+<!-- Table Header -->
+<div class="grid grid-cols-12 gap-base px-sm text-primary-fixed opacity-60 font-label-md text-label-md">
+<div class="col-span-1">#</div>
+<div class="col-span-7">TEAM</div>
+<div class="col-span-2 text-center">PTS</div>
+<div class="col-span-2 text-right">SALES</div>
+</div>
+<!-- Standing Row 1 -->
+<div class="grid grid-cols-12 gap-base p-sm bg-primary-container/20 border border-primary-container/30 rounded-lg text-white font-body-md items-center">
+<div class="col-span-1 font-bold">1</div>
+<div class="col-span-7 flex items-center gap-base">
+<span class="material-symbols-outlined text-sm text-primary-fixed-dim">shield</span>
+<span>TK WARRIORS</span>
+</div>
+<div class="col-span-2 text-center font-bold">24</div>
+<div class="col-span-2 text-right text-primary-fixed-dim">$1.2M</div>
+</div>
+<!-- Standing Row 2 -->
+<div class="grid grid-cols-12 gap-base p-sm glass-panel border-none rounded-lg text-white font-body-md items-center">
+<div class="col-span-1">2</div>
+<div class="col-span-7 flex items-center gap-base">
+<span class="material-symbols-outlined text-sm text-surface-variant">stars</span>
+<span>SALE FC</span>
+</div>
+<div class="col-span-2 text-center">21</div>
+<div class="col-span-2 text-right text-primary-fixed-dim">$980K</div>
+</div>
+<!-- Standing Row 3 -->
+<div class="grid grid-cols-12 gap-base p-sm glass-panel border-none rounded-lg text-white font-body-md items-center">
+<div class="col-span-1">3</div>
+<div class="col-span-7 flex items-center gap-base">
+<span class="material-symbols-outlined text-sm text-surface-variant">bolt</span>
+<span>DEAL HUNTERS</span>
+</div>
+<div class="col-span-2 text-center">19</div>
+<div class="col-span-2 text-right text-primary-fixed-dim">$850K</div>
+</div>
+<!-- Standing Row 4 -->
+<div class="grid grid-cols-12 gap-base p-sm glass-panel border-none rounded-lg text-white font-body-md items-center">
+<div class="col-span-1">4</div>
+<div class="col-span-7 flex items-center gap-base">
+<span class="material-symbols-outlined text-sm text-surface-variant">rocket_launch</span>
+<span>PIVOT KINGS</span>
+</div>
+<div class="col-span-2 text-center">18</div>
+<div class="col-span-2 text-right text-primary-fixed-dim">$720K</div>
+</div>
+</div>
+<!-- Live Feed Action -->
+<div class="mt-auto pt-md border-t border-glass-border flex flex-col gap-sm">
+<p class="font-label-md text-label-md text-primary-fixed-dim uppercase">Recent Highlights</p>
+<div class="flex items-start gap-md">
+<div class="w-10 h-10 rounded bg-white/10 flex items-center justify-center shrink-0">
+<span class="material-symbols-outlined text-primary-fixed-dim">payments</span>
+</div>
+<div class="flex flex-col">
+<span class="font-body-sm text-body-sm text-white">Large Transaction Detected</span>
+<span class="font-label-md text-label-md text-primary-fixed-dim opacity-60">2 mins ago • $50,000</span>
+</div>
+</div>
+</div>
+</div>
+</div>
+</main>
+<!-- Bottom Ticker -->
+<div class="w-full h-14 glass-panel border-x-0 border-b-0 flex items-center overflow-hidden z-20">
+<div class="bg-primary-container h-full px-xl flex items-center shrink-0 z-30">
+<span class="font-label-md text-label-md text-white tracking-widest uppercase">Live Updates</span>
+</div>
+<div class="ticker-scroll flex gap-xxl items-center">
+<div class="flex items-center gap-sm text-white font-body-md">
+<span class="text-primary-fixed-dim font-bold">TOP SCORER:</span> NGUYEN VAN A (12)
+            </div>
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+<div class="flex items-center gap-sm text-white font-body-md">
+<span class="text-primary-fixed-dim font-bold">TOP SALES:</span> PHÒNG KD 05 ($50k)
+            </div>
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+<div class="flex items-center gap-sm text-white font-body-md">
+<span class="text-primary-fixed-dim font-bold">MVP:</span> TRAN THI B
+            </div>
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+<div class="flex items-center gap-sm text-white font-body-md">
+<span class="text-primary-fixed-dim font-bold">STREAK:</span> PHOENIX SQUAD (5 WINS)
+            </div>
+<div class="w-2 h-2 rounded-full bg-primary-container"></div>
+<div class="flex items-center gap-sm text-white font-body-md">
+<span class="text-primary-fixed-dim font-bold">NEW LISTING:</span> SKYLINE VILLA (TK WARRIORS)
+            </div>
+</div>
+</div>
+</body></html>

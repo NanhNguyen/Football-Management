@@ -1,0 +1,139 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+}
+
+.header { margin-bottom: var(--space-xl); }
+
+.title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* Bracket Container */
+.bracketContainer {
+  overflow-x: auto;
+  padding-bottom: var(--space-lg);
+}
+
+.bracket {
+  display: flex;
+  align-items: center;
+  gap: var(--space-xxl);
+  min-width: max-content;
+  padding: var(--space-lg) 0;
+}
+
+/* Rounds */
+.round {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-lg);
+  min-width: 260px;
+}
+
+.roundTitle {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin-bottom: var(--space-sm);
+}
+
+.roundMatches {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  justify-content: space-around;
+  height: 100%;
+}
+
+/* Match Card */
+.matchCard {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  overflow: hidden;
+  width: 260px;
+  transition: all 0.2s ease;
+  position: relative;
+}
+
+.matchCard:hover {
+  box-shadow: var(--shadow-lg);
+  transform: scale(1.02);
+}
+
+.matchTeam {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  padding: var(--space-sm) var(--space-md);
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.matchTeam:last-of-type {
+  border-bottom: none;
+}
+
+.matchTeamWin {
+  background: var(--color-primary-light);
+}
+
+.matchTeamWin .matchName {
+  font-weight: 700;
+  color: var(--color-primary);
+}
+
+.matchLogo {
+  font-size: 18px;
+  width: 28px;
+  height: 28px;
+  background: var(--color-bg);
+  border-radius: var(--radius-sm);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.matchName {
+  flex: 1;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+}
+
+.matchScore {
+  font-family: 'Poppins', sans-serif;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+  min-width: 24px;
+  text-align: center;
+}
+
+.penaltyBadge {
+  position: absolute;
+  bottom: -10px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: var(--color-primary);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--radius-full);
+  white-space: nowrap;
+}

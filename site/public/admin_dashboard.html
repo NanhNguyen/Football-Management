@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+
+<html class="light" lang="vi"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Thiên Khôi League Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&amp;family=Poppins:wght@600;700&amp;family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "surface": "#fff8f7",
+                    "surface-container-low": "#fff0ee",
+                    "secondary-fixed-dim": "#ebbbb9",
+                    "on-surface-variant": "#5d3f3c",
+                    "secondary-fixed": "#ffdad8",
+                    "live-bg-gradient-start": "#240B0B",
+                    "secondary-container": "#fdcbc9",
+                    "primary-fixed": "#ffdad6",
+                    "surface-bright": "#fff8f7",
+                    "text-main": "#1F2937",
+                    "surface-tint": "#c00014",
+                    "error-container": "#ffdad6",
+                    "on-primary-container": "#ffece9",
+                    "on-surface": "#291715",
+                    "tertiary-fixed-dim": "#9acbff",
+                    "on-background": "#291715",
+                    "tertiary": "#00588f",
+                    "on-primary-fixed": "#410002",
+                    "on-tertiary-fixed-variant": "#004a79",
+                    "outline": "#926f6b",
+                    "on-primary": "#ffffff",
+                    "tertiary-fixed": "#d0e4ff",
+                    "on-secondary": "#ffffff",
+                    "inverse-on-surface": "#ffedea",
+                    "inverse-surface": "#402b29",
+                    "on-error": "#ffffff",
+                    "tertiary-container": "#0071b6",
+                    "on-error-container": "#93000a",
+                    "surface-variant": "#fcdbd7",
+                    "on-tertiary": "#ffffff",
+                    "error": "#ba1a1a",
+                    "surface-dim": "#f3d3cf",
+                    "glass-fill": "rgba(255, 255, 255, 0.12)",
+                    "surface-container-lowest": "#ffffff",
+                    "on-tertiary-container": "#e7f0ff",
+                    "primary": "#ae0011",
+                    "glass-border": "rgba(255, 255, 255, 0.18)",
+                    "outline-variant": "#e6bdb8",
+                    "inverse-primary": "#ffb4ab",
+                    "primary-container": "#d71920",
+                    "on-secondary-fixed-variant": "#603e3d",
+                    "primary-fixed-dim": "#ffb4ab",
+                    "dashboard-bg": "#F4F5F7",
+                    "live-bg-gradient-end": "#3A1010",
+                    "secondary": "#7a5553",
+                    "surface-container-highest": "#fcdbd7",
+                    "surface-container": "#ffe9e6",
+                    "background": "#fff8f7",
+                    "on-secondary-fixed": "#2f1413",
+                    "on-secondary-container": "#795452",
+                    "on-primary-fixed-variant": "#93000d",
+                    "on-tertiary-fixed": "#001d34",
+                    "surface-container-high": "#ffe2de"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "md": "16px",
+                    "lg": "24px",
+                    "xs": "4px",
+                    "base": "8px",
+                    "xxl": "48px",
+                    "sm": "12px",
+                    "xl": "32px",
+                    "gutter": "24px"
+            },
+            "fontFamily": {
+                    "score-md": ["Poppins"],
+                    "label-md": ["Inter"],
+                    "display-lg": ["Poppins"],
+                    "h1": ["Poppins"],
+                    "h2": ["Poppins"],
+                    "body-md": ["Inter"],
+                    "body-lg": ["Inter"],
+                    "body-sm": ["Inter"],
+                    "display-xl": ["Poppins"]
+            },
+            "fontSize": {
+                    "score-md": ["36px", {"lineHeight": "1", "fontWeight": "700"}],
+                    "label-md": ["12px", {"lineHeight": "1.2", "letterSpacing": "0.05em", "fontWeight": "600"}],
+                    "display-lg": ["48px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "600"}],
+                    "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "600"}],
+                    "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                    "body-sm": ["14px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                    "display-xl": ["72px", {"lineHeight": "1.1", "fontWeight": "700"}]
+            }
+          },
+        },
+      }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+            display: inline-block;
+            line-height: 1;
+            text-transform: none;
+            letter-spacing: normal;
+            word-wrap: normal;
+            white-space: nowrap;
+            direction: ltr;
+        }
+        body {
+            background-color: #F4F5F7;
+            color: #1F2937;
+            font-family: 'Inter', sans-serif;
+        }
+        .hide-scrollbar::-webkit-scrollbar { display: none; }
+        .hide-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="antialiased">
+<!-- Top Header -->
+<header class="bg-surface fixed top-0 left-0 right-0 z-40 border-b border-outline-variant flex justify-between items-center w-full px-md h-16">
+<div class="flex items-center gap-base">
+<button class="p-base hover:bg-surface-container-low transition-colors duration-200 rounded-lg">
+<span class="material-symbols-outlined text-primary">menu</span>
+</button>
+<h1 class="font-h2 text-h2 text-primary tracking-tight">Thiên Khôi League</h1>
+</div>
+<div class="flex items-center gap-md">
+<div class="flex items-center gap-xs">
+<div class="w-2.5 h-2.5 rounded-full bg-green-500"></div>
+<span class="font-label-md text-label-md text-on-surface-variant uppercase tracking-wider">Live</span>
+</div>
+<button class="relative p-base rounded-full hover:bg-surface-container-low">
+<span class="material-symbols-outlined text-on-surface-variant">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-primary rounded-full"></span>
+</button>
+<div class="w-10 h-10 rounded-full border-2 border-outline-variant overflow-hidden">
+<img alt="Admin User Profile" class="w-full h-full object-cover" data-alt="A professional headshot of a male administrative user for a corporate sports dashboard. The lighting is crisp and clean, reflecting an office setting with a soft neutral background. The visual style is modern, professional, and high-key, aligning with a flat UI aesthetic using a clean color palette." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBTMBXWDLbrLS7Pt3sMv_MYNHoxpeld2qgV071cQF0ZYBjEejFuPrn4eTnpD-_mSyo32bXW1X9YxIS2vsUFDxqYaYkH-7JkZyhB0qh6s-6k2udNqfO6a9IfabcNzz_YYbR95nHpSTtcyGaIlG7DfjfoLgjzXi_T2tyCrLskaWGaNt4zojZDjC4x9V3U6xMlEE0tspYU9BqnfBoe7x0F2u69C_ugJvdYSsKEPhEG4tvc3UHWaldUYk0i2D4-BK4v3JvVtFnxh9dRVtg"/>
+</div>
+</div>
+</header>
+<!-- Sidebar / Drawer Overlay (Simplified for Mobile Layout) -->
+<!-- Note: In a real app this would be toggled, but here it's accessible via the layout as per instructions -->
+<main class="pt-20 pb-24 px-md flex flex-col gap-lg">
+<!-- Quick Action Bar -->
+<section>
+<div class="flex overflow-x-auto gap-base pb-base hide-scrollbar">
+<button class="flex-shrink-0 flex items-center gap-xs px-lg py-sm bg-surface-container-lowest border border-outline-variant text-text-main font-label-md rounded-lg hover:bg-surface-container-low active:scale-95 duration-150 transition-all">
+<span class="material-symbols-outlined">add_circle</span>
+                    Add Field Goal
+                </button>
+<button class="flex-shrink-0 flex items-center gap-xs px-lg py-sm bg-primary-container text-on-primary-container font-label-md rounded-lg shadow-sm active:scale-95 duration-150 transition-all">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">stars</span>
+                    Manual Sale Goal
+                </button>
+<button class="flex-shrink-0 flex items-center gap-xs px-lg py-sm bg-surface-container-lowest border border-outline-variant text-text-main font-label-md rounded-lg hover:bg-surface-container-low active:scale-95 duration-150 transition-all">
+<span class="material-symbols-outlined">undo</span>
+                    Undo Last Goal
+                </button>
+</div>
+</section>
+<!-- Match Control Console -->
+<section class="bg-surface rounded-xl border border-outline-variant overflow-hidden">
+<div class="flex border-b border-outline-variant">
+<button class="flex-1 py-md font-label-md text-primary border-b-2 border-primary">Live</button>
+<button class="flex-1 py-md font-label-md text-on-surface-variant">Stats</button>
+<button class="flex-1 py-md font-label-md text-on-surface-variant">Manual Override</button>
+</div>
+<div class="p-lg flex flex-col items-center gap-lg">
+<div class="flex justify-between items-center w-full">
+<div class="flex flex-col items-center gap-base flex-1">
+<div class="w-16 h-16 bg-surface-container rounded-lg flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-4xl text-primary">shield</span>
+</div>
+<span class="font-label-md text-text-main text-center">TK Warriors</span>
+</div>
+<div class="flex flex-col items-center gap-xs px-lg">
+<div class="font-score-md text-score-md text-primary">2 - 1</div>
+<div class="bg-surface-container-high px-md py-1 rounded-full text-[10px] font-bold text-on-surface-variant uppercase tracking-widest">74:20</div>
+</div>
+<div class="flex flex-col items-center gap-base flex-1">
+<div class="w-16 h-16 bg-surface-container rounded-lg flex items-center justify-center border border-outline-variant">
+<span class="material-symbols-outlined text-4xl text-primary">sports_soccer</span>
+</div>
+<span class="font-label-md text-text-main text-center">Sale FC</span>
+</div>
+</div>
+<div class="w-full h-px bg-outline-variant"></div>
+<div class="flex justify-between items-center w-full gap-md">
+<button class="flex-1 bg-surface-container-low border border-outline-variant py-md rounded-lg font-label-md hover:bg-surface-container-high">
+                        + Team A
+                    </button>
+<button class="flex-1 bg-surface-container-low border border-outline-variant py-md rounded-lg font-label-md hover:bg-surface-container-high">
+                        + Team B
+                    </button>
+</div>
+</div>
+</section>
+<!-- Live Events Timeline -->
+<section class="flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<h2 class="font-h2 text-h2 text-text-main">Live Events</h2>
+<button class="text-primary font-label-md">View All</button>
+</div>
+<div class="flex flex-col gap-base">
+<!-- Sale Goal Event -->
+<div class="bg-surface p-md rounded-lg border border-outline-variant flex gap-md items-start relative overflow-hidden">
+<div class="w-1 h-full bg-primary absolute left-0 top-0"></div>
+<div class="bg-primary-container/10 p-base rounded-lg">
+<span class="material-symbols-outlined text-primary">payments</span>
+</div>
+<div class="flex-1 flex flex-col gap-xs">
+<div class="flex justify-between">
+<span class="bg-primary-container text-on-primary-container text-[10px] font-bold px-base py-0.5 rounded shadow-[0_0_10px_rgba(215,25,32,0.3)]">CRM SALE GOAL</span>
+<span class="font-label-md text-on-surface-variant">72'</span>
+</div>
+<p class="font-body-md text-text-main"><span class="font-bold">Nguyen Van A</span> closed a deal worth $5,000!</p>
+<p class="font-body-sm text-on-surface-variant">Warriors score increased (+1)</p>
+</div>
+</div>
+<!-- Football Goal Event -->
+<div class="bg-surface p-md rounded-lg border border-outline-variant flex gap-md items-start">
+<div class="bg-surface-container-high p-base rounded-lg">
+<span class="material-symbols-outlined text-on-surface-variant">sports_soccer</span>
+</div>
+<div class="flex-1 flex flex-col gap-xs">
+<div class="flex justify-between">
+<span class="text-on-surface-variant text-[10px] font-bold border border-outline px-base py-0.5 rounded">FOOTBALL GOAL</span>
+<span class="font-label-md text-on-surface-variant">48'</span>
+</div>
+<p class="font-body-md text-text-main"><span class="font-bold">Tran Thi B</span> scored for Sale FC.</p>
+<p class="font-body-sm text-on-surface-variant">Header from a corner kick.</p>
+</div>
+</div>
+</div>
+</section>
+<!-- Utility Panel -->
+<section class="flex flex-col gap-lg">
+<!-- CSV Import Checklist -->
+<div class="bg-surface p-lg rounded-xl border border-outline-variant flex flex-col gap-md">
+<div class="flex justify-between items-center">
+<h3 class="font-h2 text-h2 text-text-main">CSV Import</h3>
+<span class="font-label-md text-primary">In Progress</span>
+</div>
+<div class="flex flex-col gap-xs">
+<div class="flex justify-between font-label-md text-on-surface-variant">
+<span>Players_Data_Final.csv</span>
+<span>85%</span>
+</div>
+<div class="w-full h-2 bg-surface-container-high rounded-full overflow-hidden">
+<div class="h-full bg-primary w-[85%]"></div>
+</div>
+</div>
+<div class="flex items-center gap-base py-base border-t border-outline-variant mt-base">
+<span class="material-symbols-outlined text-green-500" style="font-variation-settings: 'FILL' 1;">check_circle</span>
+<span class="font-body-sm text-on-surface-variant">Schema validation passed</span>
+</div>
+</div>
+<!-- System Health -->
+<div class="bg-surface p-lg rounded-xl border border-outline-variant flex flex-col gap-md">
+<h3 class="font-h2 text-h2 text-text-main">System Health</h3>
+<div class="grid grid-cols-2 gap-md">
+<div class="bg-dashboard-bg p-md rounded-lg flex flex-col gap-xs border border-outline-variant">
+<span class="font-label-md text-on-surface-variant uppercase text-[10px]">CRM Feed</span>
+<div class="flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="font-body-md font-bold text-text-main">Connected</span>
+</div>
+</div>
+<div class="bg-dashboard-bg p-md rounded-lg flex flex-col gap-xs border border-outline-variant">
+<span class="font-label-md text-on-surface-variant uppercase text-[10px]">Websocket</span>
+<div class="flex items-center gap-xs">
+<div class="w-2 h-2 rounded-full bg-green-500"></div>
+<span class="font-body-md font-bold text-text-main">Active</span>
+</div>
+</div>
+<div class="bg-dashboard-bg p-md rounded-lg flex flex-col gap-xs border border-outline-variant col-span-2">
+<span class="font-label-md text-on-surface-variant uppercase text-[10px]">Queue Count</span>
+<div class="flex items-center justify-between">
+<span class="font-body-md font-bold text-text-main">0 Items pending</span>
+<span class="material-symbols-outlined text-on-surface-variant">terminal</span>
+</div>
+</div>
+</div>
+</div>
+</section>
+</main>
+<!-- Bottom Mobile Navigation -->
+<nav class="fixed bottom-0 w-full bg-surface border-t border-outline-variant z-50 flex justify-around items-center h-16 px-base">
+<button class="flex flex-col items-center gap-xs text-on-surface-variant hover:bg-surface-container-low p-base rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined">dashboard</span>
+<span class="text-[10px] font-bold uppercase">Home</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-primary scale-110 p-base rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 1;">sports_soccer</span>
+<span class="text-[10px] font-bold uppercase">Control</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-on-surface-variant hover:bg-surface-container-low p-base rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined">leaderboard</span>
+<span class="text-[10px] font-bold uppercase">Standings</span>
+</button>
+<button class="flex flex-col items-center gap-xs text-on-surface-variant hover:bg-surface-container-low p-base rounded-lg transition-all duration-200">
+<span class="material-symbols-outlined">settings</span>
+<span class="text-[10px] font-bold uppercase">System</span>
+</button>
+</nav>
+<!-- Hidden Drawer Structure (Mandated by JSON but used as logic here) -->
+<div class="fixed inset-0 bg-black/50 z-[60] hidden" id="drawer">
+<div class="bg-surface h-full w-72 flex flex-col p-md gap-base border-r border-outline-variant">
+<div class="flex justify-between items-center mb-lg">
+<span class="font-h2 text-h2 text-primary">Admin Control</span>
+<button class="material-symbols-outlined">close</button>
+</div>
+<!-- Dynamic Navigation Items -->
+<div class="flex flex-col gap-xs">
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-all font-label-md" href="#">
+<span class="material-symbols-outlined">dashboard</span> Dashboard
+                </a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-all font-label-md" href="#">
+<span class="material-symbols-outlined">groups</span> Team Management
+                </a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-all font-label-md" href="#">
+<span class="material-symbols-outlined">person</span> Player Management
+                </a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-all font-label-md" href="#">
+<span class="material-symbols-outlined">upload_file</span> CSV Import
+                </a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-all font-label-md" href="#">
+<span class="material-symbols-outlined">calendar_today</span> Match Schedule
+                </a>
+<a class="flex items-center gap-md p-md bg-primary-container text-on-primary-container font-bold rounded-lg transition-all font-label-md active:scale-95 duration-150" href="#">
+<span class="material-symbols-outlined">sports_soccer</span> Match Control
+                </a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-all font-label-md" href="#">
+<span class="material-symbols-outlined">leaderboard</span> Live Standings
+                </a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-all font-label-md" href="#">
+<span class="material-symbols-outlined">settings_ethernet</span> CRM Webhook Config
+                </a>
+<a class="flex items-center gap-md p-md text-on-surface-variant hover:bg-surface-container-low rounded-lg transition-all font-label-md" href="#">
+<span class="material-symbols-outlined">terminal</span> System Logs
+                </a>
+</div>
+</div>
+</div>
+</body></html>

@@ -1,0 +1,176 @@
+.page {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: var(--space-lg);
+}
+
+.header {
+  margin-bottom: var(--space-xl);
+}
+
+.title {
+  font-family: 'Poppins', sans-serif;
+  font-size: 28px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.subtitle {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  margin-top: var(--space-xs);
+}
+
+/* TABLE */
+.tableWrap {
+  background: var(--color-surface);
+  border-radius: var(--radius-xl);
+  border: 1px solid var(--color-border-light);
+  overflow: hidden;
+  box-shadow: var(--shadow-sm);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.table thead {
+  background: var(--color-bg);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.table th {
+  padding: var(--space-md) var(--space-base);
+  font-size: 11px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--color-text-muted);
+  border-bottom: 2px solid var(--color-border-light);
+  text-align: left;
+  white-space: nowrap;
+}
+
+.thCenter {
+  text-align: center !important;
+}
+
+.row {
+  transition: background 0.15s ease;
+}
+
+.row:hover {
+  background: var(--color-surface-hover);
+}
+
+.rowZebra {
+  background: rgba(244, 245, 247, 0.5);
+}
+
+.rowTop3 {
+  font-weight: 600;
+}
+
+.table td {
+  padding: var(--space-md) var(--space-base);
+  border-bottom: 1px solid var(--color-border-light);
+  vertical-align: middle;
+}
+
+.tdCenter {
+  text-align: center;
+}
+
+/* Team cell */
+.teamCell {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+}
+
+.teamLogo {
+  font-size: 22px;
+  width: 36px;
+  height: 36px;
+  background: var(--color-bg);
+  border-radius: var(--radius-md);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.teamName {
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Badges & Numbers */
+.badge {
+  font-size: 20px;
+}
+
+.rank {
+  font-weight: 700;
+  color: var(--color-text-muted);
+  font-size: 13px;
+}
+
+.win {
+  color: var(--color-success);
+  font-weight: 600;
+}
+
+.loss {
+  color: var(--color-primary);
+  font-weight: 600;
+}
+
+.positive {
+  color: var(--color-success);
+  font-weight: 700;
+}
+
+.negative {
+  color: var(--color-primary);
+  font-weight: 700;
+}
+
+.points {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary);
+  color: white;
+  font-weight: 700;
+  font-size: 13px;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+}
+
+.deals {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-primary-light);
+  color: var(--color-primary);
+  font-weight: 700;
+  font-size: 12px;
+  padding: 4px 10px;
+  border-radius: var(--radius-full);
+}
+
+@media (max-width: 768px) {
+  .tableWrap {
+    overflow-x: auto;
+  }
+
+  .table {
+    min-width: 700px;
+  }
+}
