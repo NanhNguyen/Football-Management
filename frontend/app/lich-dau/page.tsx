@@ -8,27 +8,41 @@ export default async function LichDauPage() {
   try {
     data = await layDanhSachTranDau();
   } catch {
+    // Fallback schedule
     data = [
-      { id: 'tran-1', doiNha: { ten: 'TK Warriors', logo: '⚔️' }, doiKhach: { ten: 'Sale FC', logo: '🦅' }, tyDoiNha: 3, tyDoiKhach: 1, giaoDichDoiNha: 5, giaoDichDoiKhach: 2, trangThai: 'LIVE', phut: 72, vong: 'Vòng 5' },
-      { id: 'tran-2', doiNha: { ten: 'Titans KD05', logo: '🛡️' }, doiKhach: { ten: 'Phoenix KD03', logo: '🔥' }, tyDoiNha: 1, tyDoiKhach: 2, giaoDichDoiNha: 3, giaoDichDoiKhach: 4, trangThai: 'LIVE', phut: 65, vong: 'Vòng 5' },
-      { id: 'tran-3', doiNha: { ten: 'Eagles KD07', logo: '🦅' }, doiKhach: { ten: 'Sharks KD02', logo: '🦈' }, tyDoiNha: 0, tyDoiKhach: 0, giaoDichDoiNha: 0, giaoDichDoiKhach: 0, trangThai: 'SAP_DIEN_RA', phut: 0, vong: 'Vòng 5' },
-      { id: 'tran-4', doiNha: { ten: 'Lions KD08', logo: '🦁' }, doiKhach: { ten: 'Storm KD01', logo: '⛈️' }, tyDoiNha: 0, tyDoiKhach: 0, giaoDichDoiNha: 0, giaoDichDoiKhach: 0, trangThai: 'SAP_DIEN_RA', phut: 0, vong: 'Vòng 5' },
-      { id: 'tran-5', doiNha: { ten: 'TK Warriors', logo: '⚔️' }, doiKhach: { ten: 'Titans KD05', logo: '🛡️' }, tyDoiNha: 2, tyDoiKhach: 2, giaoDichDoiNha: 4, giaoDichDoiKhach: 3, trangThai: 'KET_THUC', phut: 90, vong: 'Vòng 4' },
-      { id: 'tran-6', doiNha: { ten: 'Phoenix KD03', logo: '🔥' }, doiKhach: { ten: 'Sale FC', logo: '🦅' }, tyDoiNha: 3, tyDoiKhach: 1, giaoDichDoiNha: 6, giaoDichDoiKhach: 2, trangThai: 'KET_THUC', phut: 90, vong: 'Vòng 4' },
+      { id: 't1', doiNha: { ten: 'TK Warriors', logo: '⚔️' }, doiKhach: { ten: 'Storm KD01', logo: '⛈️' }, tyDoiNha: 3, tyDoiKhach: 1, trangThai: 'KET_THUC', phut: 90, vong: 'Vòng bảng - Bảng A' },
+      { id: 't2', doiNha: { ten: 'Lions KD08', logo: '🦁' }, doiKhach: { ten: 'Sharks KD02', logo: '🦈' }, tyDoiNha: 0, tyDoiKhach: 0, trangThai: 'KET_THUC', phut: 90, vong: 'Vòng bảng - Bảng A' },
+      { id: 't3', doiNha: { ten: 'Titans KD05', logo: '🛡️' }, doiKhach: { ten: 'Phoenix KD03', logo: '🔥' }, tyDoiNha: 1, tyDoiKhach: 2, trangThai: 'DANG_DIEN_RA', phut: 65, vong: 'Vòng bảng - Bảng B' },
+      { id: 't4', doiNha: { ten: 'Sale FC', logo: '🦅' }, doiKhach: { ten: 'Eagles KD07', logo: '🦅' }, tyDoiNha: 0, tyDoiKhach: 0, trangThai: 'SAP_DIEN_RA', phut: 0, vong: 'Vòng bảng - Bảng C' },
+      { id: 't5', doiNha: { ten: 'Dragons KD09', logo: '🐲' }, doiKhach: { ten: 'Wolves KD10', logo: '🐺' }, tyDoiNha: 0, tyDoiKhach: 0, trangThai: 'SAP_DIEN_RA', phut: 0, vong: 'Vòng bảng - Bảng B' },
     ];
   }
 
-  const live = data.filter((t: any) => t.trangThai === 'LIVE');
+  const live = data.filter((t: any) => t.trangThai === 'DANG_DIEN_RA');
   const upcoming = data.filter((t: any) => t.trangThai === 'SAP_DIEN_RA');
   const finished = data.filter((t: any) => t.trangThai === 'KET_THUC');
+
+  // Grouping helper
+  const groupByRound = (matches: any[]) => {
+    return matches.reduce((acc, match) => {
+      const round = match.vong || 'Khác';
+      if (!acc[round]) acc[round] = [];
+      acc[round].push(match);
+      return acc;
+    }, {} as Record<string, any[]>);
+  };
+
+  const finishedGrouped = groupByRound(finished);
+  const upcomingGrouped = groupByRound(upcoming);
 
   return (
     <div className={styles.page}>
       <div className={styles.header}>
-        <h2 className={styles.title}>Lịch thi đấu</h2>
-        <p className={styles.subtitle}>Thiên Khôi Championship 2024</p>
+        <h2 className={styles.title}>Lịch thi đấu & Kết quả</h2>
+        <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt 2024</p>
       </div>
 
+      {/* LIVE SECTION */}
       {live.length > 0 && (
         <section className={styles.section}>
           <h3 className={styles.sectionTitle}>
@@ -41,21 +55,33 @@ export default async function LichDauPage() {
         </section>
       )}
 
-      {upcoming.length > 0 && (
+      {/* UPCOMING BY ROUND */}
+      {Object.keys(upcomingGrouped).length > 0 && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>📅 Sắp diễn ra</h3>
-          <div className={styles.grid}>
-            {upcoming.map((t: any) => <LiveMatchCard key={t.id} tran={t} />)}
-          </div>
+          <h3 className={styles.sectionTitle}>📅 Trận đấu sắp tới</h3>
+          {Object.entries(upcomingGrouped).map(([round, matches]) => (
+            <div key={round} style={{ marginBottom: '24px' }}>
+              <h4 style={{ fontSize: '14px', color: 'var(--color-primary)', marginBottom: '12px', textTransform: 'uppercase' }}>{round}</h4>
+              <div className={styles.grid}>
+                {(matches as any[]).map((t: any) => <LiveMatchCard key={t.id} tran={t} />)}
+              </div>
+            </div>
+          ))}
         </section>
       )}
 
-      {finished.length > 0 && (
+      {/* FINISHED BY ROUND */}
+      {Object.keys(finishedGrouped).length > 0 && (
         <section className={styles.section}>
-          <h3 className={styles.sectionTitle}>✅ Đã kết thúc</h3>
-          <div className={styles.grid}>
-            {finished.map((t: any) => <LiveMatchCard key={t.id} tran={t} />)}
-          </div>
+          <h3 className={styles.sectionTitle}>✅ Kết quả trận đấu</h3>
+          {Object.entries(finishedGrouped).map(([round, matches]) => (
+            <div key={round} style={{ marginBottom: '24px' }}>
+              <h4 style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginBottom: '12px', textTransform: 'uppercase' }}>{round}</h4>
+              <div className={styles.grid}>
+                {(matches as any[]).map((t: any) => <LiveMatchCard key={t.id} tran={t} />)}
+              </div>
+            </div>
+          ))}
         </section>
       )}
     </div>

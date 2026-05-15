@@ -33,10 +33,6 @@ export class AppController {
     return this.appService.layTopGhiBan();
   }
 
-  @Get('cau-thu/top-giao-dich')
-  layTopGiaoDich() {
-    return this.appService.layTopGiaoDich();
-  }
 
   // ===== TRẬN ĐẤU =====
   @Get('tran-dau')
@@ -60,9 +56,4 @@ export class AppController {
     return this.appService.layBangXepHang();
   }
 
-  // ===== GIAO DỊCH (ADMIN) =====
-  @Post('giao-dich')
-  themGiaoDich(@Body() body: { tranDauId: string; doiId: string; soGiaoDich: number; moTa?: string }) {
-    return this.appService.themGiaoDich(body);
-  }
 }

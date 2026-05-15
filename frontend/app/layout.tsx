@@ -3,8 +3,11 @@ import "./globals.css";
 import TopNav from "@/components/TopNav";
 
 export const metadata: Metadata = {
-  title: "Thiên Khôi Football League | Hệ thống Quản lý Giải đấu",
-  description: "Dashboard quản lý giải đấu bóng đá nội bộ Tập đoàn Bất động sản Thiên Khôi. Quản lý đội bóng, cầu thủ, lịch thi đấu và theo dõi giao dịch real-time.",
+  title: "TKSCORE | Hệ thống Quản lý Giải đấu",
+  description: "Dashboard quản lý giải đấu bóng đá nội bộ. Quản lý đội bóng, cầu thủ, lịch thi đấu và theo dõi kết quả trận đấu real-time.",
+  icons: {
+    icon: '/logo.svg',
+  },
 };
 
 export default function RootLayout({

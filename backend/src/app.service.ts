@@ -54,15 +54,6 @@ export class AppService {
       }));
   }
 
-  layTopGiaoDich() {
-    return [...danhSachCauThu]
-      .sort((a, b) => b.giaoDich - a.giaoDich)
-      .slice(0, 5)
-      .map((ct) => ({
-        ...ct,
-        doi: danhSachDoi.find((d) => d.id === ct.doiId),
-      }));
-  }
 
   // ===== TRẬN ĐẤU =====
   private enrichTranDau(tran: TranDau) {
@@ -84,7 +75,7 @@ export class AppService {
 
   layTranDauLive() {
     return danhSachTranDau
-      .filter((t) => t.trangThai === 'LIVE')
+      .filter((t) => t.trangThai === 'DANG_DIEN_RA')
       .map((t) => this.enrichTranDau(t));
   }
 
@@ -102,26 +93,4 @@ export class AppService {
     }));
   }
 
-  // ===== GIAO DỊCH (ADMIN) =====
-  themGiaoDich(body: { tranDauId: string; doiId: string; soGiaoDich: number; moTa?: string }) {
-    const tran = danhSachTranDau.find((t) => t.id === body.tranDauId);
-    if (!tran) return { error: 'Không tìm thấy trận đấu' };
-
-    // Auto convert: 1 giao dịch = 2 bàn thắng
-    const soBanThang = body.soGiaoDich * 2;
-
-    if (tran.doiNhaId === body.doiId) {
-      tran.tyDoiNha += soBanThang;
-      tran.giaoDichDoiNha += body.soGiaoDich;
-    } else if (tran.doiKhachId === body.doiId) {
-      tran.tyDoiKhach += soBanThang;
-      tran.giaoDichDoiKhach += body.soGiaoDich;
-    }
-
-    return {
-      thanhCong: true,
-      thongBao: `Đã thêm ${body.soGiaoDich} giao dịch → +${soBanThang} bàn thắng`,
-      tranDau: this.enrichTranDau(tran),
-    };
-  }
 }

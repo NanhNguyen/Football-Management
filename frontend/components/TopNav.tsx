@@ -23,10 +23,10 @@ export default function TopNav() {
       {/* LEFT — Logo & Season */}
       <div className={styles.left}>
         <div className={styles.logo}>
-          <span className={styles.logoIcon}>⚽</span>
+          <img src="/logo.svg" alt="TKSCORE Logo" style={{ width: '40px', height: '40px' }} />
           <div>
-            <h1 className={styles.brandName}>THIÊN KHÔI</h1>
-            <p className={styles.seasonName}>Championship 2024</p>
+            <h1 className={styles.brandName}>TKSCORE</h1>
+            <p className={styles.seasonName}>Cúp Siêu Chốt</p>
           </div>
         </div>
       </div>

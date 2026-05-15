@@ -13,11 +13,11 @@ export default async function TongQuanPage() {
   }
 
   const stats = [
-    { label: 'Tổng số đội', value: data?.tongSoDoi ?? 8, icon: '🏆' },
-    { label: 'Giao dịch hôm nay', value: `+${data?.giaoDichHomNay ?? 45}`, icon: '📈' },
-    { label: 'Trận đang LIVE', value: data?.tranDangLive ?? 2, icon: '🔴', isLive: true },
-    { label: 'Top đội dẫn đầu', value: data?.doiDanDau ?? 'TK Warriors', icon: '👑' },
-    { label: 'Giao dịch tuần', value: data?.tongGiaoDichTuan ?? 187, icon: '💰' },
+    { label: 'Tổng số đội', value: data?.tongSoDoi ?? 16, icon: '🏆' },
+    { label: 'Tổng số trận', value: data?.tongSoTran ?? 48, icon: '⚽' },
+    { label: 'Trận đang LIVE', value: data?.tranDangLive ?? 1, icon: '🔴', isLive: true },
+    { label: 'Đội dẫn đầu', value: data?.doiDanDau ?? 'TK Warriors', icon: '👑' },
+    { label: 'Tổng bàn thắng', value: data?.tongBanThang ?? 84, icon: '🎯' },
   ];
 
   return (
@@ -27,7 +27,7 @@ export default async function TongQuanPage() {
         <div className={styles.heroContent}>
           <div className={styles.heroHeader}>
             <h2 className={styles.heroTitle}>Tournament Command Center</h2>
-            <p className={styles.heroSubtitle}>Thiên Khôi Championship 2024 — Vòng 5</p>
+            <p className={styles.heroSubtitle}>Thiên Khôi Cúp Siêu Chốt — Vòng bảng 2024</p>
           </div>
           <div className={styles.statsGrid}>
             {stats.map((s, i) => (
@@ -64,14 +64,14 @@ export default async function TongQuanPage() {
               <LiveMatchCard tran={{
                 id: 'tran-1', doiNha: { ten: 'TK Warriors', logo: '⚔️', vietTat: 'TKW' },
                 doiKhach: { ten: 'Sale FC', logo: '🦅', vietTat: 'SFC' },
-                tyDoiNha: 3, tyDoiKhach: 1, giaoDichDoiNha: 5, giaoDichDoiKhach: 2,
-                trangThai: 'LIVE', phut: 72, vong: 'Vòng 5'
+                tyDoiNha: 3, tyDoiKhach: 1,
+                trangThai: 'DANG_DIEN_RA', phut: 72, vong: 'Tứ kết'
               }} />
               <LiveMatchCard tran={{
                 id: 'tran-2', doiNha: { ten: 'Titans KD05', logo: '🛡️', vietTat: 'T05' },
                 doiKhach: { ten: 'Phoenix KD03', logo: '🔥', vietTat: 'P03' },
-                tyDoiNha: 1, tyDoiKhach: 2, giaoDichDoiNha: 3, giaoDichDoiKhach: 4,
-                trangThai: 'LIVE', phut: 65, vong: 'Vòng 5'
+                tyDoiNha: 1, tyDoiKhach: 2,
+                trangThai: 'DANG_DIEN_RA', phut: 65, vong: 'Tứ kết'
               }} />
             </>
           )}
@@ -88,9 +88,9 @@ export default async function TongQuanPage() {
         </div>
         <div className={styles.top3Grid}>
           {(data?.top3Doi ?? [
-            { hang: 1, doi: { ten: 'TK Warriors', logo: '⚔️' }, diem: 13, giaoDich: 45 },
-            { hang: 2, doi: { ten: 'Phoenix KD03', logo: '🔥' }, diem: 10, giaoDich: 38 },
-            { hang: 3, doi: { ten: 'Titans KD05', logo: '🛡️' }, diem: 9, giaoDich: 32 },
+            { hang: 1, doi: { ten: 'TK Warriors', logo: '⚔️' }, diem: 13, banThang: 14 },
+            { hang: 2, doi: { ten: 'Phoenix KD03', logo: '🔥' }, diem: 10, banThang: 12 },
+            { hang: 3, doi: { ten: 'Titans KD05', logo: '🛡️' }, diem: 9, banThang: 10 },
           ]).map((item: any, i: number) => {
             const badges = ['🥇', '🥈', '🥉'];
             return (
@@ -99,7 +99,7 @@ export default async function TongQuanPage() {
                 <span className={styles.top3Logo}>{item.doi?.logo}</span>
                 <div className={styles.top3Info}>
                   <p className={styles.top3Name}>{item.doi?.ten}</p>
-                  <p className={styles.top3Stats}>{item.diem} điểm · {item.giaoDich} GD</p>
+                  <p className={styles.top3Stats}>{item.diem} điểm · {item.banThang} bàn thắng</p>
                 </div>
               </div>
             );

@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" fill="none">
+  <!-- Shield Background -->
+  <path d="M256 16C160 32 64 32 64 32V224C64 352 256 496 256 496C256 496 448 352 448 224V32C448 32 352 32 256 16Z" fill="#D71920"/>
+  
+  <!-- Shield Inner Outline -->
+  <path d="M256 38.6C168.4 53.2 81.6 53.2 81.6 53.2V224C81.6 340.6 256 471.2 256 471.2C256 471.2 430.4 340.6 430.4 224V53.2C430.4 53.2 343.6 53.2 256 38.6Z" fill="#1E1E1E"/>
+
+  <!-- Golden Hexagon (Center of Football) -->
+  <polygon points="256,160 310,195 310,265 256,300 202,265 202,195" fill="#FFD700" stroke="#FFFFFF" stroke-width="8" stroke-linejoin="round"/>
+  
+  <!-- Football Lines connecting Hexagon to Shield edges -->
+  <line x1="256" y1="160" x2="256" y2="70" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="202" y1="195" x2="110" y2="160" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="310" y1="195" x2="402" y2="160" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="202" y1="265" x2="130" y2="340" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="310" y1="265" x2="382" y2="340" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+  <line x1="256" y1="300" x2="256" y2="400" stroke="#FFFFFF" stroke-width="8" stroke-linecap="round"/>
+
+  <!-- The "Siêu Chốt" Lightning Bolt overlaid -->
+  <path d="M276 170L190 280H256L236 380L322 270H256L276 170Z" fill="#FFFFFF" filter="drop-shadow(0px 4px 10px rgba(0,0,0,0.5))"/>
+</svg>
