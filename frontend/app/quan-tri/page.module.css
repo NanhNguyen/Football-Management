@@ -91,21 +91,48 @@
 }
 
 .sidebarFooter {
-  padding-top: var(--space-base);
+  padding: var(--space-lg) var(--space-base);
   border-top: 1px solid var(--color-border-light);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-top: auto;
 }
 
 .backToSite {
   font-size: 13px;
   font-weight: 600;
   color: var(--color-primary);
-  padding: var(--space-sm) var(--space-base);
-  display: block;
-  transition: opacity 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  transition: all 0.2s;
 }
 
 .backToSite:hover {
-  opacity: 0.7;
+  background: var(--color-primary-light);
+}
+
+.logoutButton {
+  font-size: 13px;
+  font-weight: 600;
+  color: #ff4d4f;
+  background: rgba(255, 77, 79, 0.05);
+  border: 1px solid rgba(255, 77, 79, 0.1);
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.logoutButton:hover {
+  background: rgba(255, 77, 79, 0.1);
+  border-color: rgba(255, 77, 79, 0.3);
 }
 
 /* ===== MAIN ===== */

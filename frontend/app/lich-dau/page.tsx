@@ -37,33 +37,41 @@ export default async function LichDauPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
+      <div className={`${styles.header} animate-fade-up`}>
         <h2 className={styles.title}>Lịch thi đấu & Kết quả</h2>
         <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt 2024</p>
       </div>
 
       {/* LIVE SECTION */}
       {live.length > 0 && (
-        <section className={styles.section}>
+        <section className={`${styles.section} animate-fade-up stagger-1`}>
           <h3 className={styles.sectionTitle}>
             <span className={styles.liveDot} />
             Đang diễn ra
           </h3>
           <div className={styles.grid}>
-            {live.map((t: any) => <LiveMatchCard key={t.id} tran={t} />)}
+            {live.map((t: any, i: number) => (
+              <div key={t.id} className={`animate-fade-up stagger-${(i % 5) + 1}`}>
+                <LiveMatchCard tran={t} />
+              </div>
+            ))}
           </div>
         </section>
       )}
 
       {/* UPCOMING BY ROUND */}
       {Object.keys(upcomingGrouped).length > 0 && (
-        <section className={styles.section}>
+        <section className={`${styles.section} animate-fade-up stagger-2`}>
           <h3 className={styles.sectionTitle}>📅 Trận đấu sắp tới</h3>
-          {Object.entries(upcomingGrouped).map(([round, matches]) => (
+          {Object.entries(upcomingGrouped).map(([round, matches], rIndex) => (
             <div key={round} style={{ marginBottom: '24px' }}>
               <h4 style={{ fontSize: '14px', color: 'var(--color-primary)', marginBottom: '12px', textTransform: 'uppercase' }}>{round}</h4>
               <div className={styles.grid}>
-                {(matches as any[]).map((t: any) => <LiveMatchCard key={t.id} tran={t} />)}
+                {(matches as any[]).map((t: any, i: number) => (
+                  <div key={t.id} className={`animate-fade-up stagger-${(i % 5) + 1}`}>
+                    <LiveMatchCard tran={t} />
+                  </div>
+                ))}
               </div>
             </div>
           ))}
@@ -72,13 +80,17 @@ export default async function LichDauPage() {
 
       {/* FINISHED BY ROUND */}
       {Object.keys(finishedGrouped).length > 0 && (
-        <section className={styles.section}>
+        <section className={`${styles.section} animate-fade-up stagger-3`}>
           <h3 className={styles.sectionTitle}>✅ Kết quả trận đấu</h3>
-          {Object.entries(finishedGrouped).map(([round, matches]) => (
+          {Object.entries(finishedGrouped).map(([round, matches], rIndex) => (
             <div key={round} style={{ marginBottom: '24px' }}>
               <h4 style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginBottom: '12px', textTransform: 'uppercase' }}>{round}</h4>
               <div className={styles.grid}>
-                {(matches as any[]).map((t: any) => <LiveMatchCard key={t.id} tran={t} />)}
+                {(matches as any[]).map((t: any, i: number) => (
+                  <div key={t.id} className={`animate-fade-up stagger-${(i % 5) + 1}`}>
+                    <LiveMatchCard tran={t} />
+                  </div>
+                ))}
               </div>
             </div>
           ))}

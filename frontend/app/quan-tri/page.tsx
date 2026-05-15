@@ -12,14 +12,18 @@ import {
   addEvent
 } from '@/lib/api';
 
+import { useRouter } from 'next/navigation';
+import { supabase } from '@/lib/supabase';
+
 const sidebarItems = [
-  { icon: '📊', label: 'Tổng quan', id: 'dashboard' },
-  { icon: '⏱️', label: 'Trọng tài điều khiển', id: 'referee' },
-  { icon: '👥', label: 'Quản lý đội', id: 'doi' },
-  { icon: '📅', label: 'Lịch thi đấu', id: 'lich' },
+  { label: 'Tổng quan', id: 'dashboard' },
+  { label: 'Trọng tài điều khiển', id: 'referee' },
+  { label: 'Quản lý đội', id: 'doi' },
+  { label: 'Lịch thi đấu', id: 'lich' },
 ];
 
 export default function QuanTriPage() {
+  const router = useRouter();
   const [activeTab, setActiveTab] = useState('referee');
   const [liveMatches, setLiveMatches] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
@@ -39,10 +43,18 @@ export default function QuanTriPage() {
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerNumber, setNewPlayerNumber] = useState('');
 
-  // Fetch data on mount
+  // Fetch data on mount & check auth
   useEffect(() => {
-    fetchData();
-  }, []);
+    const checkAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        router.push('/login');
+      } else {
+        fetchData();
+      }
+    };
+    checkAuth();
+  }, [router]);
 
   const fetchData = async () => {
     setLoading(true);
@@ -205,6 +217,11 @@ export default function QuanTriPage() {
     setCardType('yellow');
   };
 
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    router.push('/login');
+  };
+
   const confirmEvent = async (player: any) => {
     const isChot = showPlayerModal?.type === 'chot';
     let typeLabel = '';
@@ -277,7 +294,6 @@ export default function QuanTriPage() {
               className={`${styles.sidebarItem} ${activeTab === item.id ? styles.sidebarItemActive : ''}`}
               onClick={() => setActiveTab(item.id)}
             >
-              <span>{item.icon}</span>
               <span>{item.label}</span>
             </button>
           ))}
@@ -285,13 +301,16 @@ export default function QuanTriPage() {
 
         <div className={styles.sidebarFooter}>
           <a href="/" className={styles.backToSite}>← Về trang chính</a>
+          <button onClick={handleLogout} className={styles.logoutButton}>
+            Đăng xuất
+          </button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className={styles.main}>
         {activeTab === 'dashboard' && (
-          <div className={styles.content}>
+          <div className={`${styles.content} animate-fade-in`}>
             <h2 className={styles.pageTitle}>📊 Tổng quan giải đấu</h2>
             <div className={styles.adminStatsGrid}>
               {[
@@ -313,7 +332,7 @@ export default function QuanTriPage() {
         )}
 
         {activeTab === 'doi' && (
-          <div className={styles.content}>
+          <div className={`${styles.content} animate-fade-in`}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h2 className={styles.pageTitle}>👥 Quản lý đội bóng</h2>
@@ -356,7 +375,7 @@ export default function QuanTriPage() {
         )}
 
         {activeTab === 'lich' && (
-          <div className={styles.content}>
+          <div className={`${styles.content} animate-fade-in`}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
                 <h2 className={styles.pageTitle}>📅 Quản lý Lịch thi đấu</h2>
@@ -420,7 +439,7 @@ export default function QuanTriPage() {
         {/* I will keep the modals logic consistent with the previous version but using the new save handlers */}
 
         {activeTab === 'referee' && (
-          <div className={styles.content}>
+          <div className={`${styles.content} animate-fade-in`}>
             {!selectedMatchId ? (
               <>
                 <h2 className={styles.pageTitle}>⏱️ Trung tâm Điều khiển</h2>

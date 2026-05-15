@@ -31,7 +31,7 @@ function MatchCard({ match }: { match: any }) {
   const bWin = match.tyA !== null && match.tyB > match.tyA;
 
   return (
-    <div className={styles.matchCard}>
+    <div className={`${styles.matchCard} animate-fade-up`}>
       <div className={`${styles.matchTeam} ${aWin ? styles.matchTeamWin : ''}`}>
         <span className={styles.matchLogo}>{match.doiA.logo}</span>
         <span className={styles.matchName}>{match.doiA.ten}</span>
@@ -52,7 +52,7 @@ function MatchCard({ match }: { match: any }) {
 export default function KnockoutPage() {
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
+      <div className={`${styles.header} animate-fade-up`}>
         <h2 className={styles.title}>Vòng Knock-out</h2>
         <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt — Giai đoạn loại trực tiếp 2024</p>
       </div>
@@ -60,7 +60,7 @@ export default function KnockoutPage() {
       <div className={styles.bracketContainer}>
         <div className={styles.bracket}>
           {/* Vòng 1/8 */}
-          <div className={styles.round}>
+          <div className={`${styles.round} animate-fade-up stagger-1`}>
             <h4 className={styles.roundTitle}>Vòng 1/8</h4>
             <div className={styles.roundMatches}>
               {bracketData.vong16.map((m) => <MatchCard key={m.id} match={m} />)}
@@ -68,7 +68,7 @@ export default function KnockoutPage() {
           </div>
 
           {/* Tứ kết */}
-          <div className={styles.round}>
+          <div className={`${styles.round} animate-fade-up stagger-2`}>
             <h4 className={styles.roundTitle}>Tứ kết</h4>
             <div className={styles.roundMatches}>
               {bracketData.tuKet.map((m) => <MatchCard key={m.id} match={m} />)}
@@ -76,7 +76,7 @@ export default function KnockoutPage() {
           </div>
 
           {/* Bán kết */}
-          <div className={styles.round}>
+          <div className={`${styles.round} animate-fade-up stagger-3`}>
             <h4 className={styles.roundTitle}>Bán kết</h4>
             <div className={styles.roundMatches}>
               {bracketData.banKet.map((m) => <MatchCard key={m.id} match={m} />)}
@@ -84,7 +84,7 @@ export default function KnockoutPage() {
           </div>
 
           {/* Chung kết */}
-          <div className={styles.round}>
+          <div className={`${styles.round} animate-fade-up stagger-4`}>
             <h4 className={styles.roundTitle}>🏆 Chung kết</h4>
             <div className={styles.roundMatches}>
               {bracketData.chungKet.map((m) => <MatchCard key={m.id} match={m} />)}

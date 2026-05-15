@@ -13,17 +13,17 @@ export default async function TongQuanPage() {
   }
 
   const stats = [
-    { label: 'Tổng số đội', value: data?.tongSoDoi ?? 16, icon: '🏆' },
-    { label: 'Tổng số trận', value: data?.tongSoTran ?? 48, icon: '⚽' },
-    { label: 'Trận đang LIVE', value: data?.tranDangLive ?? 1, icon: '🔴', isLive: true },
-    { label: 'Đội dẫn đầu', value: data?.doiDanDau ?? 'TK Warriors', icon: '👑' },
-    { label: 'Tổng bàn thắng', value: data?.tongBanThang ?? 84, icon: '🎯' },
+    { label: 'Tổng số đội', value: data?.tongSoDoi ?? 16 },
+    { label: 'Tổng số trận', value: data?.tongSoTran ?? 48 },
+    { label: 'Trận đang LIVE', value: data?.tranDangLive ?? 1, isLive: true },
+    { label: 'Đội dẫn đầu', value: data?.doiDanDau ?? 'TK Warriors' },
+    { label: 'Tổng bàn thắng', value: data?.tongBanThang ?? 84 },
   ];
 
   return (
     <div className={styles.page}>
       {/* HERO — Tournament Command Center */}
-      <section className={styles.hero}>
+      <section className={`${styles.hero} animate-fade-up`}>
         <div className={styles.heroContent}>
           <div className={styles.heroHeader}>
             <h2 className={styles.heroTitle}>Tournament Command Center</h2>
@@ -31,8 +31,7 @@ export default async function TongQuanPage() {
           </div>
           <div className={styles.statsGrid}>
             {stats.map((s, i) => (
-              <div key={i} className={`${styles.statCard} ${s.isLive ? styles.statCardLive : ''}`}>
-                <span className={styles.statIcon}>{s.icon}</span>
+              <div key={i} className={`${styles.statCard} ${s.isLive ? styles.statCardLive : ''} animate-fade-up stagger-${(i % 5) + 1}`}>
                 <div>
                   <p className={styles.statValue}>{s.value}</p>
                   <p className={styles.statLabel}>{s.label}</p>
@@ -44,7 +43,7 @@ export default async function TongQuanPage() {
       </section>
 
       {/* LIVE MATCH CENTER */}
-      <section className={styles.section}>
+      <section className={`${styles.section} animate-fade-up stagger-2`}>
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>
             <span className={styles.liveDot} />
@@ -79,7 +78,7 @@ export default async function TongQuanPage() {
       </section>
 
       {/* TOP 3 — Mini Standings */}
-      <section className={styles.section}>
+      <section className={`${styles.section} animate-fade-up stagger-3`}>
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>🏅 BXH nhanh — Top 3</h3>
           <Link href="/bang-xep-hang" className={styles.viewAll}>
@@ -94,7 +93,7 @@ export default async function TongQuanPage() {
           ]).map((item: any, i: number) => {
             const badges = ['🥇', '🥈', '🥉'];
             return (
-              <div key={i} className={`${styles.top3Card} ${i === 0 ? styles.top3First : ''}`}>
+              <div key={i} className={`${styles.top3Card} ${i === 0 ? styles.top3First : ''} animate-scale-in stagger-${i + 1}`}>
                 <span className={styles.top3Badge}>{badges[i]}</span>
                 <span className={styles.top3Logo}>{item.doi?.logo}</span>
                 <div className={styles.top3Info}>

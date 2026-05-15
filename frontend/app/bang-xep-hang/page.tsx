@@ -34,14 +34,14 @@ export default async function BangXepHangPage() {
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
+      <div className={`${styles.header} animate-fade-up`}>
         <h2 className={styles.title}>Bảng Xếp Hạng</h2>
         <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt — Vòng bảng 2024</p>
       </div>
 
       <div className={styles.groupGrid}>
-        {groups.map((groupName) => (
-          <div key={groupName} className={styles.groupSection}>
+        {groups.map((groupName, idx) => (
+          <div key={groupName} className={`${styles.groupSection} animate-fade-up stagger-${(idx % 5) + 1}`}>
             <h3 className={styles.groupTitle}>Bảng {groupName}</h3>
             <div className={styles.tableWrap}>
               <table className={styles.table}>

@@ -155,4 +155,38 @@
   justify-content: center;
   font-size: 12px;
   font-weight: 700;
+  position: relative;
 }
+
+.loginBtn {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding: var(--space-sm) var(--space-base);
+  border-radius: var(--radius-md);
+  transition: all 0.2s;
+}
+
+.loginBtn:hover {
+  color: var(--color-primary);
+  background: var(--color-surface-hover);
+}
+
+.profileBox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+}
+
+.onlineBadge {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  width: 10px;
+  height: 10px;
+  background: #10b981;
+  border-radius: 50%;
+  border: 2px solid var(--color-surface);
+}
+
