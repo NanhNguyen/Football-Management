@@ -1,6 +1,9 @@
 import styles from './page.module.css';
 import { layBangXepHang } from '@/lib/api';
 
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
+
 export default async function BangXepHangPage() {
   let data: any[] = [];
 
@@ -16,7 +19,9 @@ export default async function BangXepHangPage() {
           bang: g,
           doi: { ten: `Đội ${i} Bảng ${g}`, logo: '⚽' },
           soTran: 3, thang: 4 - i, hoa: 0, thua: i - 1,
-          banThang: 10 - i, banThua: 2 + i, hieuSo: 8 - 2 * i, diem: (4 - i) * 3
+          banThang: 10 - i, banThua: 2 + i, hieuSo: 8 - 2 * i, diem: (4 - i) * 3,
+          sieuChot: Math.floor(Math.random() * 3),
+          phongDo: ['T', 'H', 'B', 'T', 'H']
         });
       }
     });
@@ -48,11 +53,15 @@ export default async function BangXepHangPage() {
                 <thead>
                   <tr>
                     <th className={styles.thCenter}>#</th>
-                    <th>Đội</th>
-                    <th className={styles.thCenter}>Trận</th>
-                    <th className={styles.thCenter}>BT-BB</th>
+                    <th>ĐỘI</th>
+                    <th className={styles.thCenter}>TRẬN</th>
+                    <th className={styles.thCenter}>T</th>
+                    <th className={styles.thCenter}>H</th>
+                    <th className={styles.thCenter}>B</th>
+                    <th className={styles.thCenter}>BT - BB</th>
                     <th className={styles.thCenter}>HS</th>
-                    <th className={styles.thCenter}>Điểm</th>
+                    <th className={styles.thCenter}>ĐIỂM</th>
+                    <th className={styles.thCenter}>PĐ</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -73,12 +82,15 @@ export default async function BangXepHangPage() {
                           </div>
                         </td>
                         <td className={styles.tdCenter}>{row.soTran}</td>
+                        <td className={styles.tdCenter}>{row.thang || 0}</td>
+                        <td className={styles.tdCenter}>{row.hoa || 0}</td>
+                        <td className={styles.tdCenter}>{row.thua || 0}</td>
                         <td className={styles.tdCenter}>
-                          {row.banThang}-{row.banThua}
+                          {row.banThang || 0} - {row.banThua || 0}
                         </td>
                         <td className={styles.tdCenter}>
                           {(() => {
-                            const hieuSo = row.banThang - row.banThua;
+                            const hieuSo = (row.banThang || 0) - (row.banThua || 0);
                             return (
                               <span className={hieuSo > 0 ? styles.positive : hieuSo < 0 ? styles.negative : ''}>
                                 {hieuSo > 0 ? '+' : ''}{hieuSo}
@@ -88,6 +100,13 @@ export default async function BangXepHangPage() {
                         </td>
                         <td className={styles.tdCenter}>
                           <span className={`${styles.points} ${i < 2 ? styles.pointsQualified : ''}`}>{row.diem}</span>
+                        </td>
+                        <td className={styles.tdCenter}>
+                          <div className={styles.formRow}>
+                            {(row.phongDo || []).map((p: string, idx: number) => (
+                              <span key={idx} className={`${styles.formBadge} ${styles['form' + p]}`}>{p}</span>
+                            ))}
+                          </div>
                         </td>
                       </tr>
                     ))}

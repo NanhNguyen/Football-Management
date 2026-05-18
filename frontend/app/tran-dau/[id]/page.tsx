@@ -1,5 +1,5 @@
 import styles from './page.module.css';
-import { layChiTietTranDau } from '@/lib/api';
+import { layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
 import Link from 'next/link';
 
 interface Props {
@@ -17,7 +17,7 @@ export default async function ChiTietTranDauPage({ params }: Props) {
   }
 
   // Fallback data
-  if (!tran || tran.error) {
+  if (!tran) {
     tran = {
       id, vong: 'Tứ kết', phut: 72, trangThai: 'DANG_DIEN_RA',
       doiNha: { ten: 'TK Warriors', logo: '⚔️' },
@@ -34,32 +34,54 @@ export default async function ChiTietTranDauPage({ params }: Props) {
 
   const eventIcons: Record<string, string> = {
     'BAN_THANG': '⚽',
+    'GOAL_NORMAL': '⚽',
+    'GOAL_PEN': '⚽',
+    'GOAL_OG': '⚽',
     'THE_VANG': '🟨',
     'THE_DO': '🟥',
     'THAY_NGUOI': '🔄',
+    'CHOT': '⚡',
+    'MOTM': '🏅',
+    'CARD': '🟨',
   };
 
   const eventLabels: Record<string, string> = {
     'BAN_THANG': 'Bàn thắng',
+    'GOAL_NORMAL': 'Bàn thắng',
+    'GOAL_PEN': 'Penalty',
+    'GOAL_OG': 'Phản lưới nhà',
     'THE_VANG': 'Thẻ vàng',
     'THE_DO': 'Thẻ đỏ',
     'THAY_NGUOI': 'Thay người',
+    'CHOT': 'Siêu Chốt (+2)',
+    'MOTM': 'Xuất sắc nhất',
+    'CARD': 'Án phạt',
   };
 
+  const tyDoiNha = tran.tyDoiNha ?? tran.tyNha ?? 0;
+  const tyDoiKhach = tran.tyDoiKhach ?? tran.tyKhach ?? 0;
+
   return (
-    <div className={styles.page}>
-      <Link href="/" className={styles.backLink}>← Quay lại Tổng quan</Link>
+    <div className={`${styles.page} animate-fade-in`}>
+      <Link href="/lich-dau" className={styles.backLink}>← Quay lại Lịch thi đấu</Link>
 
       {/* Match Header */}
-      <div className={styles.matchHeader}>
+      <div className={`${styles.matchHeader} animate-fade-up`}>
         <div className={styles.matchInfo}>
           <span className={styles.vong}>{tran.vong}</span>
           {tran.trangThai === 'DANG_DIEN_RA' && (
             <span className={styles.liveBadge}>
               <span className={styles.livePulse} />
-              LIVE · {tran.phut}&apos;
+              {tran.dangTamDung ? 'TẠM DỪNG' : 'LIVE'} · {calculateMatchMinute(tran)}&apos;
             </span>
           )}
+          {tran.trangThai === 'KET_THUC' && (
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px' }}>
+              Đã kết thúc
+            </span>
+          )}
+          {tran.date && <span style={{ fontSize: '13px', color: '#94a3b8' }}>{tran.date} {tran.time}</span>}
+          {tran.san && <span style={{ fontSize: '13px', color: '#94a3b8' }}>📍 {tran.san}</span>}
         </div>
 
         <div className={styles.scoreboard}>
@@ -70,9 +92,9 @@ export default async function ChiTietTranDauPage({ params }: Props) {
 
           <div className={styles.scoreCenter}>
             <div className={styles.score}>
-              <span className={styles.scoreNum}>{tran.tyDoiNha}</span>
+              <span className={styles.scoreNum}>{tyDoiNha}</span>
               <span className={styles.scoreSep}>—</span>
-              <span className={styles.scoreNum}>{tran.tyDoiKhach}</span>
+              <span className={styles.scoreNum}>{tyDoiKhach}</span>
             </div>
           </div>
 
@@ -84,38 +106,42 @@ export default async function ChiTietTranDauPage({ params }: Props) {
       </div>
 
       {/* Timeline */}
-      <div className={styles.timelineSection}>
+      <div className={`${styles.timelineSection} animate-fade-up stagger-2`}>
         <h3 className={styles.sectionTitle}>Diễn biến trận đấu</h3>
-        <div className={styles.timeline}>
-          {tran.suKien.map((sk: any) => (
-            <div
-              key={sk.id}
-              className={styles.timelineItem}
-            >
-              <div className={styles.timelineDot}>
-                <span className={styles.timelineIcon}>{eventIcons[sk.loai]}</span>
-                <span className={styles.timelineMinute}>{sk.phut}&apos;</span>
+        {tran.suKien.length === 0 ? (
+          <p style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>
+            Chưa có sự kiện nào được ghi nhận
+          </p>
+        ) : (
+          <div className={styles.timeline}>
+            {tran.suKien.map((sk: any) => (
+              <div key={sk.id} className={styles.timelineItem}>
+                <div className={styles.timelineDot}>
+                  <span className={styles.timelineIcon}>{eventIcons[sk.loai] ?? '📌'}</span>
+                  <span className={styles.timelineMinute}>{sk.phut}&apos;</span>
+                </div>
+                <div className={styles.timelineContent}>
+                  <span className={styles.timelineLabel}>{eventLabels[sk.loai] ?? sk.loai}</span>
+                  <p className={styles.timelineDesc}>
+                    <strong>{sk.cauThu?.ten ?? 'Không rõ'}</strong>
+                    {sk.doi?.ten && ` (${sk.doi.ten})`}
+                    {sk.moTa && ` — ${sk.moTa}`}
+                  </p>
+                </div>
               </div>
-              <div className={styles.timelineContent}>
-                <span className={styles.timelineLabel}>{eventLabels[sk.loai]}</span>
-                <p className={styles.timelineDesc}>
-                  <strong>{sk.cauThu?.ten}</strong> ({sk.doi?.ten}) — {sk.moTa}
-                </p>
-              </div>
-            </div>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Stats */}
-      <div className={styles.statsSection}>
+      <div className={`${styles.statsSection} animate-fade-up stagger-3`}>
         <h3 className={styles.sectionTitle}>Thống kê trận đấu</h3>
         <div className={styles.statsGrid}>
           {[
-            { label: 'Kiểm soát bóng', home: '62%', away: '38%' },
-            { label: 'Số cú sút', home: '12', away: '6' },
-            { label: 'Sút trúng đích', home: '7', away: '3' },
-            { label: 'Lỗi', home: '7', away: '11' },
+            { label: 'Bàn thắng', home: tyDoiNha, away: tyDoiKhach },
+            { label: 'Sự kiện', home: tran.suKien.filter((e: any) => e.doi?.ten === tran.doiNha?.ten).length, away: tran.suKien.filter((e: any) => e.doi?.ten === tran.doiKhach?.ten).length },
+            { label: 'Thẻ phạt', home: tran.suKien.filter((e: any) => (e.loai === 'THE_VANG' || e.loai === 'CARD') && e.doi?.ten === tran.doiNha?.ten).length, away: tran.suKien.filter((e: any) => (e.loai === 'THE_VANG' || e.loai === 'CARD') && e.doi?.ten === tran.doiKhach?.ten).length },
           ].map((stat, i) => (
             <div key={i} className={styles.statRow}>
               <span className={styles.statHome}>{stat.home}</span>

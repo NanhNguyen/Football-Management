@@ -224,3 +224,33 @@
     min-width: 700px;
   }
 }
+
+.formRow {
+  display: flex;
+  gap: 4px;
+  justify-content: center;
+}
+
+.formBadge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 20px;
+  height: 20px;
+  border-radius: var(--radius-full);
+  color: white;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.formT {
+  background: var(--color-success);
+}
+
+.formH {
+  background: #9ca3af; /* Gray */
+}
+
+.formB {
+  background: var(--color-primary); /* Red */
+}

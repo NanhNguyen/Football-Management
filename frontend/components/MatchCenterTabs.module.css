@@ -1,0 +1,72 @@
+.container {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.tabList {
+  display: inline-flex;
+  background: var(--color-surface);
+  padding: 6px;
+  border-radius: 999px;
+  gap: 4px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm);
+}
+
+.tabBtn {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 24px;
+  border-radius: 999px;
+  border: none;
+  background: transparent;
+  color: var(--color-text-secondary);
+  font-weight: 600;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.tabBtn:hover {
+  color: var(--color-primary);
+  background: rgba(215, 25, 32, 0.05);
+}
+
+.tabActive {
+  background: var(--color-primary) !important;
+  color: #ffffff !important;
+  box-shadow: 0 4px 12px rgba(215, 25, 32, 0.25);
+}
+
+.blinkDot {
+  width: 8px;
+  height: 8px;
+  background-color: #ef4444;
+  border-radius: 50%;
+  animation: blink 1s infinite;
+  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+}
+
+@keyframes blink {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50% { opacity: 0.5; transform: scale(0.8); }
+}
+
+.matchGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
+  gap: 24px;
+}
+
+.emptyState {
+  grid-column: 1 / -1;
+  text-align: center;
+  padding: 48px;
+  background: var(--color-surface);
+  border-radius: 16px;
+  border: 1px dashed var(--color-border);
+  color: var(--color-text-muted);
+  font-style: italic;
+}

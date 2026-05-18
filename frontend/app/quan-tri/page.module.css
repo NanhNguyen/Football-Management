@@ -33,14 +33,17 @@
 }
 
 .sidebarLogo {
-  font-size: 24px;
-  width: 44px;
-  height: 44px;
-  background: var(--color-primary);
-  border-radius: var(--radius-md);
+  width: 52px;
+  height: 52px;
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.sidebarLogoImg {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
 }
 
 .sidebarTitle {
@@ -91,48 +94,59 @@
 }
 
 .sidebarFooter {
-  padding: var(--space-lg) var(--space-base);
+  padding: var(--space-lg) 0 0 0;
   border-top: 1px solid var(--color-border-light);
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: var(--space-xs);
   margin-top: auto;
 }
 
-.backToSite {
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-primary);
+.secondaryMenuItem {
   display: flex;
   align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 8px;
-  transition: all 0.2s;
-}
-
-.backToSite:hover {
-  background: var(--color-primary-light);
-}
-
-.logoutButton {
-  font-size: 13px;
+  gap: var(--space-md);
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
   font-weight: 600;
-  color: #ff4d4f;
-  background: rgba(255, 77, 79, 0.05);
-  border: 1px solid rgba(255, 77, 79, 0.1);
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  padding: 10px 12px;
-  border-radius: 8px;
+  color: var(--color-text-muted);
+  background: transparent;
+  transition: all 0.15s ease;
+  text-align: left;
+  width: 100%;
   cursor: pointer;
-  transition: all 0.2s;
+  border: none;
 }
 
-.logoutButton:hover {
-  background: rgba(255, 77, 79, 0.1);
-  border-color: rgba(255, 77, 79, 0.3);
+.secondaryMenuItem:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.secondaryMenuItemIcon {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 16px;
+  height: 16px;
+  color: var(--color-text-muted);
+  transition: color 0.15s ease;
+}
+
+.secondaryMenuItem:hover .secondaryMenuItemIcon {
+  color: var(--color-text);
+}
+
+/* Specific red hover warning for logout secondary item */
+.logoutSecondaryItem:hover {
+  background: rgba(239, 68, 68, 0.08) !important;
+  color: #ef4444 !important;
+}
+
+.logoutSecondaryItem:hover .secondaryMenuItemIcon {
+  color: #ef4444 !important;
 }
 
 /* ===== MAIN ===== */
@@ -799,9 +813,96 @@
 }
 
 .teamRow {
-  display: flex;
+  display: inline-flex;
   align-items: center;
   gap: 12px;
+  cursor: pointer;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  padding: 6px 14px;
+  margin-left: -14px;
+  border-radius: 10px;
+  border: 1px solid transparent;
+}
+
+.teamRow:hover {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.03);
+}
+
+.teamRow span {
+  font-weight: 600;
+  transition: color 0.2s ease;
+}
+
+.teamRow:hover span {
+  color: #3b82f6;
+}
+
+.teamRow::after {
+  content: 'Chi tiết →';
+  font-size: 11px;
+  font-weight: 700;
+  color: #3b82f6;
+  opacity: 0;
+  transform: translateX(-5px);
+  transition: all 0.2s ease;
+  margin-left: 12px;
+  white-space: nowrap;
+}
+
+.teamRow:hover::after {
+  opacity: 1;
+  transform: translateX(0);
+}
+
+.actionBtnGroup {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.editBtnCompact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #e2e8f0;
+  background: #f8fafc;
+  color: #475569;
+}
+
+.editBtnCompact:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+  color: #1e293b;
+}
+
+.deleteBtnCompact {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 6px 14px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid #fee2e2;
+  background: #fff5f5;
+  color: #ef4444;
+}
+
+.deleteBtnCompact:hover {
+  background: #fee2e2;
+  border-color: #fca5a5;
+  color: #dc2626;
 }
 
 .teamLogoMini {
@@ -890,4 +991,74 @@
   box-shadow: 0 20px 40px rgba(0,0,0,0.2);
   z-index: 9999;
   animation: slide-in 0.3s ease-out;
+}
+.pauseBtn, .resumeBtn {
+  padding: 6px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 700;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.pauseBtn {
+  background: rgba(255, 255, 255, 0.2);
+  color: white;
+}
+
+.pauseBtn:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
+
+.resumeBtn {
+  background: #10b981;
+  color: white;
+  box-shadow: 0 4px 10px rgba(16, 185, 129, 0.3);
+}
+
+.resumeBtn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 6px 15px rgba(16, 185, 129, 0.4);
+}
+
+.modalFooter {
+  display: flex;
+  gap: 12px;
+  margin-top: 24px;
+}
+
+.modalFooterBtn {
+  flex: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  height: 48px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.modalFooterPrimary {
+  background: #1e293b;
+  color: white;
+  border: none;
+}
+
+.modalFooterPrimary:hover {
+  background: #0f172a;
+}
+
+.modalFooterSecondary {
+  background: #f1f5f9;
+  color: #475569;
+  border: 1px solid #e2e8f0;
+}
+
+.modalFooterSecondary:hover {
+  background: #cbd5e1;
+  color: #1e293b;
 }

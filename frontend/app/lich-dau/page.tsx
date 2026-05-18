@@ -1,6 +1,10 @@
 import styles from './page.module.css';
 import { layDanhSachTranDau } from '@/lib/api';
 import LiveMatchCard from '@/components/LiveMatchCard';
+import ScheduleClient from '@/components/ScheduleClient';
+
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 export default async function LichDauPage() {
   let data: any[] = [];
@@ -19,8 +23,7 @@ export default async function LichDauPage() {
   }
 
   const live = data.filter((t: any) => t.trangThai === 'DANG_DIEN_RA');
-  const upcoming = data.filter((t: any) => t.trangThai === 'SAP_DIEN_RA');
-  const finished = data.filter((t: any) => t.trangThai === 'KET_THUC');
+  const nonLive = data.filter((t: any) => t.trangThai !== 'DANG_DIEN_RA');
 
   // Grouping helper
   const groupByRound = (matches: any[]) => {
@@ -32,8 +35,7 @@ export default async function LichDauPage() {
     }, {} as Record<string, any[]>);
   };
 
-  const finishedGrouped = groupByRound(finished);
-  const upcomingGrouped = groupByRound(upcoming);
+  const nonLiveGrouped = groupByRound(nonLive);
 
   return (
     <div className={styles.page}>
@@ -59,43 +61,8 @@ export default async function LichDauPage() {
         </section>
       )}
 
-      {/* UPCOMING BY ROUND */}
-      {Object.keys(upcomingGrouped).length > 0 && (
-        <section className={`${styles.section} animate-fade-up stagger-2`}>
-          <h3 className={styles.sectionTitle}>📅 Trận đấu sắp tới</h3>
-          {Object.entries(upcomingGrouped).map(([round, matches], rIndex) => (
-            <div key={round} style={{ marginBottom: '24px' }}>
-              <h4 style={{ fontSize: '14px', color: 'var(--color-primary)', marginBottom: '12px', textTransform: 'uppercase' }}>{round}</h4>
-              <div className={styles.grid}>
-                {(matches as any[]).map((t: any, i: number) => (
-                  <div key={t.id} className={`animate-fade-up stagger-${(i % 5) + 1}`}>
-                    <LiveMatchCard tran={t} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
-
-      {/* FINISHED BY ROUND */}
-      {Object.keys(finishedGrouped).length > 0 && (
-        <section className={`${styles.section} animate-fade-up stagger-3`}>
-          <h3 className={styles.sectionTitle}>✅ Kết quả trận đấu</h3>
-          {Object.entries(finishedGrouped).map(([round, matches], rIndex) => (
-            <div key={round} style={{ marginBottom: '24px' }}>
-              <h4 style={{ fontSize: '14px', color: 'var(--color-text-muted)', marginBottom: '12px', textTransform: 'uppercase' }}>{round}</h4>
-              <div className={styles.grid}>
-                {(matches as any[]).map((t: any, i: number) => (
-                  <div key={t.id} className={`animate-fade-up stagger-${(i % 5) + 1}`}>
-                    <LiveMatchCard tran={t} />
-                  </div>
-                ))}
-              </div>
-            </div>
-          ))}
-        </section>
-      )}
+      {/* UNIFIED SCHEDULE BY ROUND */}
+      <ScheduleClient groupedMatches={nonLiveGrouped} />
     </div>
   );
 }

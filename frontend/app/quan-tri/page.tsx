@@ -9,14 +9,17 @@ import {
   updateTeam, 
   deleteTeam, 
   updateMatch,
-  addEvent
+  addEvent,
+  createMatch,
+  deleteMatch,
+  calculateMatchMinute
 } from '@/lib/api';
 
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
+import Loading from './loading';
 
 const sidebarItems = [
-  { label: 'Tổng quan', id: 'dashboard' },
   { label: 'Trọng tài điều khiển', id: 'referee' },
   { label: 'Quản lý đội', id: 'doi' },
   { label: 'Lịch thi đấu', id: 'lich' },
@@ -37,11 +40,15 @@ export default function QuanTriPage() {
 
   // Modals state
   const [editingTeam, setEditingTeam] = useState<any | null>(null);
+  const [viewingTeam, setViewingTeam] = useState<any | null>(null);
   const [isAddingTeam, setIsAddingTeam] = useState(false);
   const [newTeamData, setNewTeamData] = useState({ ten: '', logo: '⚽', bang: 'A' });
   const [editingMatch, setEditingMatch] = useState<any | null>(null);
+  const [isAddingMatch, setIsAddingMatch] = useState(false);
+  const [newMatchData, setNewMatchData] = useState({ doiNhaId: '', doiKhachId: '', vong: 'Vòng bảng', date: '', time: '15:00', san: 'Sân TK' });
   const [newPlayerName, setNewPlayerName] = useState('');
   const [newPlayerNumber, setNewPlayerNumber] = useState('');
+  const [newPlayerPosition, setNewPlayerPosition] = useState('Thủ môn');
 
   // Fetch data on mount & check auth
   useEffect(() => {
@@ -113,7 +120,8 @@ export default function QuanTriPage() {
     const newPlayer = {
       id: `ct-${Date.now()}`,
       ten: newPlayerName,
-      soAo: newPlayerNumber || '??',
+      soAo: newPlayerNumber ? parseInt(newPlayerNumber) : 99,
+      viTri: newPlayerPosition,
       banThang: 0
     };
     setEditingTeam({
@@ -122,6 +130,7 @@ export default function QuanTriPage() {
     });
     setNewPlayerName('');
     setNewPlayerNumber('');
+    setNewPlayerPosition('Thủ môn');
   };
 
   const handleDeletePlayer = (playerId: string) => {
@@ -158,16 +167,50 @@ export default function QuanTriPage() {
     }
   };
 
-  // Real-time timer logic (Frontend only for now, should be synced to DB if possible)
+  const handleCreateMatch = async () => {
+    if (!newMatchData.doiNhaId || !newMatchData.doiKhachId) {
+      showToast('Vui lòng chọn hai đội thi đấu!');
+      return;
+    }
+    if (newMatchData.doiNhaId === newMatchData.doiKhachId) {
+      showToast('Hai đội không được trùng nhau!');
+      return;
+    }
+    const { error } = await createMatch(newMatchData);
+    if (!error) {
+      await fetchData();
+      setIsAddingMatch(false);
+      setNewMatchData({ doiNhaId: '', doiKhachId: '', vong: 'Vòng bảng', date: '', time: '15:00', san: 'Sân TK' });
+      showToast('Đã tạo trận đấu mới thành công!');
+    } else {
+      showToast(`Lỗi: ${error.message}`);
+    }
+  };
+
+  const handleDeleteMatch = async (matchId: string) => {
+    if (confirm('Bạn có chắc chắn muốn xóa trận đấu này?')) {
+      const { error } = await deleteMatch(matchId);
+      if (!error) {
+        await fetchData();
+        showToast('Đã xóa trận đấu!');
+      }
+    }
+  };
+
+
+  // Real-time timer logic (Realistic calculation)
   useEffect(() => {
     const interval = setInterval(() => {
       setLiveMatches(prev => prev.map(match => {
-        if (match.trangThai === 'DANG_DIEN_RA') {
-          return { ...match, phut: match.phut + 1 };
+        if (match.trangThai === 'DANG_DIEN_RA' && !match.dangTamDung) {
+          const currentPhut = calculateMatchMinute(match);
+          if (currentPhut !== match.phut) {
+            return { ...match, phut: currentPhut };
+          }
         }
         return match;
       }));
-    }, 60000); 
+    }, 10000); // Check every 10s for UI updates
     return () => clearInterval(interval);
   }, []);
 
@@ -176,10 +219,50 @@ export default function QuanTriPage() {
   const handleStartMatch = async (matchId: string) => {
     const match = liveMatches.find(m => m.id === matchId);
     if (match) {
-      const updated = { ...match, trangThai: 'DANG_DIEN_RA', phut: 1 };
+      const updated = { 
+        ...match, 
+        trangThai: 'DANG_DIEN_RA', 
+        phut: 1,
+        batDauLuc: new Date().toISOString(),
+        thoiGianDaQua: 0,
+        dangTamDung: false
+      };
       await updateMatch(updated);
       await fetchData();
       showToast("Trận đấu đã bắt đầu!");
+    }
+  };
+
+  const handlePauseMatch = async (matchId: string) => {
+    const match = liveMatches.find(m => m.id === matchId);
+    if (match) {
+      const now = new Date().getTime();
+      const start = new Date(match.batDauLuc).getTime();
+      const passed = Math.floor((now - start) / 1000) + (match.thoiGianDaQua || 0);
+      
+      const updated = { 
+        ...match, 
+        dangTamDung: true, 
+        thoiGianDaQua: passed,
+        phut: Math.floor(passed / 60) + 1
+      };
+      await updateMatch(updated);
+      await fetchData();
+      showToast("Đã tạm dừng đồng hồ!");
+    }
+  };
+
+  const handleResumeMatch = async (matchId: string) => {
+    const match = liveMatches.find(m => m.id === matchId);
+    if (match) {
+      const updated = { 
+        ...match, 
+        dangTamDung: false, 
+        batDauLuc: new Date().toISOString() // New reference point
+      };
+      await updateMatch(updated);
+      await fetchData();
+      showToast("Tiếp tục trận đấu!");
     }
   };
 
@@ -187,7 +270,8 @@ export default function QuanTriPage() {
     if (confirm("Bạn có chắc chắn muốn kết thúc trận đấu này? Kết quả sẽ được chốt.")) {
       const match = liveMatches.find(m => m.id === matchId);
       if (match) {
-        const updated = { ...match, trangThai: 'KET_THUC' };
+        const finalPhut = calculateMatchMinute(match);
+        const updated = { ...match, trangThai: 'KET_THUC', phut: finalPhut };
         await updateMatch(updated);
         await fetchData();
         showToast("Trận đấu đã kết thúc!");
@@ -272,7 +356,7 @@ export default function QuanTriPage() {
   const filteredPlayers = currentModalTeam?.cauThu?.filter((p: any) => p.ten.toLowerCase().includes(searchTerm.toLowerCase())) || [];
 
   if (loading) {
-    return <div className={styles.loading}>Đang tải dữ liệu từ Supabase...</div>;
+    return <Loading />;
   }
 
   return (
@@ -280,9 +364,11 @@ export default function QuanTriPage() {
       {/* Sidebar */}
       <aside className={styles.sidebar}>
         <div className={styles.sidebarHeader}>
-          <div className={styles.sidebarLogo}>⚽</div>
+          <div className={styles.sidebarLogo}>
+          <img src="/logo-premium-transparent.png" alt="Logo" className={styles.sidebarLogoImg} />
+        </div>
           <div>
-            <h2 className={styles.sidebarTitle}>ChotScore</h2>
+            <h2 className={styles.sidebarTitle}>TKScore</h2>
             <p className={styles.sidebarSub}>Referee Center</p>
           </div>
         </div>
@@ -300,42 +386,38 @@ export default function QuanTriPage() {
         </nav>
 
         <div className={styles.sidebarFooter}>
-          <a href="/" className={styles.backToSite}>← Về trang chính</a>
-          <button onClick={handleLogout} className={styles.logoutButton}>
-            Đăng xuất
+          <a href="/" className={styles.secondaryMenuItem}>
+            <span className={styles.secondaryMenuItemIcon}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
+                <polyline points="9 22 9 12 15 12 15 22"></polyline>
+              </svg>
+            </span>
+            <span>Về Home</span>
+          </a>
+          
+          <button onClick={handleLogout} className={`${styles.secondaryMenuItem} ${styles.logoutSecondaryItem}`}>
+            <span className={styles.secondaryMenuItemIcon}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                <polyline points="16 17 21 12 16 7"></polyline>
+                <line x1="21" y1="12" x2="9" y2="12"></line>
+              </svg>
+            </span>
+            <span>Đăng xuất</span>
           </button>
         </div>
       </aside>
 
       {/* Main Content */}
       <main className={styles.main}>
-        {activeTab === 'dashboard' && (
-          <div className={`${styles.content} animate-fade-in`}>
-            <h2 className={styles.pageTitle}>📊 Tổng quan giải đấu</h2>
-            <div className={styles.adminStatsGrid}>
-              {[
-                { label: 'Tổng đội', value: teams.length, icon: '🏆' },
-                { label: 'Tổng trận', value: liveMatches.length, icon: '⚽' },
-                { label: 'Đang diễn ra', value: liveMatches.filter(m => m.trangThai === 'DANG_DIEN_RA').length, icon: '🔴' },
-                { label: 'Cầu thủ', value: teams.reduce((acc, doi) => acc + (doi.cauThu?.length || 0), 0), icon: '👤' },
-              ].map((s, i) => (
-                <div key={i} className={styles.adminStatCard}>
-                  <span className={styles.adminStatIcon}>{s.icon}</span>
-                  <div>
-                    <p className={styles.adminStatValue}>{s.value}</p>
-                    <p className={styles.adminStatLabel}>{s.label}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
+
 
         {activeTab === 'doi' && (
           <div className={`${styles.content} animate-fade-in`}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h2 className={styles.pageTitle}>👥 Quản lý đội bóng</h2>
+                <h2 className={styles.pageTitle}>Quản lý đội bóng</h2>
                 <p className={styles.pageDesc}>Danh sách các đội tham gia Thiên Khôi Cúp Siêu Chốt</p>
               </div>
               <button className={styles.addBtn} onClick={handleAddTeam}>+ Thêm đội mới</button>
@@ -355,7 +437,7 @@ export default function QuanTriPage() {
                 {teams.map(doi => (
                   <tr key={doi.id}>
                     <td>
-                      <div className={styles.teamRow}>
+                      <div className={styles.teamRow} onClick={() => setViewingTeam(doi)}>
                         <div className={styles.teamLogoMini}>{doi.logo}</div>
                         <span style={{ fontWeight: 600 }}>{doi.ten}</span>
                       </div>
@@ -364,8 +446,10 @@ export default function QuanTriPage() {
                     <td>{doi.cauThu?.length || 0} cầu thủ</td>
                     <td><span className={`${styles.statusBadge} ${styles.badgeSuccess}`}>Đã đăng ký</span></td>
                     <td>
-                      <button className={styles.editBtn} onClick={() => handleEditTeam(doi)}>Sửa</button>
-                      <button className={styles.editBtn} style={{ color: '#ef4444', marginLeft: '10px' }} onClick={() => handleDeleteTeam(doi.id)}>Xóa</button>
+                      <div className={styles.actionBtnGroup}>
+                        <button className={styles.editBtnCompact} onClick={() => handleEditTeam(doi)}>Sửa</button>
+                        <button className={styles.deleteBtnCompact} onClick={() => handleDeleteTeam(doi.id)}>Xóa</button>
+                      </div>
                     </td>
                   </tr>
                 ))}
@@ -378,12 +462,12 @@ export default function QuanTriPage() {
           <div className={`${styles.content} animate-fade-in`}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
               <div>
-                <h2 className={styles.pageTitle}>📅 Quản lý Lịch thi đấu</h2>
+                <h2 className={styles.pageTitle}>Quản lý Lịch thi đấu</h2>
                 <p className={styles.pageDesc}>Xếp lịch, thay đổi thời gian và địa điểm thi đấu</p>
               </div>
               <div style={{ display: 'flex', gap: '10px' }}>
                 <button className={styles.undoBtn} onClick={handleAutoSchedule}>Xếp lịch tự động</button>
-                <button className={styles.addBtn}>+ Tạo trận đấu</button>
+                <button className={styles.addBtn} onClick={() => setIsAddingMatch(true)}>+ Tạo trận đấu</button>
               </div>
             </div>
 
@@ -426,6 +510,7 @@ export default function QuanTriPage() {
                     </td>
                     <td>
                       <button className={styles.editBtn} onClick={() => handleEditMatch(m)}>Đổi giờ</button>
+                      <button className={styles.editBtn} style={{ color: '#ef4444', marginLeft: '10px' }} onClick={() => handleDeleteMatch(m.id)}>Xóa</button>
                     </td>
                   </tr>
                 ))}
@@ -442,7 +527,7 @@ export default function QuanTriPage() {
           <div className={`${styles.content} animate-fade-in`}>
             {!selectedMatchId ? (
               <>
-                <h2 className={styles.pageTitle}>⏱️ Trung tâm Điều khiển</h2>
+                <h2 className={styles.pageTitle}>Trung tâm Điều khiển</h2>
                 <p className={styles.pageDesc}>Chọn một trận đấu để bắt đầu điều khiển và cập nhật tỉ số</p>
                 
                 <div className={styles.adminMatchList}>
@@ -471,7 +556,7 @@ export default function QuanTriPage() {
                           ${m.trangThai === 'DANG_DIEN_RA' ? styles.statusLive : ''}
                           ${m.trangThai === 'KET_THUC' ? styles.statusFinished : ''}
                         `}>
-                          {m.trangThai === 'DANG_DIEN_RA' ? `LIVE - ${m.phut}'` : 
+                          {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - ${calculateMatchMinute(m)}'` : `LIVE - ${calculateMatchMinute(m)}'`) : 
                            m.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ'}
                         </span>
                         <span style={{ color: '#cbd5e1' }}>➜</span>
@@ -491,9 +576,16 @@ export default function QuanTriPage() {
                     <div className={styles.matchControlHeader}>
                       <span className={styles.matchBadge}>{selectedMatch.vong}</span>
                       {selectedMatch.trangThai === 'DANG_DIEN_RA' ? (
-                        <div className={styles.timerBadge}>
-                          <div className={styles.timerPulse}></div>
-                          Phút {selectedMatch.phut}'
+                        <div style={{ display: 'flex', gap: '10px', alignItems: 'center' }}>
+                          <div className={styles.timerBadge}>
+                            <div className={!selectedMatch.dangTamDung ? styles.timerPulse : ''}></div>
+                            {selectedMatch.dangTamDung ? 'Tạm dừng' : 'Phút'} {calculateMatchMinute(selectedMatch)}'
+                          </div>
+                          {selectedMatch.dangTamDung ? (
+                            <button className={styles.resumeBtn} onClick={() => handleResumeMatch(selectedMatch.id)}>▶ Tiếp tục</button>
+                          ) : (
+                            <button className={styles.pauseBtn} onClick={() => handlePauseMatch(selectedMatch.id)}>⏸ Tạm dừng</button>
+                          )}
                         </div>
                       ) : (
                         <span className={styles.matchBadge}>
@@ -629,36 +721,345 @@ export default function QuanTriPage() {
       {/* Editing Team Modal */}
       {editingTeam && (
           <div className={styles.overlay}>
-            <div className={styles.modal}>
-              <h3>CHỈNH SỬA ĐỘI BÓNG</h3>
-              <input 
-                type="text" 
-                className={styles.modalInput} 
-                value={editingTeam.ten} 
-                onChange={(e) => setEditingTeam({...editingTeam, ten: e.target.value})}
-              />
+            <div className={styles.modal} style={{ maxWidth: '650px', width: '100%', padding: '30px' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b' }}>
+                ⚙️ CHỈNH SỬA ĐỘI BÓNG
+              </h3>
+              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
+                Cập nhật tên đội bóng và quản lý danh sách thành viên đăng ký thi đấu.
+              </p>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                  📛 Tên đội bóng
+                </label>
+                <input 
+                  type="text" 
+                  className={styles.modalInput} 
+                  style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '12px 16px', fontSize: '15px' }}
+                  value={editingTeam.ten} 
+                  onChange={(e) => setEditingTeam({...editingTeam, ten: e.target.value})}
+                />
+              </div>
+
               <div style={{ marginTop: '20px' }}>
-                <h4>👥 THÀNH VIÊN ({editingTeam.cauThu?.length || 0})</h4>
-                <div style={{ display: 'flex', gap: '5px', margin: '10px 0' }}>
-                    <input className={styles.modalInput} placeholder="Tên" value={newPlayerName} onChange={e => setNewPlayerName(e.target.value)} />
-                    <input className={styles.modalInput} style={{ width: '60px' }} placeholder="Số" value={newPlayerNumber} onChange={e => setNewPlayerNumber(e.target.value)} />
-                    <button className={styles.addBtn} onClick={handleAddPlayer}>+</button>
+                <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                    ➕ Thêm cầu thủ mới
+                  </label>
+                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <input 
+                        className={styles.modalInput} 
+                        style={{ flex: 3, padding: '10px 14px', borderRadius: '10px', background: '#fff', border: '1px solid #cbd5e1', fontSize: '14px' }} 
+                        placeholder="Tên cầu thủ" 
+                        value={newPlayerName} 
+                        onChange={e => setNewPlayerName(e.target.value)} 
+                      />
+                      <input 
+                        className={styles.modalInput} 
+                        style={{ width: '65px', padding: '10px 10px', textAlign: 'center', borderRadius: '10px', background: '#fff', border: '1px solid #cbd5e1', fontSize: '14px' }} 
+                        placeholder="Số" 
+                        value={newPlayerNumber} 
+                        onChange={e => setNewPlayerNumber(e.target.value)} 
+                      />
+                      <select 
+                        className={styles.modalInput} 
+                        style={{ width: '150px', padding: '10px 10px', borderRadius: '10px', background: '#fff', border: '1px solid #cbd5e1', fontSize: '13px', cursor: 'pointer' }} 
+                        value={newPlayerPosition} 
+                        onChange={e => setNewPlayerPosition(e.target.value)}
+                      >
+                          <option value="Thủ môn">Thủ môn</option>
+                          <option value="Hậu vệ">Hậu vệ</option>
+                          <option value="Tiền vệ">Tiền vệ</option>
+                          <option value="Tiền đạo">Tiền đạo</option>
+                          <option value="Dự bị - Thủ môn">Dự bị - Thủ môn</option>
+                          <option value="Dự bị - Hậu vệ">Dự bị - Hậu vệ</option>
+                          <option value="Dự bị - Tiền vệ">Dự bị - Tiền vệ</option>
+                          <option value="Dự bị - Tiền đạo">Dự bị - Tiền đạo</option>
+                      </select>
+                      <button 
+                        className={styles.addBtn} 
+                        style={{ height: '42px', width: '42px', padding: 0, borderRadius: '10px', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '20px', flexShrink: 0 }} 
+                        onClick={handleAddPlayer}
+                      >
+                        +
+                      </button>
+                  </div>
                 </div>
-                <div style={{ maxHeight: '150px', overflowY: 'auto' }}>
-                    {editingTeam.cauThu?.map((p: any) => (
-                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', padding: '5px' }}>
-                            <span>#{p.soAo} {p.ten}</span>
-                            <button onClick={() => handleDeletePlayer(p.id)} style={{ color: 'red', border: 'none', background: 'none' }}>×</button>
+
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '10px' }}>
+                  👥 Danh sách thành viên ({editingTeam.cauThu?.length || 0})
+                </label>
+                
+                <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
+                    {(!editingTeam.cauThu || editingTeam.cauThu.length === 0) ? (
+                      <p style={{ color: '#94a3b8', fontSize: '13px', fontStyle: 'italic', textAlign: 'center', padding: '15px' }}>Chương có cầu thủ nào. Hãy thêm cầu thủ ở trên!</p>
+                    ) : (
+                      editingTeam.cauThu.map((p: any) => (
+                        <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', transition: 'all 0.2s' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', background: p.viTri?.startsWith('Dự bị') ? '#f1f5f9' : '#fee2e2', color: p.viTri?.startsWith('Dự bị') ? '#475569' : '#ef4444', borderRadius: '50%', fontSize: '11px', fontWeight: 700 }}>
+                                {p.soAo}
+                              </span>
+                              <span style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{p.ten}</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <select 
+                                  value={p.viTri || 'Chưa rõ'} 
+                                  onChange={(e) => {
+                                    const updatedPlayers = editingTeam.cauThu.map((player: any) => 
+                                      player.id === p.id ? { ...player, viTri: e.target.value } : player
+                                    );
+                                    setEditingTeam({ ...editingTeam, cauThu: updatedPlayers });
+                                  }}
+                                  style={{ padding: '4px 8px', fontSize: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#334155', fontWeight: 500, cursor: 'pointer' }}
+                                >
+                                    <option value="Thủ môn">Thủ môn</option>
+                                    <option value="Hậu vệ">Hậu vệ</option>
+                                    <option value="Tiền vệ">Tiền vệ</option>
+                                    <option value="Tiền đạo">Tiền đạo</option>
+                                    <option value="Dự bị - Thủ môn">Dự bị - Thủ môn</option>
+                                    <option value="Dự bị - Hậu vệ">Dự bị - Hậu vệ</option>
+                                    <option value="Dự bị - Tiền vệ">Dự bị - Tiền vệ</option>
+                                    <option value="Dự bị - Tiền đạo">Dự bị - Tiền đạo</option>
+                                    <option value="Chưa rõ">Chưa rõ</option>
+                                </select>
+                                <button 
+                                  onClick={() => handleDeletePlayer(p.id)} 
+                                  style={{ color: '#ef4444', border: 'none', background: 'none', cursor: 'pointer', fontSize: '18px', display: 'flex', alignItems: 'center', padding: '4px' }}
+                                >
+                                  ×
+                                </button>
+                            </div>
                         </div>
-                    ))}
+                      ))
+                    )}
                 </div>
               </div>
-              <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
-                <button className={styles.finishBtn} onClick={handleSaveTeam}>LƯU</button>
-                <button className={styles.undoBtn} onClick={() => setEditingTeam(null)}>HỦY</button>
+              <div className={styles.modalFooter} style={{ marginTop: '24px', padding: 0, border: 'none', display: 'flex', gap: '10px' }}>
+                <button className={`${styles.modalFooterBtn} ${styles.modalFooterPrimary}`} style={{ flex: 1, padding: '12px 20px', fontSize: '14px', borderRadius: '12px' }} onClick={handleSaveTeam}>LƯU THAY ĐỔI</button>
+                <button className={`${styles.modalFooterBtn} ${styles.modalFooterSecondary}`} style={{ flex: 1, padding: '12px 20px', fontSize: '14px', borderRadius: '12px' }} onClick={() => setEditingTeam(null)}>HỦY</button>
               </div>
             </div>
           </div>
+      )}
+
+      {/* Create Match Modal */}
+      {isAddingMatch && (
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <h3>TẠO TRẬN ĐẤU MỚI</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '15px' }}>
+              <select
+                className={styles.modalInput}
+                value={newMatchData.doiNhaId}
+                onChange={(e) => setNewMatchData({ ...newMatchData, doiNhaId: e.target.value })}
+              >
+                <option value="">-- Chọn đội nhà --</option>
+                {teams.map((t: any) => (
+                  <option key={t.id} value={t.id}>{t.ten}</option>
+                ))}
+              </select>
+              <select
+                className={styles.modalInput}
+                value={newMatchData.doiKhachId}
+                onChange={(e) => setNewMatchData({ ...newMatchData, doiKhachId: e.target.value })}
+              >
+                <option value="">-- Chọn đội khách --</option>
+                {teams.map((t: any) => (
+                  <option key={t.id} value={t.id}>{t.ten}</option>
+                ))}
+              </select>
+              <input className={styles.modalInput} placeholder="Vòng đấu (VD: Vòng bảng)" value={newMatchData.vong} onChange={(e) => setNewMatchData({ ...newMatchData, vong: e.target.value })} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <input className={styles.modalInput} type="date" value={newMatchData.date} onChange={(e) => setNewMatchData({ ...newMatchData, date: e.target.value })} />
+                <input className={styles.modalInput} type="time" value={newMatchData.time} onChange={(e) => setNewMatchData({ ...newMatchData, time: e.target.value })} />
+              </div>
+              <input className={styles.modalInput} placeholder="Sân thi đấu" value={newMatchData.san} onChange={(e) => setNewMatchData({ ...newMatchData, san: e.target.value })} />
+            </div>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button className={styles.finishBtn} onClick={handleCreateMatch}>TẠO TRẬN ĐẤU</button>
+              <button className={styles.undoBtn} onClick={() => setIsAddingMatch(false)}>HỦY</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Edit Match Modal */}
+      {editingMatch && (
+        <div className={styles.overlay}>
+          <div className={styles.modal}>
+            <h3>CHỈNH SỬA LỊCH THI ĐẤU</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '15px' }}>
+              <p style={{ color: '#64748b', fontSize: '13px' }}>
+                {editingMatch.doiNha?.ten} vs {editingMatch.doiKhach?.ten}
+              </p>
+              <input className={styles.modalInput} placeholder="Vòng đấu" value={editingMatch.vong || ''} onChange={(e) => setEditingMatch({ ...editingMatch, vong: e.target.value })} />
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
+                <input className={styles.modalInput} type="date" value={editingMatch.date || ''} onChange={(e) => setEditingMatch({ ...editingMatch, date: e.target.value })} />
+                <input className={styles.modalInput} type="time" value={editingMatch.time || ''} onChange={(e) => setEditingMatch({ ...editingMatch, time: e.target.value })} />
+              </div>
+              <input className={styles.modalInput} placeholder="Sân thi đấu" value={editingMatch.san || ''} onChange={(e) => setEditingMatch({ ...editingMatch, san: e.target.value })} />
+            </div>
+            <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
+              <button className={styles.finishBtn} onClick={handleSaveMatch}>LƯU</button>
+              <button className={styles.undoBtn} onClick={() => setEditingMatch(null)}>HỦY</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Team Details Modal */}
+      {viewingTeam && (
+        <div className={styles.overlay} onClick={() => setViewingTeam(null)}>
+          <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                <div style={{ fontSize: '40px', background: '#f8fafc', width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
+                  {viewingTeam.logo}
+                </div>
+                <div>
+                  <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800 }}>{viewingTeam.ten}</h3>
+                  <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#64748b', display: 'flex', gap: '10px', alignItems: 'center' }}>
+                    <span className={styles.statusBadge} style={{ background: '#f1f5f9' }}>Bảng {viewingTeam.bang}</span>
+                    <span>•</span>
+                    <span>{viewingTeam.cauThu?.length || 0} cầu thủ</span>
+                  </p>
+                </div>
+              </div>
+              <button 
+                onClick={() => setViewingTeam(null)} 
+                style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#94a3b8' }}
+              >
+                ×
+              </button>
+            </div>
+
+            <div style={{ marginTop: '20px' }}>
+              <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '12px', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
+                Danh sách cầu thủ đăng ký
+              </h4>
+              {(!viewingTeam.cauThu || viewingTeam.cauThu.length === 0) ? (
+                <p style={{ color: '#94a3b8', fontSize: '13px', fontStyle: 'italic', textAlign: 'center', padding: '20px 0' }}>
+                  Chưa có cầu thủ nào được đăng ký cho đội bóng này.
+                </p>
+              ) : (() => {
+                const chinhThuc = viewingTeam.cauThu.filter((p: any) => !p.viTri?.startsWith('Dự bị'));
+                const duBi = viewingTeam.cauThu.filter((p: any) => p.viTri?.startsWith('Dự bị'));
+                
+                const posOrder: Record<string, number> = { 
+                  'Thủ môn': 1, 'GK': 1,
+                  'Hậu vệ': 2, 'DF': 2,
+                  'Tiền vệ': 3, 'MF': 3,
+                  'Tiền đạo': 4, 'FW': 4,
+                  'Chưa rõ': 99
+                };
+
+                const sortPlayers = (list: any[]) => {
+                  return [...list].sort((a: any, b: any) => {
+                    const cleanPosA = a.viTri?.replace('Dự bị - ', '') || 'Chưa rõ';
+                    const cleanPosB = b.viTri?.replace('Dự bị - ', '') || 'Chưa rõ';
+                    return (posOrder[cleanPosA] || 99) - (posOrder[cleanPosB] || 99) || (a.soAo - b.soAo);
+                  });
+                };
+
+                const sortedChinhThuc = sortPlayers(chinhThuc);
+                const sortedDuBi = sortPlayers(duBi);
+
+                const getDisplayPos = (pos: string) => {
+                  if (!pos) return 'Chưa rõ';
+                  if (pos.startsWith('Dự bị - ')) return pos.replace('Dự bị - ', '') + ' (Dự bị)';
+                  return pos === 'GK' ? 'Thủ môn' : pos === 'DF' ? 'Hậu vệ' : pos === 'MF' ? 'Tiền vệ' : pos === 'FW' ? 'Tiền đạo' : pos;
+                };
+
+                return (
+                  <div style={{ maxHeight: '380px', overflowY: 'auto', paddingRight: '4px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
+                    {/* Đội hình chính thức */}
+                    <div>
+                      <h5 style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#dc2626', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        🛡️ Đội hình chính thức ({chinhThuc.length})
+                      </h5>
+                      {chinhThuc.length === 0 ? (
+                        <p style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic', margin: '4px 0 0 12px' }}>Không có cầu thủ chính thức</p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {sortedChinhThuc.map((p: any) => (
+                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(10px)', borderRadius: '10px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', background: '#fee2e2', color: '#ef4444', borderRadius: '50%', fontSize: '11px', fontWeight: 700 }}>
+                                  {p.soAo}
+                                </span>
+                                <div>
+                                  <p style={{ margin: 0, fontWeight: 600, fontSize: '13.5px', color: '#1e293b' }}>{p.ten}</p>
+                                  <p style={{ margin: 0, fontSize: '10.5px', color: '#3b82f6', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                    {getDisplayPos(p.viTri)}
+                                  </p>
+                                </div>
+                              </div>
+                              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>
+                                ⚽ {p.banThang || 0} bàn
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+
+                    {/* Danh sách dự bị */}
+                    <div>
+                      <h5 style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#4b5563', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
+                        📋 Danh sách dự bị ({duBi.length})
+                      </h5>
+                      {duBi.length === 0 ? (
+                        <p style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic', margin: '4px 0 0 12px' }}>Không có cầu thủ dự bị</p>
+                      ) : (
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                          {sortedDuBi.map((p: any) => (
+                            <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(248, 250, 252, 0.7)', backdropFilter: 'blur(10px)', borderRadius: '10px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 2px 4px rgba(0,0,0,0.01)' }}>
+                              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                                <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', background: '#f1f5f9', color: '#475569', borderRadius: '50%', fontSize: '11px', fontWeight: 700 }}>
+                                  {p.soAo}
+                                </span>
+                                <div>
+                                  <p style={{ margin: 0, fontWeight: 600, fontSize: '13.5px', color: '#334155' }}>{p.ten}</p>
+                                  <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
+                                    {getDisplayPos(p.viTri)}
+                                  </p>
+                                </div>
+                              </div>
+                              <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>
+                                ⚽ {p.banThang || 0} bàn
+                              </span>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className={styles.modalFooter}>
+              <button 
+                className={`${styles.modalFooterBtn} ${styles.modalFooterPrimary}`}
+                onClick={() => {
+                  const teamToEdit = viewingTeam;
+                  setViewingTeam(null);
+                  handleEditTeam(teamToEdit);
+                }}
+              >
+                Chỉnh sửa thành viên
+              </button>
+              <button 
+                className={`${styles.modalFooterBtn} ${styles.modalFooterSecondary}`} 
+                onClick={() => setViewingTeam(null)}
+              >
+                Đóng
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </div>
   );

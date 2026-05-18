@@ -1,43 +1,81 @@
 import styles from './page.module.css';
-import { layTopGhiBan } from '@/lib/api';
+import { layTopGhiBan, layTopKienTao, layTopGangTayVang, layTopThePhat } from '@/lib/api';
+
+export const revalidate = 0;
 
 export default async function ThongKePage() {
   let topGhiBan: any[] = [];
+  let topKienTao: any[] = [];
+  let topGangTay: any[] = [];
+  let topThePhat: any[] = [];
 
   try {
-    topGhiBan = await layTopGhiBan();
-  } catch {
-    topGhiBan = [
-      { ten: 'Hồ Thiên Khôi', doi: { ten: 'TK Warriors' }, banThang: 10 },
-      { ten: 'Bùi Thành H', doi: { ten: 'Phoenix KD03' }, banThang: 9 },
-      { ten: 'Nguyễn Văn A', doi: { ten: 'TK Warriors' }, banThang: 8 },
-      { ten: 'Phạm Đức D', doi: { ten: 'Sale FC' }, banThang: 7 },
-      { ten: 'Vũ Thị F', doi: { ten: 'Titans KD05' }, banThang: 6 },
-    ];
+    [topGhiBan, topKienTao, topGangTay, topThePhat] = await Promise.all([
+      layTopGhiBan(),
+      layTopKienTao(),
+      layTopGangTayVang(),
+      layTopThePhat()
+    ]);
+  } catch (error) {
+    console.error('Error fetching statistics:', error);
   }
 
+  // Best entities for top cards
+  const bestScorer = topGhiBan[0];
+  const bestAssister = topKienTao[0];
+  const bestGK = topGangTay[0];
+  const worstDiscipline = topThePhat[0];
+
   const summaryCards = [
-    { icon: '👟', label: 'Vua phá lưới', value: topGhiBan[0]?.ten ?? 'N/A', sub: `${topGhiBan[0]?.banThang ?? 0} bàn thắng` },
-    { icon: '🔥', label: 'Hàng công mạnh nhất', value: 'TK Warriors', sub: '14 bàn thắng / 5 trận' },
-    { icon: '🛡️', label: 'Hàng thủ tốt nhất', value: 'Sale FC', sub: 'Chỉ lọt lưới 2 bàn' },
-    { icon: '🎯', label: 'Tỷ lệ thắng cao nhất', value: '80%', sub: 'TK Warriors (4T/1H/0B)' },
+    {
+      label: 'Vua Phá Lưới',
+      value: bestScorer?.ten ?? 'Chưa có',
+      sub: `${bestScorer?.ban_thang ?? 0} bàn thắng`,
+      icon: '⚽',
+      highlight: false
+    },
+    {
+      label: 'Vua Kiến Tạo',
+      value: bestAssister?.ten ?? 'Chưa có',
+      sub: `${bestAssister?.kienTao ?? 0} kiến tạo`,
+      icon: '🎯',
+      highlight: true // Playmaker highlighted in brand red
+    },
+    {
+      label: 'Găng Tay Vàng',
+      value: bestGK?.ten ?? 'Chưa có',
+      sub: `${bestGK?.sachLuoi ?? 0} trận sạch lưới`,
+      icon: '🧤',
+      highlight: false
+    },
+    {
+      label: 'Vua Thẻ Phạt',
+      value: worstDiscipline?.ten ?? 'Chưa có',
+      sub: worstDiscipline ? `${worstDiscipline.theVang} 🟨 - ${worstDiscipline.theDo} 🟥` : '0 🟨 - 0 🟥',
+      icon: '🟨',
+      highlight: false
+    },
   ];
 
   return (
     <div className={styles.page}>
-      <div className={styles.header}>
-        <h2 className={styles.title}>Thống kê</h2>
-        <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt — Phân tích hiệu suất</p>
+      <div className={`${styles.header} animate-fade-up`}>
+        <h2 className={styles.title}>Thống kê giải đấu</h2>
+        <p className={styles.subtitle}>Vinh danh những cá nhân xuất sắc nhất trên sân cỏ</p>
       </div>
 
       {/* Summary Cards */}
       <div className={styles.summaryGrid}>
         {summaryCards.map((s, i) => (
-          <div key={i} className={styles.summaryCard}>
-            <span className={styles.summaryIcon}>{s.icon}</span>
-            <div>
+          <div 
+            key={i} 
+            className={`${styles.summaryCard} ${s.highlight ? styles.summaryCardHighlight : ''} animate-fade-up`} 
+            style={{ animationDelay: `${i * 0.1}s` }}
+          >
+            <div className={styles.summaryIcon}>{s.icon}</div>
+            <div className={styles.summaryContent}>
               <p className={styles.summaryLabel}>{s.label}</p>
-              <p className={styles.summaryValue}>{s.value}</p>
+              <p className={styles.summaryValue} title={s.value}>{s.value}</p>
               <p className={styles.summarySub}>{s.sub}</p>
             </div>
           </div>
@@ -45,42 +83,57 @@ export default async function ThongKePage() {
       </div>
 
       <div className={styles.twoCol}>
-        {/* Top Ghi Bàn */}
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>⚽ Top ghi bàn</h3>
+        {/* Top Cầu Thủ - Chiếc Giày Vàng */}
+        <div className={`${styles.card} animate-fade-up`} style={{ animationDelay: '0.4s' }}>
+          <div className={styles.cardHeader}>
+            <span className={styles.cardIcon}>⚽</span>
+            <h3 className={styles.cardTitle}>Chiếc giày vàng</h3>
+          </div>
           <div className={styles.leaderboard}>
-            {topGhiBan.map((ct: any, i: number) => (
-              <div key={i} className={styles.leaderRow}>
-                <span className={styles.leaderRank}>{i + 1}</span>
-                <div className={styles.leaderInfo}>
-                  <p className={styles.leaderName}>{ct.ten}</p>
-                  <p className={styles.leaderTeam}>{ct.doi?.ten}</p>
+            {topGhiBan.length === 0 ? (
+              <div className={styles.noData}>Chưa có dữ liệu bàn thắng</div>
+            ) : (
+              topGhiBan.slice(0, 5).map((ct: any, i: number) => (
+                <div key={i} className={`${styles.leaderRow} ${i === 0 ? styles.leaderRowTop : ''}`}>
+                  <span className={styles.leaderRank}>{i + 1}</span>
+                  <div className={styles.leaderAvatar}>🏃</div>
+                  <div className={styles.leaderInfo}>
+                    <p className={styles.leaderName}>{ct.ten}</p>
+                    <p className={styles.leaderTeam}>{ct.doi?.ten || 'Tự do'}</p>
+                  </div>
+                  <div className={styles.leaderStat}>
+                    {ct.ban_thang} <span className={styles.statIcon}>⚽</span>
+                  </div>
                 </div>
-                <span className={styles.leaderStat}>{ct.banThang} bàn</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
 
-        {/* Top Đội Bóng */}
-        <div className={styles.card}>
-          <h3 className={styles.cardTitle}>🏆 Đội bóng tiêu biểu</h3>
+        {/* Top Playmakers - Vua Kiến Tạo */}
+        <div className={`${styles.card} animate-fade-up`} style={{ animationDelay: '0.5s' }}>
+          <div className={styles.cardHeader}>
+            <span className={styles.cardIcon}>🎯</span>
+            <h3 className={styles.cardTitle}>Vua kiến tạo</h3>
+          </div>
           <div className={styles.leaderboard}>
-            {[
-              { ten: 'TK Warriors', stat: 'Công mạnh nhất', value: '14 bàn' },
-              { ten: 'Sale FC', stat: 'Thủ tốt nhất', value: '2 bàn' },
-              { ten: 'Titans KD05', stat: 'Fair play', value: '0 thẻ đỏ' },
-              { ten: 'Phoenix KD03', stat: 'Ngựa ô', value: 'Top 2' },
-            ].map((doi: any, i: number) => (
-              <div key={i} className={styles.leaderRow}>
-                <span className={styles.leaderRank}>{i + 1}</span>
-                <div className={styles.leaderInfo}>
-                  <p className={styles.leaderName}>{doi.ten}</p>
-                  <p className={styles.leaderTeam}>{doi.stat}</p>
+            {topKienTao.length === 0 ? (
+              <div className={styles.noData}>Chưa có dữ liệu kiến tạo</div>
+            ) : (
+              topKienTao.slice(0, 5).map((nv: any, i: number) => (
+                <div key={i} className={`${styles.leaderRow} ${i === 0 ? styles.leaderRowTop : ''}`}>
+                  <span className={styles.leaderRank}>{i + 1}</span>
+                  <div className={styles.leaderAvatar}>🎯</div>
+                  <div className={styles.leaderInfo}>
+                    <p className={styles.leaderName}>{nv.ten}</p>
+                    <p className={styles.leaderTeam}>{nv.doi?.ten || 'Tự do'}</p>
+                  </div>
+                  <div className={styles.leaderStat}>
+                    {nv.kienTao} <span className={styles.statIcon}>🎯</span>
+                  </div>
                 </div>
-                <span className={styles.leaderStat}>{doi.value}</span>
-              </div>
-            ))}
+              ))
+            )}
           </div>
         </div>
       </div>

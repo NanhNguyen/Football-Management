@@ -1,95 +1,252 @@
 import styles from './page.module.css';
+import { layDuLieuKnockout } from '@/lib/api';
 
-const bracketData = {
-  vong16: [
-    { id: 1, doiA: { ten: 'TK Warriors', logo: '⚔️' }, doiB: { ten: 'Wolves KD10', logo: '🐺' }, tyA: 3, tyB: 1 },
-    { id: 2, doiA: { ten: 'Phoenix KD03', logo: '🔥' }, doiB: { ten: 'Stars KD13', logo: '⭐' }, tyA: 2, tyB: 0 },
-    { id: 3, doiA: { ten: 'Sale FC', logo: '🦅' }, doiB: { ten: 'Suns KD16', logo: '☀️' }, tyA: 1, tyB: 0 },
-    { id: 4, doiA: { ten: 'Dragons KD09', logo: '🐲' }, doiB: { ten: 'Storm KD01', logo: '⛈️' }, tyA: 2, tyB: 2, penalty: '4-3' },
-    { id: 5, doiA: { ten: 'Titans KD05', logo: '🛡️' }, doiB: { ten: 'Moons KD15', logo: '🌙' }, tyA: 1, tyB: 0 },
-    { id: 6, doiA: { ten: 'Eagles KD07', logo: '🦅' }, doiB: { ten: 'Lions KD08', logo: '🦁' }, tyA: 2, tyB: 3 },
-    { id: 7, doiA: { ten: 'Tigers KD11', logo: '🐯' }, doiB: { ten: 'Comets KD14', logo: '☄️' }, tyA: 0, tyB: 1 },
-    { id: 8, doiA: { ten: 'Hawks KD12', logo: '🦅' }, doiB: { ten: 'Sharks KD02', logo: '🦈' }, tyA: 1, tyB: 2 },
-  ],
-  tuKet: [
-    { id: 9, doiA: { ten: 'TK Warriors', logo: '⚔️' }, doiB: { ten: 'Phoenix KD03', logo: '🔥' }, tyA: null, tyB: null },
-    { id: 10, doiA: { ten: 'Sale FC', logo: '🦅' }, doiB: { ten: 'Dragons KD09', logo: '🐲' }, tyA: null, tyB: null },
-    { id: 11, doiA: { ten: 'Titans KD05', logo: '🛡️' }, doiB: { ten: 'Lions KD08', logo: '🦁' }, tyA: null, tyB: null },
-    { id: 12, doiA: { ten: 'Comets KD14', logo: '☄️' }, doiB: { ten: 'Sharks KD02', logo: '🦈' }, tyA: null, tyB: null },
-  ],
-  banKet: [
-    { id: 13, doiA: { ten: 'TBD', logo: '❓' }, doiB: { ten: 'TBD', logo: '❓' }, tyA: null, tyB: null },
-    { id: 14, doiA: { ten: 'TBD', logo: '❓' }, doiB: { ten: 'TBD', logo: '❓' }, tyA: null, tyB: null },
-  ],
-  chungKet: [
-    { id: 15, doiA: { ten: 'TBD', logo: '❓' }, doiB: { ten: 'TBD', logo: '❓' }, tyA: null, tyB: null },
-  ],
-};
+export const revalidate = 0;
 
-function MatchCard({ match }: { match: any }) {
-  const aWin = match.tyA !== null && match.tyA > match.tyB;
-  const bWin = match.tyA !== null && match.tyB > match.tyA;
+interface MatchCardProps {
+  match: {
+    id: string;
+    doiA: { ten: string; logo: string };
+    doiB: { ten: string; logo: string };
+    tyA: number | null;
+    tyB: number | null;
+    penalty: string | null;
+    ngayGio: string;
+    trangThai: 'KET_THUC' | 'SAP_DIEN_RA';
+    winner: 'A' | 'B' | null;
+  };
+}
+
+function MatchCard({ match }: MatchCardProps) {
+  const isFinished = match.trangThai === 'KET_THUC';
+  const aWin = isFinished && match.winner === 'A';
+  const bWin = isFinished && match.winner === 'B';
+  const isUpcoming = match.trangThai === 'SAP_DIEN_RA';
+
+  // Extract start time, e.g. "12/05 • 18:00" -> "18:00"
+  const startHour = match.ngayGio ? match.ngayGio.split('•')[1]?.trim() : '--:--';
+  const matchDate = match.ngayGio ? match.ngayGio.split('•')[0]?.trim() : '—';
 
   return (
-    <div className={`${styles.matchCard} animate-fade-up`}>
-      <div className={`${styles.matchTeam} ${aWin ? styles.matchTeamWin : ''}`}>
-        <span className={styles.matchLogo}>{match.doiA.logo}</span>
-        <span className={styles.matchName}>{match.doiA.ten}</span>
-        <span className={styles.matchScore}>{match.tyA ?? '-'}</span>
+    <div className={styles.matchCardContainer}>
+      <div className={styles.matchTimeHeader}>
+        {matchDate}
       </div>
-      <div className={`${styles.matchTeam} ${bWin ? styles.matchTeamWin : ''}`}>
-        <span className={styles.matchLogo}>{match.doiB.logo}</span>
-        <span className={styles.matchName}>{match.doiB.ten}</span>
-        <span className={styles.matchScore}>{match.tyB ?? '-'}</span>
+      
+      <div className={`${styles.matchCard} ${isFinished ? styles.matchFinished : styles.matchUpcoming}`}>
+        <div className={styles.teamsArea}>
+          {/* Team A */}
+          <div className={`${styles.matchTeam} ${aWin ? styles.teamWin : isFinished ? styles.teamLost : ''}`}>
+            <span className={styles.matchLogo}>{match.doiA.logo}</span>
+            <span className={styles.matchName}>{match.doiA.ten}</span>
+            {isFinished && (
+              <span className={styles.matchScore}>{match.tyA}</span>
+            )}
+          </div>
+
+          {/* Team B */}
+          <div className={`${styles.matchTeam} ${bWin ? styles.teamWin : isFinished ? styles.teamLost : ''}`}>
+            <span className={styles.matchLogo}>{match.doiB.logo}</span>
+            <span className={styles.matchName}>{match.doiB.ten}</span>
+            {isFinished && (
+              <span className={styles.matchScore}>{match.tyB}</span>
+            )}
+          </div>
+        </div>
+
+        {/* Start time slot if match hasn't started yet */}
+        {isUpcoming && (
+          <div className={styles.upcomingTimeArea}>
+            <div className={styles.timeBadge}>{startHour}</div>
+          </div>
+        )}
+
+        {/* Penalty details shown small at bottom */}
+        {isFinished && match.penalty && (
+          <div className={styles.penaltyInfo}>
+            (Pen: {match.penalty})
+          </div>
+        )}
       </div>
-      {match.penalty && (
-        <span className={styles.penaltyBadge}>PEN: {match.penalty}</span>
-      )}
     </div>
   );
 }
 
-export default function KnockoutPage() {
+interface ConnectorSlotProps {
+  height: number;
+  feederTop: any;
+  feederBottom: any;
+}
+
+function ConnectorSlot({ height, feederTop, feederBottom }: ConnectorSlotProps) {
+  const isTopWinner = feederTop && feederTop.winner !== null;
+  const isBottomWinner = feederBottom && feederBottom.winner !== null;
+  
+  const strokeColorDefault = 'var(--color-border-light)';
+  const strokeColorHighlight = 'var(--color-primary)';
+  
+  const topStroke = isTopWinner ? strokeColorHighlight : strokeColorDefault;
+  const bottomStroke = isBottomWinner ? strokeColorHighlight : strokeColorDefault;
+
+  // Coordinates
+  const yTop = height / 4;
+  const yBottom = (3 * height) / 4;
+  const yMid = height / 2;
+
+  return (
+    <div className={styles.connectorSlot} style={{ height: `${height}px` }}>
+      <svg className={styles.connectorSvg} viewBox={`0 0 80 ${height}`} preserveAspectRatio="none">
+        {/* Glow behind top branch if active */}
+        {isTopWinner && (
+          <path
+            d={`M 0 ${yTop} H 40 V ${yMid} H 80`}
+            stroke={strokeColorHighlight}
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            opacity="0.15"
+          />
+        )}
+        {/* Top branch line */}
+        <path
+          d={`M 0 ${yTop} H 40 V ${yMid} H 80`}
+          stroke={topStroke}
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+
+        {/* Glow behind bottom branch if active */}
+        {isBottomWinner && (
+          <path
+            d={`M 0 ${yBottom} H 40 V ${yMid} H 80`}
+            stroke={strokeColorHighlight}
+            strokeWidth="8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+            fill="none"
+            opacity="0.15"
+          />
+        )}
+        {/* Bottom branch line */}
+        <path
+          d={`M 0 ${yBottom} H 40 V ${yMid} H 80`}
+          stroke={bottomStroke}
+          strokeWidth="3"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+          fill="none"
+        />
+      </svg>
+    </div>
+  );
+}
+
+export default async function KnockoutPage() {
+  const bracketData = await layDuLieuKnockout();
+
   return (
     <div className={styles.page}>
       <div className={`${styles.header} animate-fade-up`}>
         <h2 className={styles.title}>Vòng Knock-out</h2>
-        <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt — Giai đoạn loại trực tiếp 2024</p>
+        <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt — Sơ đồ loại trực tiếp chuẩn Cúp C1</p>
       </div>
 
       <div className={styles.bracketContainer}>
         <div className={styles.bracket}>
-          {/* Vòng 1/8 */}
-          <div className={`${styles.round} animate-fade-up stagger-1`}>
-            <h4 className={styles.roundTitle}>Vòng 1/8</h4>
+          
+          {/* Round 1/8 */}
+          <div className={`${styles.round} animate-fade-up`} style={{ animationDelay: '0.1s' }}>
+            <div className={styles.roundHeader}>
+              <h4 className={styles.roundTitle}>Vòng 1/8</h4>
+            </div>
             <div className={styles.roundMatches}>
-              {bracketData.vong16.map((m) => <MatchCard key={m.id} match={m} />)}
+              {bracketData.vong16.map((m: any) => (
+                <MatchCard key={m.id} match={m} />
+              ))}
             </div>
           </div>
 
-          {/* Tứ kết */}
-          <div className={`${styles.round} animate-fade-up stagger-2`}>
-            <h4 className={styles.roundTitle}>Tứ kết</h4>
-            <div className={styles.roundMatches}>
-              {bracketData.tuKet.map((m) => <MatchCard key={m.id} match={m} />)}
+          {/* Connectors 1 */}
+          <div className={styles.connectorColumn}>
+            <div className={styles.connectorHeader}></div>
+            <div className={styles.connectorMatches}>
+              {Array(4).fill(null).map((_, i) => (
+                <ConnectorSlot
+                  key={`c0-${i}`}
+                  height={280}
+                  feederTop={bracketData.vong16[2 * i]}
+                  feederBottom={bracketData.vong16[2 * i + 1]}
+                />
+              ))}
             </div>
           </div>
 
-          {/* Bán kết */}
-          <div className={`${styles.round} animate-fade-up stagger-3`}>
-            <h4 className={styles.roundTitle}>Bán kết</h4>
+          {/* Quarterfinals */}
+          <div className={`${styles.round} animate-fade-up`} style={{ animationDelay: '0.2s' }}>
+            <div className={styles.roundHeader}>
+              <h4 className={styles.roundTitle}>Tứ kết</h4>
+            </div>
             <div className={styles.roundMatches}>
-              {bracketData.banKet.map((m) => <MatchCard key={m.id} match={m} />)}
+              {bracketData.tuKet.map((m: any) => (
+                <MatchCard key={m.id} match={m} />
+              ))}
             </div>
           </div>
 
-          {/* Chung kết */}
-          <div className={`${styles.round} animate-fade-up stagger-4`}>
-            <h4 className={styles.roundTitle}>🏆 Chung kết</h4>
-            <div className={styles.roundMatches}>
-              {bracketData.chungKet.map((m) => <MatchCard key={m.id} match={m} />)}
+          {/* Connectors 2 */}
+          <div className={styles.connectorColumn}>
+            <div className={styles.connectorHeader}></div>
+            <div className={styles.connectorMatches}>
+              {Array(2).fill(null).map((_, i) => (
+                <ConnectorSlot
+                  key={`c1-${i}`}
+                  height={560}
+                  feederTop={bracketData.tuKet[2 * i]}
+                  feederBottom={bracketData.tuKet[2 * i + 1]}
+                />
+              ))}
             </div>
           </div>
+
+          {/* Semifinals */}
+          <div className={`${styles.round} animate-fade-up`} style={{ animationDelay: '0.3s' }}>
+            <div className={styles.roundHeader}>
+              <h4 className={styles.roundTitle}>Bán kết</h4>
+            </div>
+            <div className={styles.roundMatches}>
+              {bracketData.banKet.map((m: any) => (
+                <MatchCard key={m.id} match={m} />
+              ))}
+            </div>
+          </div>
+
+          {/* Connectors 3 */}
+          <div className={styles.connectorColumn}>
+            <div className={styles.connectorHeader}></div>
+            <div className={styles.connectorMatches}>
+              <ConnectorSlot
+                height={1120}
+                feederTop={bracketData.banKet[0]}
+                feederBottom={bracketData.banKet[1]}
+              />
+            </div>
+          </div>
+
+          {/* Finals */}
+          <div className={`${styles.round} animate-fade-up`} style={{ animationDelay: '0.4s' }}>
+            <div className={styles.roundHeader}>
+              <h4 className={styles.roundTitle}>Chung kết</h4>
+            </div>
+            <div className={styles.roundMatches}>
+              {bracketData.chungKet.map((m: any) => (
+                <MatchCard key={m.id} match={m} />
+              ))}
+            </div>
+          </div>
+
         </div>
       </div>
     </div>

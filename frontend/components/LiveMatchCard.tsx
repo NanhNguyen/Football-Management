@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from './LiveMatchCard.module.css';
 import { supabase } from '@/lib/supabase';
+import { calculateMatchMinute } from '@/lib/api';
 
 interface Props {
   tran: any;
@@ -16,6 +17,20 @@ export default function LiveMatchCard({ tran }: Props) {
     // Sync local state if parent prop changes
     setMatch(tran);
   }, [tran]);
+
+  // Real-time minute ticking
+  useEffect(() => {
+    if (match.trangThai !== 'DANG_DIEN_RA' || match.dangTamDung) return;
+
+    const interval = setInterval(() => {
+      const currentPhut = calculateMatchMinute(match);
+      if (currentPhut !== match.phut) {
+        setMatch((prev: any) => ({ ...prev, phut: currentPhut }));
+      }
+    }, 10000); // Update UI every 10s
+
+    return () => clearInterval(interval);
+  }, [match.trangThai, match.dangTamDung, match.batDauLuc, match.thoiGianDaQua]);
 
   useEffect(() => {
     if (!match.id) return;
@@ -42,7 +57,10 @@ export default function LiveMatchCard({ tran }: Props) {
             vong: newDoc.vong,
             time: newDoc.gio,
             date: newDoc.ngay,
-            san: newDoc.san
+            san: newDoc.san,
+            batDauLuc: newDoc.bat_dau_luc,
+            dangTamDung: newDoc.dang_tam_dung,
+            thoiGianDaQua: newDoc.thoi_gian_da_qua
           }));
         }
       )
@@ -61,53 +79,76 @@ export default function LiveMatchCard({ tran }: Props) {
   const tyKhach = match.tyKhach !== undefined ? match.tyKhach : match.tyDoiKhach;
 
   return (
-    <div className={`${styles.card} ${isLive ? styles.cardLive : ''}`}>
-      {/* Status Badge */}
-      <div className={styles.statusRow}>
-        <span className={styles.vong}>{match.vong}</span>
-        {isLive && (
-          <span className={styles.liveBadge}>
-            <span className={styles.livePulse} />
-            LIVE · {match.phut}&apos;
+    <Link href={`/tran-dau/${match.id}`} style={{ textDecoration: 'none' }}>
+      <div className={`${styles.card} ${isLive ? styles.cardLive : ''}`}>
+        {/* Status & Info Badge */}
+        <div className={styles.statusRow}>
+          <span className={styles.matchMeta}>
+            {match.date ? `${match.date}` : ''} {match.time ? `• ${match.time}` : ''} {match.san ? `• Sân ${match.san}` : ''}
           </span>
-        )}
-        {isSapDienRa && (
-          <span className={styles.upcomingBadge}>Sắp diễn ra</span>
-        )}
-        {match.trangThai === 'KET_THUC' && (
-          <span className={styles.endBadge}>Kết thúc</span>
-        )}
-      </div>
-
-      {/* Scoreboard */}
-      <div className={styles.scoreboard}>
-        {/* Home Team */}
-        <div className={styles.team}>
-          <span className={styles.teamLogo}>{match.doiNha?.logo ?? '⚽'}</span>
-          <span className={styles.teamName}>{match.doiNha?.ten ?? 'Đội A'}</span>
-        </div>
-
-        {/* Score */}
-        <div className={styles.scoreCenter}>
-          <div className={styles.score}>
-            <span className={styles.scoreNum}>{tyNha}</span>
-            <span className={styles.scoreSep}>:</span>
-            <span className={styles.scoreNum}>{tyKhach}</span>
+          <div className={styles.badges}>
+            {isLive && (
+              <span className={styles.liveBadge}>
+                <span className={styles.livePulse} />
+                {match.dangTamDung ? 'PAUSED' : 'LIVE'} · {match.phut}&apos;
+              </span>
+            )}
+            {isSapDienRa && (
+              <span className={styles.upcomingBadge}>Sắp diễn ra</span>
+            )}
+            {match.trangThai === 'KET_THUC' && (
+              <span className={styles.endBadge}>Kết thúc</span>
+            )}
           </div>
         </div>
 
-        {/* Away Team */}
-        <div className={styles.team}>
-          <span className={styles.teamLogo}>{match.doiKhach?.logo ?? '⚽'}</span>
-          <span className={styles.teamName}>{match.doiKhach?.ten ?? 'Đội B'}</span>
-        </div>
-      </div>
+        {/* Scoreboard */}
+        <div className={styles.scoreboard}>
+          {/* Home Team */}
+          <div className={styles.team}>
+            <span className={styles.teamLogo}>{match.doiNha?.logo ?? '—'}</span>
+            <span className={styles.teamName}>{match.doiNha?.ten ?? 'Đội A'}</span>
+          </div>
 
-      {/* CTA */}
-      <Link href={`/tran-dau/${match.id}`} className={styles.detailBtn}>
-        Chi tiết trận đấu
-      </Link>
-    </div>
+          {/* Score */}
+          <div className={styles.scoreCenter}>
+            {isSapDienRa && tyNha === 0 && tyKhach === 0 ? (
+              <div className={styles.timeOnly}>
+                {match.time ? match.time : '--:--'}
+              </div>
+            ) : (
+              <div className={styles.score}>
+                <span className={`${styles.scoreNum} ${match.trangThai === 'KET_THUC' ? styles.scoreBold : ''}`}>
+                  {tyNha}
+                </span>
+                <span className={styles.scoreSep}>:</span>
+                <span className={`${styles.scoreNum} ${match.trangThai === 'KET_THUC' ? styles.scoreBold : ''}`}>
+                  {tyKhach}
+                </span>
+              </div>
+            )}
+          </div>
+
+          {/* Away Team */}
+          <div className={styles.team}>
+            <span className={styles.teamLogo}>{match.doiKhach?.logo ?? '—'}</span>
+            <span className={styles.teamName}>{match.doiKhach?.ten ?? 'Đội B'}</span>
+          </div>
+        </div>
+
+        {/* Scorers Area (Mocked for Visuals) */}
+        {(tyNha > 0 || tyKhach > 0) && (
+          <div className={styles.scorersList}>
+            <div className={styles.scorersHome}>
+              {tyNha > 0 && <span className={styles.scorerItem}>Nguyễn Văn A ⚽</span>}
+            </div>
+            <div className={styles.scorersAway}>
+              {tyKhach > 0 && <span className={styles.scorerItem}>Trần Văn B ⚽</span>}
+            </div>
+          </div>
+        )}
+      </div>
+    </Link>
   );
 }
 

@@ -1,108 +1,181 @@
 import styles from './page.module.css';
-import { layTongQuan } from '@/lib/api';
-import LiveMatchCard from '@/components/LiveMatchCard';
+import { layTongQuan, layTopGhiBan } from '@/lib/api';
 import Link from 'next/link';
+import MatchCenterTabs from '@/components/MatchCenterTabs';
+
+export const revalidate = 0;
+export const dynamic = 'force-dynamic';
 
 export default async function TongQuanPage() {
   let data: any;
+  let topScorers: any[] = [];
 
   try {
-    data = await layTongQuan();
+    const [tqData, tbData] = await Promise.all([layTongQuan(), layTopGhiBan()]);
+    data = tqData;
+    topScorers = tbData.slice(0, 3);
   } catch {
     data = null;
   }
 
-  const stats = [
-    { label: 'Tổng số đội', value: data?.tongSoDoi ?? 16 },
-    { label: 'Tổng số trận', value: data?.tongSoTran ?? 48 },
-    { label: 'Trận đang LIVE', value: data?.tranDangLive ?? 1, isLive: true },
-    { label: 'Đội dẫn đầu', value: data?.doiDanDau ?? 'TK Warriors' },
-    { label: 'Tổng bàn thắng', value: data?.tongBanThang ?? 84 },
+  const spotlightMatch = data?.tranLive?.[0] || data?.tranSapDienRa?.[0];
+
+  // Mocking Top 3 Siêu Chốt
+  const topChot = [
+    { ten: 'Phạm Minh Toàn', donVi: 'Khối Hội Sở', chot: 8, logo: '🏢' },
+    { ten: 'Nguyễn Văn Đạt', donVi: 'Chi nhánh Cầu Giấy', chot: 6, logo: '🏙️' },
+    { ten: 'Trần Quyết Thắng', donVi: 'Chi nhánh Nam Từ Liêm', chot: 5, logo: '🏘️' },
   ];
 
   return (
     <div className={styles.page}>
-      {/* HERO — Tournament Command Center */}
-      <section className={`${styles.hero} animate-fade-up`}>
-        <div className={styles.heroContent}>
-          <div className={styles.heroHeader}>
-            <h2 className={styles.heroTitle}>Tournament Command Center</h2>
-            <p className={styles.heroSubtitle}>Thiên Khôi Cúp Siêu Chốt — Vòng bảng 2024</p>
-          </div>
-          <div className={styles.statsGrid}>
-            {stats.map((s, i) => (
-              <div key={i} className={`${styles.statCard} ${s.isLive ? styles.statCardLive : ''} animate-fade-up stagger-${(i % 5) + 1}`}>
-                <div>
-                  <p className={styles.statValue}>{s.value}</p>
-                  <p className={styles.statLabel}>{s.label}</p>
-                </div>
-              </div>
-            ))}
+      {/* 1. Ticker / Alert Box */}
+      <div className={styles.tickerWrapper}>
+        <div className={styles.tickerContainer}>
+          <span className={styles.tickerBadge}>TIN NÓNG</span>
+          <div className={styles.marquee}>
+            <p>🔥 Khối Hội Sở vừa có pha Siêu Chốt +2 điểm! 🔴 Đội Quản lý dự án đang bứt phá mạnh mẽ trên BXH! ⭐ Giải đấu bước vào giai đoạn nước rút!</p>
           </div>
         </div>
+      </div>
+
+      {/* 2. Hero Section: Spotlight Banner */}
+      <section className={`${styles.hero} animate-fade-up`}>
+        {spotlightMatch ? (
+          <div className={styles.spotlightCard}>
+            <div className={styles.spotlightBg}></div>
+            <div className={styles.spotlightHeader}>
+              <span className={styles.spotlightBadge}>🏆 TRẬN CẦU TÂM ĐIỂM</span>
+              {spotlightMatch.trangThai === 'DANG_DIEN_RA' && (
+                <span className={styles.spotlightLive}>🔴 TRỰC TIẾP</span>
+              )}
+            </div>
+            
+            <div className={styles.spotlightContent}>
+              <div className={styles.spotTeam}>
+                <span className={styles.spotLogo}>{spotlightMatch.doiNha?.logo}</span>
+                <span className={styles.spotName}>{spotlightMatch.doiNha?.ten}</span>
+              </div>
+
+              <div className={styles.spotScore}>
+                {spotlightMatch.trangThai === 'SAP_DIEN_RA' ? (
+                  <div className={styles.spotTimeBox}>
+                    <div className={styles.spotTime}>{spotlightMatch.time || 'VS'}</div>
+                    <div className={styles.spotDate}>{spotlightMatch.date || spotlightMatch.vong}</div>
+                  </div>
+                ) : (
+                  <div className={styles.spotScoreBox}>
+                    <span className={styles.spotNum}>{spotlightMatch.tyNha ?? 0}</span>
+                    <span className={styles.spotDash}>-</span>
+                    <span className={styles.spotNum}>{spotlightMatch.tyKhach ?? 0}</span>
+                  </div>
+                )}
+                {spotlightMatch.trangThai === 'DANG_DIEN_RA' && <div className={styles.spotMinute}>{spotlightMatch.phut}&apos;</div>}
+              </div>
+
+              <div className={styles.spotTeam}>
+                <span className={styles.spotLogo}>{spotlightMatch.doiKhach?.logo}</span>
+                <span className={styles.spotName}>{spotlightMatch.doiKhach?.ten}</span>
+              </div>
+            </div>
+          </div>
+        ) : (
+          <div className={styles.heroContent}>
+            <h2 className={styles.heroTitle}>Tournament Command Center</h2>
+            <p className={styles.heroSubtitle}>Chưa có trận đấu tâm điểm nào.</p>
+          </div>
+        )}
       </section>
 
-      {/* LIVE MATCH CENTER */}
+      {/* 3. Khu Vực Trận Đấu (Match Center) */}
       <section className={`${styles.section} animate-fade-up stagger-2`}>
         <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>
-            <span className={styles.liveDot} />
-            Trận đấu đang diễn ra
-          </h3>
-          <Link href="/lich-dau" className={styles.viewAll}>
-            Xem tất cả →
-          </Link>
+          <h3 className={styles.sectionTitle}>Trung Tâm Trận Đấu</h3>
+          <Link href="/lich-dau" className={styles.viewAll}>Xem lịch đầy đủ →</Link>
         </div>
-        <div className={styles.matchGrid}>
-          {(data?.tranLive ?? []).length > 0 ? (
-            data.tranLive.map((tran: any) => (
-              <LiveMatchCard key={tran.id} tran={tran} />
-            ))
-          ) : (
-            <>
-              <LiveMatchCard tran={{
-                id: 'tran-1', doiNha: { ten: 'TK Warriors', logo: '⚔️', vietTat: 'TKW' },
-                doiKhach: { ten: 'Sale FC', logo: '🦅', vietTat: 'SFC' },
-                tyDoiNha: 3, tyDoiKhach: 1,
-                trangThai: 'DANG_DIEN_RA', phut: 72, vong: 'Tứ kết'
-              }} />
-              <LiveMatchCard tran={{
-                id: 'tran-2', doiNha: { ten: 'Titans KD05', logo: '🛡️', vietTat: 'T05' },
-                doiKhach: { ten: 'Phoenix KD03', logo: '🔥', vietTat: 'P03' },
-                tyDoiNha: 1, tyDoiKhach: 2,
-                trangThai: 'DANG_DIEN_RA', phut: 65, vong: 'Tứ kết'
-              }} />
-            </>
-          )}
-        </div>
+        <MatchCenterTabs 
+          liveMatches={data?.tranLive || []} 
+          upcomingMatches={data?.tranSapDienRa || []} 
+          completedMatches={data?.tranKetThuc || []} 
+        />
       </section>
 
-      {/* TOP 3 — Mini Standings */}
+      {/* 4. Khu Vực Bảng Vàng & Xếp Hạng */}
       <section className={`${styles.section} animate-fade-up stagger-3`}>
         <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>🏅 BXH nhanh — Top 3</h3>
-          <Link href="/bang-xep-hang" className={styles.viewAll}>
-            Xem đầy đủ →
-          </Link>
+          <h3 className={styles.sectionTitle}>Bảng Vàng Danh Dự</h3>
         </div>
-        <div className={styles.top3Grid}>
-          {(data?.top3Doi ?? [
-            { hang: 1, doi: { ten: 'TK Warriors', logo: '⚔️' }, diem: 13, banThang: 14 },
-            { hang: 2, doi: { ten: 'Phoenix KD03', logo: '🔥' }, diem: 10, banThang: 12 },
-            { hang: 3, doi: { ten: 'Titans KD05', logo: '🛡️' }, diem: 9, banThang: 10 },
-          ]).map((item: any, i: number) => {
-            const badges = ['🥇', '🥈', '🥉'];
-            return (
-              <div key={i} className={`${styles.top3Card} ${i === 0 ? styles.top3First : ''} animate-scale-in stagger-${i + 1}`}>
-                <span className={styles.top3Badge}>{badges[i]}</span>
-                <span className={styles.top3Logo}>{item.doi?.logo}</span>
-                <div className={styles.top3Info}>
-                  <p className={styles.top3Name}>{item.doi?.ten}</p>
-                  <p className={styles.top3Stats}>{item.diem} điểm · {item.banThang} bàn thắng</p>
+        
+        <div className={styles.leaderboardGrid}>
+          {/* Block 1: BXH Đội Bóng */}
+          <div className={styles.lbCard}>
+            <div className={styles.lbHeader}>
+              <h4>Bảng Xếp Hạng Đội</h4>
+              <Link href="/bang-xep-hang" className={styles.lbLink}>Chi tiết</Link>
+            </div>
+            <div className={styles.lbList}>
+              {(data?.top3Doi || []).map((t: any, i: number) => (
+                <div key={i} className={styles.lbTeamRow}>
+                  <div className={styles.lbTeamRankBg}>{i + 1}</div>
+                  <div className={styles.lbTeamInfo}>
+                    <span className={styles.lbTeamRank}>{i === 0 ? '👑' : `#${i + 1}`}</span>
+                    <span className={styles.lbTeamLogo}>{t.doi?.logo}</span>
+                    <span className={styles.lbTeamName}>{t.doi?.ten}</span>
+                  </div>
+                  <div className={styles.lbTeamPts}>{t.diem}đ</div>
                 </div>
-              </div>
-            );
-          })}
+              ))}
+            </div>
+          </div>
+
+          {/* Block 2: Vua Phá Lưới */}
+          <div className={styles.lbCard}>
+            <div className={styles.lbHeader}>
+              <h4>Vua Phá Lưới</h4>
+              <Link href="/thong-ke" className={styles.lbLink}>Chi tiết</Link>
+            </div>
+            <div className={styles.lbList}>
+              {topScorers.map((p, i) => (
+                <div key={i} className={styles.lbPlayerRow}>
+                  <div className={styles.lbPlayerAvatar}>
+                    <img src={`https://ui-avatars.com/api/?name=${encodeURIComponent(p.ten)}&background=random&color=fff`} alt={p.ten} />
+                    <span className={styles.lbPlayerTeam}>{p.doi?.logo}</span>
+                  </div>
+                  <div className={styles.lbPlayerNameBox}>
+                    <p className={styles.lbPlayerName}>{p.ten}</p>
+                  </div>
+                  <div className={styles.lbPlayerGoals}>
+                    <span>{p.ban_thang}</span> 🥾
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          {/* Block 3: Vua Siêu Chốt */}
+          <div className={`${styles.lbCard} ${styles.lbCardVip}`}>
+            <div className={styles.lbVipGlow}></div>
+            <div className={styles.lbHeaderVip}>
+              <h4>VUA SIÊU CHỐT 🔥</h4>
+            </div>
+            <div className={styles.lbList}>
+              {topChot.map((c, i) => (
+                <div key={i} className={styles.lbChotRow}>
+                  <div className={styles.lbChotAvatar}>
+                    <span className={styles.lbChotRank}>{i + 1}</span>
+                  </div>
+                  <div className={styles.lbChotInfo}>
+                    <p className={styles.lbChotName}>{c.ten}</p>
+                    <p className={styles.lbChotDonVi}>{c.logo} {c.donVi}</p>
+                  </div>
+                  <div className={styles.lbChotScore}>
+                    <span className={styles.lbChotNum}>{c.chot}</span> 🏠
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
         </div>
       </section>
     </div>
