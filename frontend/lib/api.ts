@@ -304,8 +304,8 @@ export async function deleteMatch(id: string) {
 export async function layBangXepHang() {
   const teams = await layDanhSachDoi();
   const matches = await layDanhSachTranDau();
-  // Count matches that are finished or currently playing (live)
-  const playedMatches = matches.filter(m => m.trangThai === 'KET_THUC' || m.trangThai === 'DANG_DIEN_RA');
+  // Count only matches that are finished (strictly following FIFA regulations)
+  const playedMatches = matches.filter(m => m.trangThai === 'KET_THUC');
 
   const stats: any[] = teams.map(team => {
     const teamMatches = playedMatches.filter(m => 

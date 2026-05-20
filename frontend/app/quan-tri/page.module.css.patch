@@ -1,0 +1,104 @@
+--- /Users/namanhnguyen/Nanh/IT/Football Management/frontend/app/quan-tri/page.module.css
++++ /Users/namanhnguyen/Nanh/IT/Football Management/frontend/app/quan-tri/page.module.css
+@@ -5,22 +5,81 @@
+ .layout {
+   display: flex;
+-  min-height: 100vh;
+-  margin-top: -72px;
+-  padding-top: 0;
++  flex-direction: column;
++  height: 100vh;
++  margin-top: -72px; /* Offset the padding from root layout */
++  background: var(--color-bg);
++  overflow: hidden;
++}
++
++/* ===== GLOBAL TOPBAR ===== */
++.globalTopbar {
++  height: 60px;
++  background: var(--color-surface);
++  border-bottom: 1px solid var(--color-border-light);
++  display: flex;
++  align-items: center;
++  justify-content: space-between;
++  padding: 0 var(--space-lg);
++  z-index: 300;
++  position: relative;
++}
++
++.topbarLeft {
++  display: flex;
++  align-items: center;
++  gap: var(--space-xl);
++}
++
++.topbarLogo {
++  display: flex;
++  align-items: center;
++  gap: var(--space-sm);
++}
++
++.topbarLogoImg {
++  width: 32px;
++  height: 32px;
++}
++
++.tournamentSwitcher {
++  display: flex;
++  align-items: center;
++  gap: var(--space-sm);
++  padding: 8px 16px;
++  background: var(--color-bg);
++  border: 1px solid var(--color-border-light);
++  border-radius: var(--radius-md);
++  cursor: pointer;
++  font-weight: 600;
++  font-size: 14px;
++}
++
++.tournamentSwitcher:hover {
++  background: var(--color-surface-hover);
++}
++
++.topbarRight {
++  display: flex;
++  align-items: center;
++  gap: var(--space-lg);
++}
++
++.bodyWrapper {
++  display: flex;
++  flex: 1;
++  overflow: hidden;
+ }
+ 
+ /* ===== SIDEBAR ===== */
+ .sidebar {
+   width: 280px;
+   background: var(--color-surface);
+   border-right: 1px solid var(--color-border-light);
+   display: flex;
+   flex-direction: column;
+   padding: var(--space-base);
+-  position: fixed;
+-  top: 0;
+-  left: 0;
+-  bottom: 0;
+-  z-index: 200;
++  flex-shrink: 0;
+ }
+ 
+ .sidebarHeader {
+@@ -151,12 +210,12 @@
+ /* ===== MAIN ===== */
+ .main {
+   flex: 1;
+-  margin-left: 280px;
+   padding: 40px;
+-  background: var(--color-bg);
+-  min-height: 100vh;
+-  overflow-x: hidden;
++  overflow-y: auto;
+ }
+ 
+ .content {
