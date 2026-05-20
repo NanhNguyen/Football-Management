@@ -1,7 +1,8 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { layDuLieuKnockout } from '@/lib/api';
-
-export const revalidate = 0;
 
 interface MatchCardProps {
   match: {
@@ -12,13 +13,14 @@ interface MatchCardProps {
     tyB: number | null;
     penalty: string | null;
     ngayGio: string;
-    trangThai: 'KET_THUC' | 'SAP_DIEN_RA';
+    trangThai: 'KET_THUC' | 'SAP_DIEN_RA' | 'DANG_DIEN_RA';
     winner: 'A' | 'B' | null;
   };
 }
 
 function MatchCard({ match }: MatchCardProps) {
   const isFinished = match.trangThai === 'KET_THUC';
+  const isLive = match.trangThai === 'DANG_DIEN_RA';
   const aWin = isFinished && match.winner === 'A';
   const bWin = isFinished && match.winner === 'B';
   const isUpcoming = match.trangThai === 'SAP_DIEN_RA';
@@ -31,16 +33,17 @@ function MatchCard({ match }: MatchCardProps) {
     <div className={styles.matchCardContainer}>
       <div className={styles.matchTimeHeader}>
         {matchDate}
+        {isLive && <span className={styles.liveIndicatorMini}>🔴 LIVE</span>}
       </div>
       
-      <div className={`${styles.matchCard} ${isFinished ? styles.matchFinished : styles.matchUpcoming}`}>
+      <div className={`${styles.matchCard} ${isFinished ? styles.matchFinished : isLive ? styles.matchLive : styles.matchUpcoming}`}>
         <div className={styles.teamsArea}>
           {/* Team A */}
           <div className={`${styles.matchTeam} ${aWin ? styles.teamWin : isFinished ? styles.teamLost : ''}`}>
             <span className={styles.matchLogo}>{match.doiA.logo}</span>
             <span className={styles.matchName}>{match.doiA.ten}</span>
-            {isFinished && (
-              <span className={styles.matchScore}>{match.tyA}</span>
+            {(isFinished || isLive) && (
+              <span className={styles.matchScore}>{match.tyA ?? 0}</span>
             )}
           </div>
 
@@ -48,8 +51,8 @@ function MatchCard({ match }: MatchCardProps) {
           <div className={`${styles.matchTeam} ${bWin ? styles.teamWin : isFinished ? styles.teamLost : ''}`}>
             <span className={styles.matchLogo}>{match.doiB.logo}</span>
             <span className={styles.matchName}>{match.doiB.ten}</span>
-            {isFinished && (
-              <span className={styles.matchScore}>{match.tyB}</span>
+            {(isFinished || isLive) && (
+              <span className={styles.matchScore}>{match.tyB ?? 0}</span>
             )}
           </div>
         </div>
@@ -144,15 +147,64 @@ function ConnectorSlot({ height, feederTop, feederBottom }: ConnectorSlotProps) 
   );
 }
 
-export default async function KnockoutPage() {
-  const bracketData = await layDuLieuKnockout();
+export default function KnockoutPage() {
+  const [bracketData, setBracketData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await layDuLieuKnockout();
+        setBracketData(res);
+      } catch (error) {
+        console.error("Lỗi lấy sơ đồ knockout:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 3000); // Poll every 3 seconds for dynamic knockout bracket updates
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading || !bracketData) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
+          <p>Đang dựng sơ đồ Knock-out thời gian thực...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.page}>
       <div className={`${styles.header} animate-fade-up`}>
+        <div className={styles.liveBadgeContainer}>
+          <span className={styles.liveIndicator}>
+            <span className={styles.liveDot}></span>
+            Knockout Live Feeder
+          </span>
+        </div>
         <h2 className={styles.title}>Vòng Knock-out</h2>
-        <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt — Sơ đồ loại trực tiếp chuẩn Cúp C1</p>
       </div>
+
+      {!bracketData.allGroupCompleted && (
+        <div className={`${styles.lockBanner} animate-fade-up`}>
+          <div className={styles.lockIcon}>🔒</div>
+          <div className={styles.lockContent}>
+            <div className={styles.lockTitle}>
+              SƠ ĐỒ LOẠI TRỰC TIẾP ĐANG KHÓA
+              <span className={styles.lockBadge}>DỰ KIẾN</span>
+            </div>
+            <p className={styles.lockDesc}>
+              <strong>Vòng bảng vẫn đang diễn ra!</strong> Sơ đồ Knock-out hiện tại hiển thị <strong>các cặp đấu dự kiến</strong> dựa trên thứ hạng bảng xếp hạng thời gian thực. Sơ đồ sẽ chính thức được mở khóa và thiết lập cố định ngay sau khi toàn bộ các trận đấu vòng bảng hoàn tất.
+            </p>
+          </div>
+        </div>
+      )}
 
       <div className={styles.bracketContainer}>
         <div className={styles.bracket}>

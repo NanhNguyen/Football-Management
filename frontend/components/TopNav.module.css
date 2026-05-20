@@ -325,3 +325,64 @@
   color: var(--color-primary);
 }
 
+/* ===== RESPONSIVE ===== */
+@media (max-width: 768px) {
+  .header {
+    padding: 0 var(--space-md);
+  }
+
+  .left {
+    min-width: 0;
+  }
+
+  .right {
+    min-width: 0;
+    gap: var(--space-sm);
+  }
+
+  .centerNav {
+    gap: 2px;
+  }
+
+  .navLink {
+    padding: 6px 10px;
+    font-size: 13px;
+  }
+
+  .followTeamBtn {
+    display: none;
+  }
+
+  .logoImg {
+    height: 46px;
+  }
+}
+
+@media (max-width: 540px) {
+  .header {
+    padding: 0 12px;
+  }
+
+  /* Hide text nav labels, keep links as icon-sized */
+  .centerNav {
+    gap: 0;
+  }
+
+  .navLink {
+    padding: 6px 8px;
+    font-size: 12px;
+  }
+
+  .logoImg {
+    height: 38px;
+  }
+
+  .followTeamBtn {
+    display: none;
+  }
+
+  .iconBtn {
+    padding: 6px;
+    font-size: 16px;
+  }
+}

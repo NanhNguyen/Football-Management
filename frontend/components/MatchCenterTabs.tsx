@@ -8,9 +8,10 @@ interface MatchCenterTabsProps {
   liveMatches: any[];
   upcomingMatches: any[];
   completedMatches: any[];
+  onCardClick?: (match: any) => void;
 }
 
-export default function MatchCenterTabs({ liveMatches, upcomingMatches, completedMatches }: MatchCenterTabsProps) {
+export default function MatchCenterTabs({ liveMatches, upcomingMatches, completedMatches, onCardClick }: MatchCenterTabsProps) {
   const [activeTab, setActiveTab] = useState<'LIVE' | 'TODAY' | 'RESULT'>('LIVE');
 
   let currentMatches = [];
@@ -45,7 +46,7 @@ export default function MatchCenterTabs({ liveMatches, upcomingMatches, complete
       <div className={styles.matchGrid}>
         {currentMatches.length > 0 ? (
           currentMatches.map(tran => (
-            <LiveMatchCard key={tran.id} tran={tran} />
+            <LiveMatchCard key={tran.id} tran={tran} onClick={() => onCardClick?.(tran)} />
           ))
         ) : (
           <div className={styles.emptyState}>

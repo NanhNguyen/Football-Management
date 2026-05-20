@@ -1,36 +1,124 @@
-import styles from './page.module.css';
-import { layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
+'use client';
+
+import { useState, useEffect } from 'react';
+import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import styles from './page.module.css';
+import { supabase } from '@/lib/supabase';
+import { layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
 
-interface Props {
-  params: { id: string };
-}
+export default function ChiTietTranDauPage() {
+  const params = useParams();
+  const router = useRouter();
+  const id = params?.id as string;
 
-export default async function ChiTietTranDauPage({ params }: Props) {
-  const { id } = params;
-  let tran: any;
+  const [tran, setTran] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
 
-  try {
-    tran = await layChiTietTranDau(id);
-  } catch {
-    tran = null;
-  }
+  // Function to load/reload match details
+  const fetchMatchDetails = async () => {
+    if (!id) return;
+    try {
+      const detail = await layChiTietTranDau(id);
+      if (detail) {
+        setTran(detail);
+      }
+    } catch (err) {
+      console.error('Lỗi khi lấy chi tiết trận đấu:', err);
+    } finally {
+      setLoading(false);
+    }
+  };
 
-  // Fallback data
-  if (!tran) {
-    tran = {
-      id, vong: 'Tứ kết', phut: 72, trangThai: 'DANG_DIEN_RA',
-      doiNha: { ten: 'TK Warriors', logo: '⚔️' },
-      doiKhach: { ten: 'Sale FC', logo: '🦅' },
-      tyDoiNha: 3, tyDoiKhach: 1,
-      suKien: [
-        { id: 'sk-1', loai: 'BAN_THANG', phut: 12, moTa: 'Sút xa góc hẹp', cauThu: { ten: 'Nguyễn Văn A' }, doi: { ten: 'TK Warriors' } },
-        { id: 'sk-3', loai: 'THE_VANG', phut: 32, moTa: 'Lỗi chiến thuật', cauThu: { ten: 'Phạm Đức D' }, doi: { ten: 'Sale FC' } },
-        { id: 'sk-4', loai: 'BAN_THANG', phut: 41, moTa: 'Đánh đầu từ quả phạt góc', cauThu: { ten: 'Phạm Đức D' }, doi: { ten: 'Sale FC' } },
-        { id: 'sk-6', loai: 'BAN_THANG', phut: 68, moTa: 'Phá bẫy việt vị ghi bàn', cauThu: { ten: 'Hồ Thiên Khôi' }, doi: { ten: 'TK Warriors' } },
-      ],
+  // Initial load
+  useEffect(() => {
+    fetchMatchDetails();
+  }, [id]);
+
+  // Real-time minute ticking for LIVE matches
+  useEffect(() => {
+    if (!tran || tran.trangThai !== 'DANG_DIEN_RA' || tran.dangTamDung) return;
+
+    const interval = setInterval(() => {
+      const currentPhut = calculateMatchMinute(tran);
+      if (currentPhut !== tran.phut) {
+        setTran((prev: any) => prev ? { ...prev, phut: currentPhut } : null);
+      }
+    }, 10000); // Check every 10s
+
+    return () => clearInterval(interval);
+  }, [tran?.trangThai, tran?.dangTamDung, tran?.batDauLuc, tran?.thoiGianDaQua]);
+
+  // Real-time database updates subscription
+  useEffect(() => {
+    if (!id) return;
+
+    // 1. Subscribe to match table changes
+    const matchChannel = supabase
+      .channel(`match_detail_${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'tran_dau',
+          filter: `id=eq.${id}`,
+        },
+        () => {
+          // Refetch everything to stay perfectly in sync and get relation data
+          fetchMatchDetails();
+        }
+      )
+      .subscribe();
+
+    // 2. Subscribe to event table changes
+    const eventChannel = supabase
+      .channel(`match_events_${id}`)
+      .on(
+        'postgres_changes',
+        {
+          event: '*',
+          schema: 'public',
+          table: 'su_kien',
+          filter: `tran_dau_id=eq.${id}`,
+        },
+        () => {
+          // Refetch to get fresh list of events and related player/team details
+          fetchMatchDetails();
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(matchChannel);
+      supabase.removeChannel(eventChannel);
     };
+  }, [id]);
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '16px' }}>
+          <div style={{ width: '40px', height: '40px', border: '3px solid #f1f5f9', borderTopColor: '#d71920', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
+          <p style={{ color: '#64748b', fontWeight: 600 }}>Đang tải thông tin trận đấu thời gian thực...</p>
+          <style>{`
+            @keyframes spin {
+              to { transform: rotate(360deg); }
+            }
+          `}</style>
+        </div>
+      </div>
+    );
   }
+
+  // Fallback data if match doesn't exist
+  const matchData = tran || {
+    id, vong: 'Vòng đấu', phut: 0, trangThai: 'SAP_DIEN_RA',
+    doiNha: { ten: 'Đội nhà', logo: '⚽' },
+    doiKhach: { ten: 'Đội khách', logo: '⚽' },
+    tyDoiNha: 0, tyDoiKhach: 0,
+    suKien: [],
+  };
 
   const eventIcons: Record<string, string> = {
     'BAN_THANG': '⚽',
@@ -58,36 +146,50 @@ export default async function ChiTietTranDauPage({ params }: Props) {
     'CARD': 'Án phạt',
   };
 
-  const tyDoiNha = tran.tyDoiNha ?? tran.tyNha ?? 0;
-  const tyDoiKhach = tran.tyDoiKhach ?? tran.tyKhach ?? 0;
+  const isLive = matchData.trangThai === 'DANG_DIEN_RA';
+  const isSapDienRa = matchData.trangThai === 'SAP_DIEN_RA';
+  const isKetThuc = matchData.trangThai === 'KET_THUC';
+
+  const tyDoiNha = matchData.tyDoiNha ?? matchData.tyNha ?? 0;
+  const tyDoiKhach = matchData.tyDoiKhach ?? matchData.tyKhach ?? 0;
 
   return (
     <div className={`${styles.page} animate-fade-in`}>
-      <Link href="/lich-dau" className={styles.backLink}>← Quay lại Lịch thi đấu</Link>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <button onClick={() => router.back()} className={styles.backLink} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}>
+          ← Quay lại
+        </button>
+        <Link href="/" className={styles.backLink} style={{ color: '#64748b' }}>
+          Về Trang chủ
+        </Link>
+      </div>
 
       {/* Match Header */}
       <div className={`${styles.matchHeader} animate-fade-up`}>
         <div className={styles.matchInfo}>
-          <span className={styles.vong}>{tran.vong}</span>
-          {tran.trangThai === 'DANG_DIEN_RA' && (
+          <span className={styles.vong}>{matchData.vong}</span>
+          {isLive && (
             <span className={styles.liveBadge}>
               <span className={styles.livePulse} />
-              {tran.dangTamDung ? 'TẠM DỪNG' : 'LIVE'} · {calculateMatchMinute(tran)}&apos;
+              {matchData.dangTamDung ? 'TẠM DỪNG' : 'LIVE'} · {matchData.phut}&apos;
             </span>
           )}
-          {tran.trangThai === 'KET_THUC' && (
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '4px 10px', borderRadius: '6px' }}>
-              Đã kết thúc
+          {isSapDienRa && (
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#f59e0b', background: '#fef3c7', padding: '4px 12px', borderRadius: '999px', textTransform: 'uppercase' }}>
+              Sắp diễn ra
             </span>
           )}
-          {tran.date && <span style={{ fontSize: '13px', color: '#94a3b8' }}>{tran.date} {tran.time}</span>}
-          {tran.san && <span style={{ fontSize: '13px', color: '#94a3b8' }}>📍 {tran.san}</span>}
+          {isKetThuc && (
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '4px 12px', borderRadius: '999px', textTransform: 'uppercase' }}>
+              Kết thúc
+            </span>
+          )}
         </div>
 
         <div className={styles.scoreboard}>
           <div className={styles.team}>
-            <span className={styles.teamLogo}>{tran.doiNha?.logo}</span>
-            <h3 className={styles.teamName}>{tran.doiNha?.ten}</h3>
+            <span className={styles.teamLogo}>{matchData.doiNha?.logo || '⚽'}</span>
+            <h3 className={styles.teamName}>{matchData.doiNha?.ten}</h3>
           </div>
 
           <div className={styles.scoreCenter}>
@@ -96,52 +198,89 @@ export default async function ChiTietTranDauPage({ params }: Props) {
               <span className={styles.scoreSep}>—</span>
               <span className={styles.scoreNum}>{tyDoiKhach}</span>
             </div>
+            {matchData.san && (
+              <span style={{ fontSize: '12px', color: '#94a3b8', marginTop: '12px', display: 'block' }}>
+                🏟️ Sân {matchData.san}
+              </span>
+            )}
+            {matchData.date && (
+              <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', display: 'block' }}>
+                📅 {matchData.date} {matchData.time ? `• ${matchData.time}` : ''}
+              </span>
+            )}
           </div>
 
           <div className={styles.team}>
-            <span className={styles.teamLogo}>{tran.doiKhach?.logo}</span>
-            <h3 className={styles.teamName}>{tran.doiKhach?.ten}</h3>
+            <span className={styles.teamLogo}>{matchData.doiKhach?.logo || '⚽'}</span>
+            <h3 className={styles.teamName}>{matchData.doiKhach?.ten}</h3>
           </div>
         </div>
       </div>
 
-      {/* Timeline */}
-      <div className={`${styles.timelineSection} animate-fade-up stagger-2`}>
+      {/* Timeline Section */}
+      <div className={`${styles.timelineSection} animate-fade-up`}>
         <h3 className={styles.sectionTitle}>Diễn biến trận đấu</h3>
-        {tran.suKien.length === 0 ? (
-          <p style={{ color: '#94a3b8', textAlign: 'center', padding: '40px' }}>
-            Chưa có sự kiện nào được ghi nhận
-          </p>
+        {(matchData.suKien || []).length === 0 ? (
+          <div style={{ background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1', padding: '48px', textAlign: 'center' }}>
+            <span style={{ fontSize: '32px', display: 'block', marginBottom: '12px' }}>⏱️</span>
+            <p style={{ color: '#64748b', fontWeight: 500, margin: 0 }}>Chưa có sự kiện nào được ghi nhận cho trận đấu này.</p>
+          </div>
         ) : (
           <div className={styles.timeline}>
-            {tran.suKien.map((sk: any) => (
-              <div key={sk.id} className={styles.timelineItem}>
-                <div className={styles.timelineDot}>
-                  <span className={styles.timelineIcon}>{eventIcons[sk.loai] ?? '📌'}</span>
-                  <span className={styles.timelineMinute}>{sk.phut}&apos;</span>
+            {(matchData.suKien || []).map((sk: any) => {
+              const isHomeTeamEvent = sk.doi?.ten === matchData.doiNha?.ten;
+              return (
+                <div key={sk.id} className={`${styles.timelineItem} ${sk.loai === 'CHOT' ? styles.timelineItemDeal : ''}`}>
+                  <div className={styles.timelineDot}>
+                    <span className={styles.timelineIcon}>{eventIcons[sk.loai] ?? '📌'}</span>
+                    <span className={styles.timelineMinute}>{sk.phut}&apos;</span>
+                  </div>
+                  <div className={styles.timelineContent}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span className={styles.timelineLabel}>{eventLabels[sk.loai] ?? sk.loai}</span>
+                      {sk.doi?.ten && (
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: isHomeTeamEvent ? '#d71920' : '#2563eb', background: isHomeTeamEvent ? '#fef2f2' : '#eff6ff', padding: '2px 8px', borderRadius: '4px' }}>
+                          {sk.doi.ten}
+                        </span>
+                      )}
+                    </div>
+                    <p className={styles.timelineDesc}>
+                      <strong>{sk.cauThu?.ten ?? 'Không rõ'}</strong>
+                      {sk.moTa && ` — ${sk.moTa}`}
+                    </p>
+                  </div>
                 </div>
-                <div className={styles.timelineContent}>
-                  <span className={styles.timelineLabel}>{eventLabels[sk.loai] ?? sk.loai}</span>
-                  <p className={styles.timelineDesc}>
-                    <strong>{sk.cauThu?.ten ?? 'Không rõ'}</strong>
-                    {sk.doi?.ten && ` (${sk.doi.ten})`}
-                    {sk.moTa && ` — ${sk.moTa}`}
-                  </p>
-                </div>
-              </div>
-            ))}
+              );
+            })}
           </div>
         )}
       </div>
 
-      {/* Stats */}
-      <div className={`${styles.statsSection} animate-fade-up stagger-3`}>
+      {/* Stats Section */}
+      <div className={`${styles.statsSection} animate-fade-up`}>
         <h3 className={styles.sectionTitle}>Thống kê trận đấu</h3>
         <div className={styles.statsGrid}>
           {[
-            { label: 'Bàn thắng', home: tyDoiNha, away: tyDoiKhach },
-            { label: 'Sự kiện', home: tran.suKien.filter((e: any) => e.doi?.ten === tran.doiNha?.ten).length, away: tran.suKien.filter((e: any) => e.doi?.ten === tran.doiKhach?.ten).length },
-            { label: 'Thẻ phạt', home: tran.suKien.filter((e: any) => (e.loai === 'THE_VANG' || e.loai === 'CARD') && e.doi?.ten === tran.doiNha?.ten).length, away: tran.suKien.filter((e: any) => (e.loai === 'THE_VANG' || e.loai === 'CARD') && e.doi?.ten === tran.doiKhach?.ten).length },
+            { 
+              label: 'Bàn thắng', 
+              home: tyDoiNha, 
+              away: tyDoiKhach 
+            },
+            { 
+              label: 'Sự kiện', 
+              home: (matchData.suKien || []).filter((e: any) => e.doi?.ten === matchData.doiNha?.ten).length, 
+              away: (matchData.suKien || []).filter((e: any) => e.doi?.ten === matchData.doiKhach?.ten).length 
+            },
+            { 
+              label: 'Thẻ vàng/phạt', 
+              home: (matchData.suKien || []).filter((e: any) => (e.loai === 'THE_VANG' || e.loai === 'CARD') && e.doi?.ten === matchData.doiNha?.ten).length, 
+              away: (matchData.suKien || []).filter((e: any) => (e.loai === 'THE_VANG' || e.loai === 'CARD') && e.doi?.ten === matchData.doiKhach?.ten).length 
+            },
+            { 
+              label: 'Siêu Chốt 🔥', 
+              home: (matchData.suKien || []).filter((e: any) => e.loai === 'CHOT' && e.doi?.ten === matchData.doiNha?.ten).length, 
+              away: (matchData.suKien || []).filter((e: any) => e.loai === 'CHOT' && e.doi?.ten === matchData.doiKhach?.ten).length 
+            },
           ].map((stat, i) => (
             <div key={i} className={styles.statRow}>
               <span className={styles.statHome}>{stat.home}</span>

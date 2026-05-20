@@ -1,30 +1,39 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { layBangXepHang } from '@/lib/api';
 
-export const revalidate = 0;
-export const dynamic = 'force-dynamic';
+export default function BangXepHangPage() {
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function BangXepHangPage() {
-  let data: any[] = [];
-
-  try {
-    data = await layBangXepHang();
-  } catch {
-    // fallback data (16 teams)
-    const groups = ['A', 'B', 'C', 'D'];
-    data = [];
-    groups.forEach(g => {
-      for (let i = 1; i <= 4; i++) {
-        data.push({
-          bang: g,
-          doi: { ten: `Đội ${i} Bảng ${g}`, logo: '⚽' },
-          soTran: 3, thang: 4 - i, hoa: 0, thua: i - 1,
-          banThang: 10 - i, banThua: 2 + i, hieuSo: 8 - 2 * i, diem: (4 - i) * 3,
-          sieuChot: Math.floor(Math.random() * 3),
-          phongDo: ['T', 'H', 'B', 'T', 'H']
-        });
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await layBangXepHang();
+        setData(res);
+      } catch (error) {
+        console.error("Lỗi lấy dữ liệu bảng xếp hạng:", error);
+      } finally {
+        setLoading(false);
       }
-    });
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 3000); // Poll every 3 seconds for Premier League style live standings
+    return () => clearInterval(interval);
+  }, []);
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
+          <p>Đang tải dữ liệu bảng xếp hạng thời gian thực...</p>
+        </div>
+      </div>
+    );
   }
 
   // Group data by 'bang'
@@ -40,6 +49,12 @@ export default async function BangXepHangPage() {
   return (
     <div className={styles.page}>
       <div className={`${styles.header} animate-fade-up`}>
+        <div className={styles.liveBadgeContainer}>
+          <span className={styles.liveIndicator}>
+            <span className={styles.liveDot}></span>
+            Real-time Live (NHA)
+          </span>
+        </div>
         <h2 className={styles.title}>Bảng Xếp Hạng</h2>
         <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt — Vòng bảng 2024</p>
       </div>
@@ -66,7 +81,7 @@ export default async function BangXepHangPage() {
                 </thead>
                 <tbody>
                   {groupedData[groupName]
-                    .sort((a, b) => b.diem - a.diem || b.hieuSo - a.hieuSo)
+                    .sort((a, b) => b.diem - a.diem || b.hieuSo - a.hieuSo || b.banThang - a.banThang)
                     .map((row: any, i: number) => (
                       <tr
                         key={i}
@@ -103,9 +118,13 @@ export default async function BangXepHangPage() {
                         </td>
                         <td className={styles.tdCenter}>
                           <div className={styles.formRow}>
-                            {(row.phongDo || []).map((p: string, idx: number) => (
-                              <span key={idx} className={`${styles.formBadge} ${styles['form' + p]}`}>{p}</span>
-                            ))}
+                            {row.soTran > 0 ? (
+                              (row.phongDo || []).map((p: string, idx: number) => (
+                                <span key={idx} className={`${styles.formBadge} ${styles['form' + p]}`}>{p}</span>
+                              ))
+                            ) : (
+                              <span className={styles.formEmpty}>—</span>
+                            )}
                           </div>
                         </td>
                       </tr>

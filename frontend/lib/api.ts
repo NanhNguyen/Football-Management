@@ -90,9 +90,13 @@ export async function layDanhSachTranDau() {
     .from('tran_dau')
     .select(`
       *,
-      doi_nha:doi_nha_id(*),
-      doi_khach:doi_khach_id(*),
-      su_kien(*)
+      doi_nha:doi_nha_id(*, cau_thu(*)),
+      doi_khach:doi_khach_id(*, cau_thu(*)),
+      su_kien(
+        *,
+        cau_thu:cau_thu_id(id, ten, so_ao),
+        doi:doi_id(id, ten)
+      )
     `);
 
   if (error) {
@@ -100,10 +104,24 @@ export async function layDanhSachTranDau() {
     return [];
   }
 
+  const parseTeam = (t: any) => {
+    if (!t) return null;
+    return {
+      ...t,
+      cauThu: (t.cau_thu || []).map((ct: any) => ({
+        id: ct.id,
+        ten: ct.ten,
+        soAo: ct.so_ao,
+        viTri: ct.vi_tri,
+        banThang: ct.ban_thang
+      })).sort((a: any, b: any) => a.soAo - b.soAo)
+    };
+  };
+
   return data.map(m => ({
     id: m.id,
-    doiNha: m.doi_nha,
-    doiKhach: m.doi_khach,
+    doiNha: parseTeam(m.doi_nha),
+    doiKhach: parseTeam(m.doi_khach),
     tyNha: m.ty_doi_nha,
     tyKhach: m.ty_doi_khach,
     phut: m.phut,
@@ -115,7 +133,16 @@ export async function layDanhSachTranDau() {
     batDauLuc: m.bat_dau_luc,
     dangTamDung: m.dang_tam_dung,
     thoiGianDaQua: m.thoi_gian_da_qua,
-    suKien: m.su_kien || []
+    suKien: (m.su_kien || []).map((sk: any) => ({
+      id: sk.id,
+      loai: sk.loai,
+      phut: sk.phut,
+      moTa: sk.mo_ta,
+      cauThu: sk.cau_thu,
+      doi: sk.doi,
+      doiId: sk.doi_id,
+      cauThuId: sk.cau_thu_id
+    }))
   }));
 }
 
@@ -156,10 +183,11 @@ export async function updateMatch(match: any) {
 }
 
 export async function addEvent(event: any) {
+  const eventId = event.id || `event-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   return await supabase
     .from('su_kien')
     .insert([{
-      id: event.id || undefined,
+      id: eventId,
       tran_dau_id: event.matchId,
       doi_id: event.teamId,
       cau_thu_id: event.playerId,
@@ -169,17 +197,33 @@ export async function addEvent(event: any) {
     }]);
 }
 
+export async function updatePlayerGoals(playerId: string, increment: number) {
+  const { data: ct, error } = await supabase.from('cau_thu').select('ban_thang').eq('id', playerId).single();
+  if (ct) {
+    const currentGoals = ct.ban_thang || 0;
+    return await supabase
+      .from('cau_thu')
+      .update({ ban_thang: Math.max(0, currentGoals + increment) })
+      .eq('id', playerId);
+  }
+}
+
+export async function deleteEvent(id: string) {
+  return await supabase.from('su_kien').delete().eq('id', id);
+}
+
+
 export async function layChiTietTranDau(id: string) {
   const { data, error } = await supabase
     .from('tran_dau')
     .select(`
       *,
-      doi_nha:doi_nha_id(*),
-      doi_khach:doi_khach_id(*),
+      doi_nha:doi_nha_id(*, cau_thu(*)),
+      doi_khach:doi_khach_id(*, cau_thu(*)),
       su_kien(
         *,
-        cau_thu:cau_thu_id(ten, so_ao),
-        doi:doi_id(ten)
+        cau_thu:cau_thu_id(id, ten, so_ao),
+        doi:doi_id(id, ten)
       )
     `)
     .eq('id', id)
@@ -187,13 +231,27 @@ export async function layChiTietTranDau(id: string) {
 
   if (error || !data) return null;
 
+  const parseTeam = (t: any) => {
+    if (!t) return null;
+    return {
+      ...t,
+      cauThu: (t.cau_thu || []).map((ct: any) => ({
+        id: ct.id,
+        ten: ct.ten,
+        soAo: ct.so_ao,
+        viTri: ct.vi_tri,
+        banThang: ct.ban_thang
+      })).sort((a: any, b: any) => a.soAo - b.soAo)
+    };
+  };
+
   return {
     id: data.id,
     vong: data.vong,
     phut: data.phut,
     trangThai: data.trang_thai,
-    doiNha: data.doi_nha,
-    doiKhach: data.doi_khach,
+    doiNha: parseTeam(data.doi_nha),
+    doiKhach: parseTeam(data.doi_khach),
     tyDoiNha: data.ty_doi_nha,
     tyDoiKhach: data.ty_doi_khach,
     time: data.gio,
@@ -208,15 +266,19 @@ export async function layChiTietTranDau(id: string) {
       phut: sk.phut,
       moTa: sk.mo_ta,
       cauThu: sk.cau_thu,
-      doi: sk.doi
+      doi: sk.doi,
+      doiId: sk.doi_id,
+      cauThuId: sk.cau_thu_id
     }))
   };
 }
 
 export async function createMatch(match: any) {
+  const matchId = match.id || `match-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
   const { data, error } = await supabase
     .from('tran_dau')
     .insert([{
+      id: matchId,
       doi_nha_id: match.doiNhaId,
       doi_khach_id: match.doiKhachId,
       vong: match.vong,
@@ -242,10 +304,11 @@ export async function deleteMatch(id: string) {
 export async function layBangXepHang() {
   const teams = await layDanhSachDoi();
   const matches = await layDanhSachTranDau();
-  const finishedMatches = matches.filter(m => m.trangThai === 'KET_THUC');
+  // Count matches that are finished or currently playing (live)
+  const playedMatches = matches.filter(m => m.trangThai === 'KET_THUC' || m.trangThai === 'DANG_DIEN_RA');
 
   const stats: any[] = teams.map(team => {
-    const teamMatches = finishedMatches.filter(m => 
+    const teamMatches = playedMatches.filter(m => 
       m.doiNha?.id === team.id || m.doiKhach?.id === team.id
     );
 
@@ -348,153 +411,260 @@ export async function layDuLieuKnockout() {
       .sort((a, b) => b.diem - a.diem || b.hieuSo - a.hieuSo || b.banThang - a.banThang);
   });
 
-  // Standard CL Round of 16 pairing (approximate)
+  // Standard CL Round of 16 pairing
   const vong16Pairs = [
-    [standingsByGroup['A'][0], standingsByGroup['B'][1]],
-    [standingsByGroup['C'][0], standingsByGroup['D'][1]],
-    [standingsByGroup['E'][0], standingsByGroup['F'][1]],
-    [standingsByGroup['G'][0], standingsByGroup['H'][1]],
-    [standingsByGroup['B'][0], standingsByGroup['A'][1]],
-    [standingsByGroup['D'][0], standingsByGroup['C'][1]],
-    [standingsByGroup['F'][0], standingsByGroup['E'][1]],
-    [standingsByGroup['H'][0], standingsByGroup['G'][1]],
+    [standingsByGroup['A']?.[0], standingsByGroup['B']?.[1]],
+    [standingsByGroup['C']?.[0], standingsByGroup['D']?.[1]],
+    [standingsByGroup['E']?.[0], standingsByGroup['F']?.[1]],
+    [standingsByGroup['G']?.[0], standingsByGroup['H']?.[1]],
+    [standingsByGroup['B']?.[0], standingsByGroup['A']?.[1]],
+    [standingsByGroup['D']?.[0], standingsByGroup['C']?.[1]],
+    [standingsByGroup['F']?.[0], standingsByGroup['E']?.[1]],
+    [standingsByGroup['H']?.[0], standingsByGroup['G']?.[1]],
   ];
 
-  // Map pairs to structured R16 matches with realistic scores & winners
-  const R16Results = [
-    { tyA: 3, tyB: 1, penalty: null, ngayGio: "12/05 • 18:00", trangThai: "KET_THUC", winner: "A" as const },
-    { tyA: 2, tyB: 2, penalty: "4-3", ngayGio: "12/05 • 20:45", trangThai: "KET_THUC", winner: "A" as const },
-    { tyA: 0, tyB: 2, penalty: null, ngayGio: "13/05 • 18:00", trangThai: "KET_THUC", winner: "B" as const },
-    { tyA: 1, tyB: 0, penalty: null, ngayGio: "13/05 • 20:45", trangThai: "KET_THUC", winner: "A" as const },
-    { tyA: 4, tyB: 2, penalty: null, ngayGio: "14/05 • 18:00", trangThai: "KET_THUC", winner: "A" as const },
-    { tyA: 1, tyB: 1, penalty: "3-5", ngayGio: "14/05 • 20:45", trangThai: "KET_THUC", winner: "B" as const },
-    { tyA: null, tyB: null, penalty: null, ngayGio: "18/05 • 18:00", trangThai: "SAP_DIEN_RA", winner: null },
-    { tyA: null, tyB: null, penalty: null, ngayGio: "18/05 • 20:45", trangThai: "SAP_DIEN_RA", winner: null },
+  const allMatches = await layDanhSachTranDau();
+
+  const groupMatches = allMatches.filter(m => m.vong?.startsWith('Vòng bảng') || m.vong?.toLowerCase().includes('bảng'));
+  const allGroupCompleted = groupMatches.length > 0 && groupMatches.every(m => m.trangThai === 'KET_THUC');
+
+  // Perform background DB updates/resets
+  setTimeout(async () => {
+    try {
+      if (!allGroupCompleted) {
+        // Reset all knockout matches in DB to null
+        const knockoutIds = [
+          'match-k16-1', 'match-k16-2', 'match-k16-3', 'match-k16-4', 'match-k16-5', 'match-k16-6', 'match-k16-7', 'match-k16-8',
+          'match-tk-1', 'match-tk-2', 'match-tk-3', 'match-tk-4',
+          'match-bk-1', 'match-bk-2',
+          'match-ck-1'
+        ];
+        for (const matchId of knockoutIds) {
+          const dbMatch = allMatches.find(m => m.id === matchId);
+          if (dbMatch && (dbMatch.doiNha?.id || dbMatch.doiKhach?.id)) {
+            await supabase
+              .from('tran_dau')
+              .update({
+                doi_nha_id: null,
+                doi_khach_id: null,
+                trang_thai: 'SAP_DIEN_RA',
+                ty_doi_nha: 0,
+                ty_doi_khach: 0,
+                phut: 0,
+                bat_dau_luc: null,
+                dang_tam_dung: false,
+                thoi_gian_da_qua: 0
+              })
+              .eq('id', matchId);
+          }
+        }
+      } else {
+        // Update Vòng 1/8 matches in DB if not set
+        for (let i = 0; i < 8; i++) {
+          const pair = vong16Pairs[i];
+          const teamAId = pair[0]?.id;
+          const teamBId = pair[1]?.id;
+          if (teamAId && teamBId) {
+            const matchId = `match-k16-${i + 1}`;
+            const dbMatch = allMatches.find(m => m.id === matchId);
+            if (dbMatch && (!dbMatch.doiNha?.id || !dbMatch.doiKhach?.id)) {
+              await supabase
+                .from('tran_dau')
+                .update({
+                  doi_nha_id: teamAId,
+                  doi_khach_id: teamBId
+                })
+                .eq('id', matchId);
+            }
+          }
+        }
+
+        // QF matches
+        const getWinnerOfMatch = (matchId: string) => {
+          const m = allMatches.find(x => x.id === matchId);
+          if (m && m.trangThai === 'KET_THUC') {
+            return m.tyNha > m.tyKhach ? m.doiNha?.id : m.tyKhach > m.tyNha ? m.doiKhach?.id : m.doiNha?.id;
+          }
+          return null;
+        };
+
+        // QF 1: Winner V1/8-1 vs Winner V1/8-2
+        // QF 2: Winner V1/8-3 vs Winner V1/8-4
+        // QF 3: Winner V1/8-5 vs Winner V1/8-6
+        // QF 4: Winner V1/8-7 vs Winner V1/8-8
+        for (let i = 0; i < 4; i++) {
+          const wA = getWinnerOfMatch(`match-k16-${i * 2 + 1}`);
+          const wB = getWinnerOfMatch(`match-k16-${i * 2 + 2}`);
+          if (wA && wB) {
+            const matchId = `match-tk-${i + 1}`;
+            const dbMatch = allMatches.find(m => m.id === matchId);
+            if (dbMatch && (!dbMatch.doiNha?.id || !dbMatch.doiKhach?.id)) {
+              await supabase
+                .from('tran_dau')
+                .update({
+                  doi_nha_id: wA,
+                  doi_khach_id: wB
+                })
+                .eq('id', matchId);
+            }
+          }
+        }
+
+        // SF 1: Winner QF-1 vs Winner QF-2
+        // SF 2: Winner QF-3 vs Winner QF-4
+        for (let i = 0; i < 2; i++) {
+          const wA = getWinnerOfMatch(`match-tk-${i * 2 + 1}`);
+          const wB = getWinnerOfMatch(`match-tk-${i * 2 + 2}`);
+          if (wA && wB) {
+            const matchId = `match-bk-${i + 1}`;
+            const dbMatch = allMatches.find(m => m.id === matchId);
+            if (dbMatch && (!dbMatch.doiNha?.id || !dbMatch.doiKhach?.id)) {
+              await supabase
+                .from('tran_dau')
+                .update({
+                  doi_nha_id: wA,
+                  doi_khach_id: wB
+                })
+                .eq('id', matchId);
+            }
+          }
+        }
+
+        // Final: Winner SF-1 vs Winner SF-2
+        const wA = getWinnerOfMatch(`match-bk-1`);
+        const wB = getWinnerOfMatch(`match-bk-2`);
+        if (wA && wB) {
+          const matchId = `match-ck-1`;
+          const dbMatch = allMatches.find(m => m.id === matchId);
+          if (dbMatch && (!dbMatch.doiNha?.id || !dbMatch.doiKhach?.id)) {
+            await supabase
+              .from('tran_dau')
+              .update({
+                doi_nha_id: wA,
+                doi_khach_id: wB
+              })
+              .eq('id', matchId);
+          }
+        }
+      }
+    } catch (e) {
+      console.error('Error syncing knockout database teams:', e);
+    }
+  }, 0);
+
+  const getMatchForTeams = (matchId: string, tA: any, tB: any, defaultTime: string) => {
+    const match = allMatches.find(m => m.id === matchId);
+    if (!match) {
+      return {
+        doiA: tA || { ten: 'TBD', logo: '—' },
+        doiB: tB || { ten: 'TBD', logo: '—' },
+        tyA: null, tyB: null, penalty: null, ngayGio: defaultTime, trangThai: "SAP_DIEN_RA", winner: null
+      };
+    }
+    const doiA = match.doiNha || tA || { ten: 'TBD', logo: '—' };
+    const doiB = match.doiKhach || tB || { ten: 'TBD', logo: '—' };
+
+    const tyA = match.doiNha ? match.tyNha : null;
+    const tyB = match.doiKhach ? match.tyKhach : null;
+    
+    let winner = null;
+    if (match.trangThai === 'KET_THUC') {
+       if (match.tyNha > match.tyKhach) winner = "A";
+       else if (match.tyKhach > match.tyNha) winner = "B";
+       else winner = "A"; // Tiebreaker fallback
+    }
+
+    const timeStr = match.date ? `${match.date.split('-').reverse().slice(0, 2).join('/')} • ${match.time?.substring(0, 5) || '18:00'}` : defaultTime;
+
+    return {
+      doiA,
+      doiB,
+      tyA, tyB, penalty: null, ngayGio: timeStr, trangThai: match.trangThai, winner
+    };
+  };
+
+  const defaultTimes16 = ["12/05 • 18:00", "12/05 • 20:45", "13/05 • 18:00", "13/05 • 20:45", "14/05 • 18:00", "14/05 • 20:45", "18/05 • 18:00", "18/05 • 20:45"];
+  
+  const vong16Placeholders = [
+    { A: { ten: 'Nhất Bảng A', logo: '🅰️' }, B: { ten: 'Nhì Bảng B', logo: '🅱️' } },
+    { A: { ten: 'Nhất Bảng C', logo: '🅲' }, B: { ten: 'Nhì Bảng D', logo: '🅳' } },
+    { A: { ten: 'Nhất Bảng E', logo: '🅴' }, B: { ten: 'Nhì Bảng F', logo: '🅵' } },
+    { A: { ten: 'Nhất Bảng G', logo: '🅶' }, B: { ten: 'Nhì Bảng H', logo: '🅷' } },
+    { A: { ten: 'Nhất Bảng B', logo: '🅱️' }, B: { ten: 'Nhì Bảng A', logo: '🅰️' } },
+    { A: { ten: 'Nhất Bảng D', logo: '🅳' }, B: { ten: 'Nhì Bảng C', logo: '🅲' } },
+    { A: { ten: 'Nhất Bảng F', logo: '🅵' }, B: { ten: 'Nhì Bảng E', logo: '🅴' } },
+    { A: { ten: 'Nhất Bảng H', logo: '🅷' }, B: { ten: 'Nhì Bảng G', logo: '🅶' } },
   ];
 
   const vong16 = vong16Pairs.map((pair, i) => {
-    const res = R16Results[i];
+    const placeholder = vong16Placeholders[i];
+    const tA = allGroupCompleted && pair[0] ? { id: pair[0].id, ten: pair[0].doi.ten, logo: pair[0].doi.logo } : { id: null, ...placeholder.A };
+    const tB = allGroupCompleted && pair[1] ? { id: pair[1].id, ten: pair[1].doi.ten, logo: pair[1].doi.logo } : { id: null, ...placeholder.B };
+
+    const res = getMatchForTeams(`match-k16-${i + 1}`, tA, tB, defaultTimes16[i]);
     return {
       id: `k16-${i+1}`,
-      doiA: pair[0]?.doi || { ten: 'TBD', logo: '—' },
-      doiB: pair[1]?.doi || { ten: 'TBD', logo: '—' },
-      tyA: res.tyA,
-      tyB: res.tyB,
-      penalty: res.penalty,
-      ngayGio: res.ngayGio,
-      trangThai: res.trangThai,
-      winner: res.winner,
+      ...res,
       nextMatchId: `kqf-${Math.floor(i / 2) + 1}`,
       nextPosition: i % 2 === 0 ? 'A' : 'B'
     };
   });
 
-  // Quarterfinals (4 matches)
-  const QFResults = [
-    { tyA: 2, tyB: 1, penalty: null, ngayGio: "16/05 • 18:00", trangThai: "KET_THUC", winner: "A" as const },
-    { tyA: 1, tyB: 3, penalty: null, ngayGio: "16/05 • 20:45", trangThai: "KET_THUC", winner: "B" as const },
-    { tyA: null, tyB: null, penalty: null, ngayGio: "17/05 • 18:00", trangThai: "SAP_DIEN_RA", winner: null },
-    { tyA: null, tyB: null, penalty: null, ngayGio: "17/05 • 20:45", trangThai: "SAP_DIEN_RA", winner: null },
-  ];
-
+  const defaultTimesQF = ["16/05 • 18:00", "16/05 • 20:45", "17/05 • 18:00", "17/05 • 20:45"];
   const tuKet = Array(4).fill(null).map((_, i) => {
-    const res = QFResults[i];
-    
-    // Resolve Team A and B based on R16 winners
-    let doiA = { ten: 'TBD', logo: '—' };
-    let doiB = { ten: 'TBD', logo: '—' };
-
     const feederA = vong16[i * 2];
     const feederB = vong16[i * 2 + 1];
+    const tA = feederA?.winner ? (feederA.winner === 'A' ? feederA.doiA : feederA.doiB) : null;
+    const tB = feederB?.winner ? (feederB.winner === 'A' ? feederB.doiA : feederB.doiB) : null;
+    
+    const placeholderA = { id: null, ten: `Thắng Trận 1/8 [${i * 2 + 1}]`, logo: '⚔️' };
+    const placeholderB = { id: null, ten: `Thắng Trận 1/8 [${i * 2 + 2}]`, logo: '⚔️' };
 
-    if (feederA && feederA.winner) {
-      doiA = feederA.winner === 'A' ? feederA.doiA : feederA.doiB;
-    }
-    if (feederB && feederB.winner) {
-      doiB = feederB.winner === 'A' ? feederB.doiA : feederB.doiB;
-    }
-
+    const res = getMatchForTeams(`match-tk-${i + 1}`, tA || placeholderA, tB || placeholderB, defaultTimesQF[i]);
     return {
       id: `kqf-${i+1}`,
-      doiA,
-      doiB,
-      tyA: res.tyA,
-      tyB: res.tyB,
-      penalty: res.penalty,
-      ngayGio: res.ngayGio,
-      trangThai: res.trangThai,
-      winner: res.winner,
+      ...res,
       nextMatchId: `ksf-${Math.floor(i / 2) + 1}`,
       nextPosition: i % 2 === 0 ? 'A' : 'B'
     };
   });
 
-  // Semifinals (2 matches)
-  const SFResults = [
-    { tyA: null, tyB: null, penalty: null, ngayGio: "19/05 • 19:00", trangThai: "SAP_DIEN_RA", winner: null },
-    { tyA: null, tyB: null, penalty: null, ngayGio: "19/05 • 21:00", trangThai: "SAP_DIEN_RA", winner: null },
-  ];
-
+  const defaultTimesSF = ["19/05 • 19:00", "19/05 • 21:00"];
   const banKet = Array(2).fill(null).map((_, i) => {
-    const res = SFResults[i];
-
-    let doiA = { ten: 'TBD', logo: '—' };
-    let doiB = { ten: 'TBD', logo: '—' };
-
     const feederA = tuKet[i * 2];
     const feederB = tuKet[i * 2 + 1];
+    const tA = feederA?.winner ? (feederA.winner === 'A' ? feederA.doiA : feederA.doiB) : null;
+    const tB = feederB?.winner ? (feederB.winner === 'A' ? feederB.doiA : feederB.doiB) : null;
+    
+    const placeholderA = { id: null, ten: `Thắng Tứ Kết ${i * 2 + 1}`, logo: '🏆' };
+    const placeholderB = { id: null, ten: `Thắng Tứ Kết ${i * 2 + 2}`, logo: '🏆' };
 
-    if (feederA && feederA.winner) {
-      doiA = feederA.winner === 'A' ? feederA.doiA : feederA.doiB;
-    }
-    if (feederB && feederB.winner) {
-      doiB = feederB.winner === 'A' ? feederB.doiA : feederB.doiB;
-    }
-
+    const res = getMatchForTeams(`match-bk-${i + 1}`, tA || placeholderA, tB || placeholderB, defaultTimesSF[i]);
     return {
       id: `ksf-${i+1}`,
-      doiA,
-      doiB,
-      tyA: res.tyA,
-      tyB: res.tyB,
-      penalty: res.penalty,
-      ngayGio: res.ngayGio,
-      trangThai: res.trangThai,
-      winner: res.winner,
+      ...res,
       nextMatchId: `kf-1`,
       nextPosition: i % 2 === 0 ? 'A' : 'B'
     };
   });
 
-  // Finals (1 match)
-  let doiA = { ten: 'TBD', logo: '—' };
-  let doiB = { ten: 'TBD', logo: '—' };
-
   const feederA = banKet[0];
   const feederB = banKet[1];
+  const tA = feederA?.winner ? (feederA.winner === 'A' ? feederA.doiA : feederA.doiB) : null;
+  const tB = feederB?.winner ? (feederB.winner === 'A' ? feederB.doiA : feederB.doiB) : null;
 
-  if (feederA && feederA.winner) {
-    doiA = feederA.winner === 'A' ? feederA.doiA : feederA.doiB;
-  }
-  if (feederB && feederB.winner) {
-    doiB = feederB.winner === 'A' ? feederB.doiA : feederB.doiB;
-  }
+  const placeholderA = { id: null, ten: 'Thắng Bán Kết 1', logo: '👑' };
+  const placeholderB = { id: null, ten: 'Thắng Bán Kết 2', logo: '👑' };
 
+  const res = getMatchForTeams(`match-ck-1`, tA || placeholderA, tB || placeholderB, "24/05 • 20:00");
   const chungKet = [{
     id: `kf-1`,
-    doiA,
-    doiB,
-    tyA: null,
-    tyB: null,
-    penalty: null,
-    ngayGio: "24/05 • 20:00",
-    trangThai: "SAP_DIEN_RA",
-    winner: null,
+    ...res,
     nextMatchId: null,
     nextPosition: null
   }];
 
-  return { vong16, tuKet, banKet, chungKet };
+  return { vong16, tuKet, banKet, chungKet, allGroupCompleted };
 }
 
 // Thống kê Gamification & Football Achievements
