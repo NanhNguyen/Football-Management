@@ -64,9 +64,12 @@
 
 .pillTabs {
   display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
   gap: var(--space-sm);
   overflow-x: auto;
   padding-bottom: var(--space-xs);
+  width: 100%;
 }
 
 .pillTabs::-webkit-scrollbar {

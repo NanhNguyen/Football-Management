@@ -870,7 +870,41 @@ export default function QuanTriPage() {
   };
 
 
-  // Real-time timer logic (Realistic calculation)
+  const formatMatchTime = (match: any): string => {
+    if (!match) return '00:00';
+    if (match.trangThai === 'SAP_DIEN_RA') return '00:00';
+    if (match.trangThai === 'KET_THUC') return `${String(match.phut || 90).padStart(2, '0')}:00`;
+    if (!match.batDauLuc) return `${String(match.phut || 0).padStart(2, '0')}:00`;
+
+    let diffInSeconds = 0;
+    if (match.dangTamDung) {
+      diffInSeconds = match.thoiGianDaQua || 0;
+    } else {
+      const startTime = new Date(match.batDauLuc).getTime();
+      const now = new Date().getTime();
+      diffInSeconds = Math.floor((now - startTime) / 1000) + (match.thoiGianDaQua || 0);
+    }
+    
+    const m = Math.floor(diffInSeconds / 60);
+    const s = diffInSeconds % 60;
+    return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
+  };
+
+  const getMatchHalfState = (match: any): '1_not_started' | '1_active' | 'half_time' | '2_active' | 'finished' => {
+    if (!match) return '1_not_started';
+    if (match.trangThai === 'SAP_DIEN_RA') return '1_not_started';
+    if (match.trangThai === 'KET_THUC') return 'finished';
+    
+    if (typeof window !== 'undefined') {
+      const saved = localStorage.getItem(`match_hiep_${match.id}`);
+      if (saved) return saved as any;
+    }
+    
+    if (match.dangTamDung) return 'half_time';
+    return '1_active';
+  };
+
+  // Real-time timer logic (Realistic calculation ticking every 1s)
   useEffect(() => {
     const interval = setInterval(() => {
       setLiveMatches(prev => prev.map(match => {
@@ -882,7 +916,7 @@ export default function QuanTriPage() {
         }
         return match;
       }));
-    }, 10000); // Check every 10s for UI updates
+    }, 1000); // Check every 1s for UI updates
     return () => clearInterval(interval);
   }, []);
 
@@ -905,6 +939,9 @@ export default function QuanTriPage() {
         thoiGianDaQua: 0,
         dangTamDung: false
       };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`match_hiep_${matchId}`, '1_active');
+      }
       await updateMatch(updated);
       await fetchData(selectedTournament?.id);
       showToast("Trận đấu đã bắt đầu!");
@@ -924,9 +961,12 @@ export default function QuanTriPage() {
         thoiGianDaQua: passed,
         phut: Math.floor(passed / 60) + 1
       };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`match_hiep_${matchId}`, 'half_time');
+      }
       await updateMatch(updated);
       await fetchData(selectedTournament?.id);
-      showToast("Đã tạm dừng đồng hồ!");
+      showToast("Đã tạm dừng đồng hồ (Nghỉ giữa hiệp)!");
     }
   };
 
@@ -938,9 +978,12 @@ export default function QuanTriPage() {
         dangTamDung: false,
         batDauLuc: new Date().toISOString() // New reference point
       };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`match_hiep_${matchId}`, '2_active');
+      }
       await updateMatch(updated);
       await fetchData(selectedTournament?.id);
-      showToast("Tiếp tục trận đấu!");
+      showToast("Bắt đầu hiệp 2!");
     }
   };
 
@@ -953,6 +996,9 @@ export default function QuanTriPage() {
         if (match) {
           const finalPhut = calculateMatchMinute(match);
           const updated = { ...match, trangThai: 'KET_THUC', phut: finalPhut };
+          if (typeof window !== 'undefined') {
+            localStorage.setItem(`match_hiep_${matchId}`, 'finished');
+          }
           await updateMatch(updated);
           await fetchData(selectedTournament?.id);
           showToast("Trận đấu đã kết thúc!");
@@ -997,6 +1043,9 @@ export default function QuanTriPage() {
             thoiGianDaQua: 0,
             dangTamDung: false
           };
+          if (typeof window !== 'undefined') {
+            localStorage.removeItem(`match_hiep_${matchId}`);
+          }
           await updateMatch(updated);
           await fetchData(selectedTournament?.id);
           showToast("Trận đấu đã được reset về 0-0!");
@@ -1634,17 +1683,6 @@ export default function QuanTriPage() {
                       {selectedMatch.trangThai === 'KET_THUC' && <span className={styles.consoleFinishedBadge}>KET THUC</span>}
                     </div>
                     <div className={styles.consoleTopActions}>
-                      {selectedMatch.trangThai === 'SAP_DIEN_RA' && (
-                        <button className={styles.consoleStartBtn} onClick={() => handleStartMatch(selectedMatch.id)}>Bat dau</button>
-                      )}
-                      {selectedMatch.trangThai === 'DANG_DIEN_RA' && (
-                        selectedMatch.dangTamDung
-                          ? <button className={styles.consoleResumeBtn} onClick={() => handleResumeMatch(selectedMatch.id)}>Tiep tuc</button>
-                          : <button className={styles.consolePauseBtn} onClick={() => handlePauseMatch(selectedMatch.id)}>Tam dung</button>
-                      )}
-                      {selectedMatch.trangThai === 'DANG_DIEN_RA' && (
-                        <button className={styles.consoleFinishBtn} onClick={() => handleFinishMatch(selectedMatch.id)}>Ket thuc</button>
-                      )}
                       {(selectedMatch.trangThai === 'KET_THUC' || selectedMatch.trangThai === 'DANG_DIEN_RA') && (
                         <button className={styles.consoleResetBtn} onClick={() => handleResetMatch(selectedMatch.id)}>Reset</button>
                       )}
@@ -1660,9 +1698,8 @@ export default function QuanTriPage() {
                         <span className={styles.consoleTeamEmoji}>{selectedMatch.doiNha?.logo || '⚽'}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div className={styles.consoleTeamName}>{selectedMatch.doiNha?.ten || 'Chờ xác định'}</div>
-                          <div className={styles.consoleTeamLabel} style={{ color: '#f87171' }}>DOI NHA</div>
+                          <div className={styles.consoleTeamLabel} style={{ color: '#f87171' }}>ĐỘI NHÀ</div>
                         </div>
-                        <div className={styles.consoleTeamScore} style={{ color: '#f87171' }}>{selectedMatch.tyNha || 0}</div>
                       </div>
                       <div className={styles.consoleRosterGrid}>
                         {(!selectedMatch.doiNha?.cauThu || selectedMatch.doiNha.cauThu.length === 0) && (
@@ -1699,59 +1736,121 @@ export default function QuanTriPage() {
 
                     {/* CENTER — Scoreboard + Event Log */}
                     <div className={styles.consoleCenterPanel}>
-                      {selectedMatch.trangThai === 'SAP_DIEN_RA' ? (
-                        <div className={styles.consolePendingState}>
-                          <div style={{ fontSize: '52px', marginBottom: '12px' }}>&#x26BD;</div>
-                          <h3 style={{ color: '#f8fafc', fontSize: '18px', fontWeight: 700, marginBottom: '8px' }}>Tran chua bat dau</h3>
-                          <p style={{ color: '#64748b', fontSize: '13px' }}>Bam &quot;Bat dau&quot; de kich hoat</p>
+                      {/* Scoreboard Card */}
+                      <div className={styles.consoleCentralHeaderCard}>
+                        <div className={styles.consoleCentralTeam}>
+                          <span className={styles.consoleCentralLogo}>{selectedMatch.doiNha?.logo || '⚽'}</span>
+                          <span className={styles.consoleCentralName}>{selectedMatch.doiNha?.ten || 'Chờ xác định'}</span>
                         </div>
-                      ) : (
-                        <>
-                          <div className={styles.consoleScoreBoard}>
-                            <span className={styles.consoleBigScore}>{selectedMatch.tyNha || 0}</span>
-                            <div className={styles.consoleSep}>
-                              <span className={styles.consoleSepColon}>:</span>
-                              {selectedMatch.trangThai === 'DANG_DIEN_RA' && (
-                                <div className={styles.consoleMinutePill}>
-                                  {!selectedMatch.dangTamDung && <span className={styles.consolePulseDot} />}
-                                  {calculateMatchMinute(selectedMatch)}&apos;
-                                </div>
-                              )}
-                            </div>
-                            <span className={styles.consoleBigScore}>{selectedMatch.tyKhach || 0}</span>
+                        <div className={styles.consoleCentralScoreWrapper}>
+                          <div className={styles.consoleCentralScore}>
+                            <span className={styles.consoleCentralBigScore}>{selectedMatch.tyNha || 0}</span>
+                            <span className={styles.consoleCentralScoreSep}>-</span>
+                            <span className={styles.consoleCentralBigScore}>{selectedMatch.tyKhach || 0}</span>
                           </div>
+                        </div>
+                        <div className={styles.consoleCentralTeam}>
+                          <span className={styles.consoleCentralLogo}>{selectedMatch.doiKhach?.logo || '⚽'}</span>
+                          <span className={styles.consoleCentralName}>{selectedMatch.doiKhach?.ten || 'Chờ xác định'}</span>
+                        </div>
+                      </div>
 
-                          <div className={styles.consoleEventLog}>
-                            <div className={styles.consoleEventLogTitle}>Nhat ky su kien</div>
-                            <div className={styles.consoleEventLogList}>
-                              {selectedMatch.suKien && selectedMatch.suKien.length > 0 ? (
-                                [...selectedMatch.suKien].sort((a: any, b: any) => b.phut - a.phut).slice(0, 8).map((ev: any) => (
-                                  <div key={ev.id} className={styles.consoleEventRow}>
-                                    <span className={styles.consoleEventMin}>{ev.phut}&apos;</span>
-                                    <span className={styles.consoleEventDesc}>{ev.moTa}</span>
-                                    <button
-                                      className={styles.consoleUndoBtn}
-                                      onClick={() => handleUndoEvent(ev.id, ev.loai, ev.doiId, ev.cauThuId)}
-                                      disabled={selectedMatch.trangThai === 'KET_THUC'}
-                                    >x</button>
-                                  </div>
-                                ))
-                              ) : (
-                                <p className={styles.consoleEventEmpty}>Chua co su kien nao</p>
-                              )}
-                            </div>
-                          </div>
-                        </>
-                      )}
+                      {/* Timer */}
+                      <div className={styles.consoleCentralTimerWrapper}>
+                        <span className={styles.consoleCentralTimer}>{formatMatchTime(selectedMatch)}</span>
+                        {selectedMatch.trangThai === 'DANG_DIEN_RA' && (
+                          <span className={styles.consoleCentralHalfLabel}>
+                            {getMatchHalfState(selectedMatch) === '2_active' ? 'Hiệp 2' : 'Hiệp 1'}
+                          </span>
+                        )}
+                        {selectedMatch.trangThai === 'KET_THUC' && (
+                          <span className={styles.consoleCentralHalfLabel}>Hết giờ</span>
+                        )}
+                        {selectedMatch.trangThai === 'SAP_DIEN_RA' && (
+                          <span className={styles.consoleCentralHalfLabel}>Chưa bắt đầu</span>
+                        )}
+                      </div>
+
+                      {/* Sequential Match State Machine Main CTA */}
+                      <div className={styles.consoleMainCtaWrapper}>
+                        {getMatchHalfState(selectedMatch) === '1_not_started' && (
+                          <button 
+                            className={`${styles.consoleMainCta} ${styles.ctaStartH1}`}
+                            onClick={() => handleStartMatch(selectedMatch.id)}
+                          >
+                            ▶ BẮT ĐẦU HIỆP 1
+                          </button>
+                        )}
+
+                        {getMatchHalfState(selectedMatch) === '1_active' && (
+                          <button 
+                            className={`${styles.consoleMainCta} ${styles.ctaEndH1}`}
+                            onClick={() => handlePauseMatch(selectedMatch.id)}
+                          >
+                            ⏸ KẾT THÚC HIỆP 1
+                          </button>
+                        )}
+
+                        {getMatchHalfState(selectedMatch) === 'half_time' && (
+                          <>
+                            <span className={styles.halfTimeOverlayText}>Đang nghỉ giữa hiệp</span>
+                            <button 
+                              className={`${styles.consoleMainCta} ${styles.ctaStartH2}`}
+                              onClick={() => handleResumeMatch(selectedMatch.id)}
+                            >
+                              ▶ BẮT ĐẦU HIỆP 2
+                            </button>
+                          </>
+                        )}
+
+                        {getMatchHalfState(selectedMatch) === '2_active' && (
+                          <button 
+                            className={`${styles.consoleMainCta} ${styles.ctaEndMatch}`}
+                            onClick={() => handleFinishMatch(selectedMatch.id)}
+                          >
+                            ⏹ KẾT THÚC TRẬN ĐẤU
+                          </button>
+                        )}
+
+                        {getMatchHalfState(selectedMatch) === 'finished' && (
+                          <button 
+                            className={`${styles.consoleMainCta} ${styles.ctaReset}`}
+                            onClick={() => handleResetMatch(selectedMatch.id)}
+                          >
+                            🔄 RESET TRẬN ĐẤU
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Event Log */}
+                      <div className={styles.consoleEventLog}>
+                        <div className={styles.consoleEventLogTitle}>Nhat ky su kien</div>
+                        <div className={styles.consoleEventLogList}>
+                          {selectedMatch.suKien && selectedMatch.suKien.length > 0 ? (
+                            [...selectedMatch.suKien].sort((a: any, b: any) => b.phut - a.phut).slice(0, 8).map((ev: any) => (
+                              <div key={ev.id} className={styles.consoleEventRow}>
+                                <span className={styles.consoleEventMin}>{ev.phut}&apos;</span>
+                                <span className={styles.consoleEventDesc}>{ev.moTa}</span>
+                                <button
+                                  className={styles.consoleUndoBtn}
+                                  onClick={() => handleUndoEvent(ev.id, ev.loai, ev.doiId, ev.cauThuId)}
+                                  disabled={selectedMatch.trangThai === 'KET_THUC'}
+                                >x</button>
+                              </div>
+                            ))
+                          ) : (
+                            <p className={styles.consoleEventEmpty}>Chua co su kien nao</p>
+                          )}
+                        </div>
+                      </div>
                     </div>
 
                     {/* RIGHT — Doi khach */}
                     <div className={styles.consoleTeamPanel}>
                       <div className={styles.consoleTeamHeader}>
-                        <div className={styles.consoleTeamScore} style={{ color: '#60a5fa' }}>{selectedMatch.tyKhach || 0}</div>
                         <div style={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
                           <div className={styles.consoleTeamName}>{selectedMatch.doiKhach?.ten || 'Chờ xác định'}</div>
-                          <div className={styles.consoleTeamLabel} style={{ color: '#60a5fa', textAlign: 'right' }}>DOI KHACH</div>
+                          <div className={styles.consoleTeamLabel} style={{ color: '#60a5fa', textAlign: 'right' }}>ĐỘI KHÁCH</div>
                         </div>
                         <span className={styles.consoleTeamEmoji}>{selectedMatch.doiKhach?.logo || '⚽'}</span>
                       </div>
@@ -1787,7 +1886,6 @@ export default function QuanTriPage() {
                         })}
                       </div>
                     </div>
-
                   </div>
                 </div>
               )}
