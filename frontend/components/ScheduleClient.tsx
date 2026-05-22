@@ -8,7 +8,13 @@ interface Props {
   groupedMatches: Record<string, any[]>;
 }
 
-// Custom sort comparator for rounds
+interface ParsedRound {
+  rawRound: string;
+  roundName: string;
+  groupName?: string;
+}
+
+// Custom sort comparator for raw rounds
 function compareRounds(a: string, b: string): number {
   const parseRound = (s: string) => {
     // Check knockout names first
@@ -85,40 +91,163 @@ function compareRounds(a: string, b: string): number {
   return a.localeCompare(b);
 }
 
-export default function ScheduleClient({ groupedMatches }: Props) {
-  const rounds = Object.keys(groupedMatches).sort(compareRounds);
-  const [activeRound, setActiveRound] = useState<string>(rounds[0] || '');
+// Custom sort comparator for round names (e.g. Vòng 1, Vòng 2, Tứ kết)
+function compareRoundNames(a: string, b: string): number {
+  const parseName = (name: string) => {
+    if (name.includes("Chung kết")) return { type: 5, num: 5 };
+    if (name.includes("Tranh hạng ba")) return { type: 5, num: 4 };
+    if (name.includes("Bán kết")) return { type: 5, num: 3 };
+    if (name.includes("Tứ kết")) return { type: 5, num: 2 };
+    if (name.includes("1/8") || name.includes("16")) return { type: 5, num: 1 };
 
-  if (rounds.length === 0) {
+    const roundMatch = name.match(/Vòng\s+(\d+)/i);
+    if (roundMatch) {
+      return { type: 1, num: parseInt(roundMatch[1], 10) };
+    }
+
+    return { type: 9, num: 999 };
+  };
+
+  const infoA = parseName(a);
+  const infoB = parseName(b);
+
+  if (infoA.type !== infoB.type) {
+    return infoA.type - infoB.type;
+  }
+  return infoA.num - infoB.num;
+}
+
+export default function ScheduleClient({ groupedMatches }: Props) {
+  const rawRoundsSorted = Object.keys(groupedMatches).sort(compareRounds);
+
+  const parseRawRound = (raw: string): ParsedRound => {
+    // Check for group stage pattern: "Bảng A - Vòng 1"
+    const groupMatch = raw.match(/Bảng\s+([A-H])\s+-\s+(Vòng\s+\d+)/i);
+    if (groupMatch) {
+      return {
+        rawRound: raw,
+        roundName: groupMatch[2],
+        groupName: `Bảng ${groupMatch[1].toUpperCase()}`
+      };
+    }
+
+    // Check for knockout stages
+    if (raw.includes("1/8") || raw.includes("16")) {
+      return { rawRound: raw, roundName: "Vòng 1/8" };
+    }
+    if (raw.includes("Tứ kết")) {
+      return { rawRound: raw, roundName: "Tứ kết" };
+    }
+    if (raw.includes("Bán kết")) {
+      return { rawRound: raw, roundName: "Bán kết" };
+    }
+    if (raw.includes("Tranh hạng ba")) {
+      return { rawRound: raw, roundName: "Tranh hạng ba" };
+    }
+    if (raw.includes("Chung kết")) {
+      return { rawRound: raw, roundName: "Chung kết" };
+    }
+
+    // Check for standard "Vòng X" pattern
+    const roundMatch = raw.match(/Vòng\s+(\d+)/i);
+    if (roundMatch) {
+      return {
+        rawRound: raw,
+        roundName: `Vòng ${roundMatch[1]}`
+      };
+    }
+
+    // Fallback
+    return { rawRound: raw, roundName: raw };
+  };
+
+  if (rawRoundsSorted.length === 0) {
     return <div className={styles.emptyState}>Chưa có lịch thi đấu được cập nhật.</div>;
   }
 
-  const currentMatches = groupedMatches[activeRound] || [];
+  const parsedRounds = rawRoundsSorted.map(parseRawRound);
+  const roundNames = Array.from(new Set(parsedRounds.map(r => r.roundName))).sort(compareRoundNames);
+
+  // States
+  const [activeRoundName, setActiveRoundName] = useState<string>(roundNames[0] || '');
+  const [activeGroup, setActiveGroup] = useState<string>('Tất cả');
+
+  // Filter groups available in current active round name
+  const targetParsedRounds = parsedRounds.filter(r => r.roundName === activeRoundName);
+  const groupsInRound = Array.from(
+    new Set(
+      targetParsedRounds
+        .filter(r => r.groupName)
+        .map(r => r.groupName as string)
+    )
+  ).sort();
+
+  const handleRoundChange = (roundName: string) => {
+    setActiveRoundName(roundName);
+    setActiveGroup('Tất cả');
+  };
+
+  // Get selected raw round keys
+  const selectedRawRounds = targetParsedRounds
+    .filter(r => activeGroup === 'Tất cả' || !r.groupName || r.groupName === activeGroup)
+    .map(r => r.rawRound);
+
+  const currentMatches = selectedRawRounds.flatMap(raw => groupedMatches[raw] || []);
 
   return (
     <section className={`${styles.section} animate-fade-up stagger-2`}>
       <div className={styles.sectionHeader}>
         <h3 className={styles.sectionTitle}>Danh sách trận đấu theo vòng</h3>
+        
+        {/* Main round filter tabs */}
         <div className={styles.pillTabs}>
-          {rounds.map(round => (
+          {roundNames.map(rn => (
             <button
-              key={round}
-              className={`${styles.pillTab} ${activeRound === round ? styles.pillTabActive : ''}`}
-              onClick={() => setActiveRound(round)}
+              key={rn}
+              className={`${styles.pillTab} ${activeRoundName === rn ? styles.pillTabActive : ''}`}
+              onClick={() => handleRoundChange(rn)}
             >
-              {round}
+              {rn}
             </button>
           ))}
         </div>
+
+        {/* Secondary group filter pills (if groups exist) */}
+        {groupsInRound.length > 0 && (
+          <div className={styles.subPillTabs}>
+            <button
+              className={`${styles.subPillTab} ${activeGroup === 'Tất cả' ? styles.subPillTabActive : ''}`}
+              onClick={() => setActiveGroup('Tất cả')}
+            >
+              Tất cả các bảng
+            </button>
+            {groupsInRound.map(group => (
+              <button
+                key={group}
+                className={`${styles.subPillTab} ${activeGroup === group ? styles.subPillTabActive : ''}`}
+                onClick={() => setActiveGroup(group)}
+              >
+                {group}
+              </button>
+            ))}
+          </div>
+        )}
       </div>
       
-      <div className={styles.grid}>
-        {currentMatches.map((t: any, i: number) => (
-          <div key={t.id} className={`animate-fade-up stagger-${(i % 5) + 1}`}>
-            <LiveMatchCard tran={t} />
+      <div key={`${activeRoundName}-${activeGroup}`} className={styles.grid}>
+        {currentMatches.length > 0 ? (
+          currentMatches.map((t: any, i: number) => (
+            <div key={t.id} className={`animate-fade-up stagger-${(i % 5) + 1}`}>
+              <LiveMatchCard tran={t} />
+            </div>
+          ))
+        ) : (
+          <div className={styles.emptyState} style={{ gridColumn: 'span 2' }}>
+            Không có trận đấu nào trong vòng này.
           </div>
-        ))}
+        )}
       </div>
     </section>
   );
 }
+
