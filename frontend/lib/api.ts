@@ -1,10 +1,43 @@
 import { supabase } from './supabase';
 
-// --- ĐỘI BÓNG ---
-export async function layDanhSachDoi() {
+// --- GIẢI ĐẤU (WORKSPACES) ---
+export async function layDanhSachGiaiDau() {
   const { data, error } = await supabase
+    .from('giai_dau')
+    .select('*')
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error('Lỗi lấy danh sách giải đấu:', error);
+    return [];
+  }
+  return data;
+}
+
+export async function createTournament(tournament: any) {
+  const { data, error } = await supabase
+    .from('giai_dau')
+    .insert([{
+      id: tournament.id,
+      ten: tournament.ten,
+      mua_giai: tournament.muaGiai,
+      ngay_bat_dau: tournament.ngayBatDau
+    }])
+    .select();
+  return { data, error };
+}
+
+// --- ĐỘI BÓNG ---
+export async function layDanhSachDoi(giaiDauId?: string) {
+  let query = supabase
     .from('doi_bong')
     .select('*, cau_thu(*)');
+  
+  if (giaiDauId) {
+    query = query.eq('giai_dau_id', giaiDauId);
+  }
+  
+  const { data, error } = await query;
   
   if (error) {
     console.error('Lỗi lấy danh sách đội:', error);
@@ -31,7 +64,8 @@ export async function createTeam(team: any) {
       ten: team.ten,
       viet_tat: team.vietTat,
       logo: team.logo,
-      bang: team.bang
+      bang: team.bang,
+      giai_dau_id: team.giaiDauId
     }])
     .select();
   return { data, error };
@@ -85,8 +119,8 @@ export async function deleteTeam(id: string) {
 }
 
 // --- TRẬN ĐẤU ---
-export async function layDanhSachTranDau() {
-  const { data, error } = await supabase
+export async function layDanhSachTranDau(giaiDauId?: string) {
+  let query = supabase
     .from('tran_dau')
     .select(`
       *,
@@ -98,6 +132,12 @@ export async function layDanhSachTranDau() {
         doi:doi_id(id, ten)
       )
     `);
+
+  if (giaiDauId) {
+    query = query.eq('giai_dau_id', giaiDauId);
+  }
+
+  const { data, error } = await query;
 
   if (error) {
     console.error('Lỗi lấy danh sách trận đấu:', error);
@@ -288,7 +328,8 @@ export async function createMatch(match: any) {
       trang_thai: 'SAP_DIEN_RA',
       ty_doi_nha: 0,
       ty_doi_khach: 0,
-      phut: 0
+      phut: 0,
+      giai_dau_id: match.giaiDauId
     }])
     .select();
   return { data, error };
@@ -301,9 +342,9 @@ export async function deleteMatch(id: string) {
 
 
 // --- THỐNG KÊ ---
-export async function layBangXepHang() {
-  const teams = await layDanhSachDoi();
-  const matches = await layDanhSachTranDau();
+export async function layBangXepHang(giaiDauId?: string) {
+  const teams = await layDanhSachDoi(giaiDauId);
+  const matches = await layDanhSachTranDau(giaiDauId);
   // Count only matches that are finished (strictly following FIFA regulations)
   const playedMatches = matches.filter(m => m.trangThai === 'KET_THUC');
 
@@ -360,17 +401,25 @@ export async function layBangXepHang() {
   return stats;
 }
 
-export async function layTongQuan() {
+export async function layTongQuan(giaiDauId?: string) {
+  let teamsQuery = supabase.from('doi_bong').select('*', { count: 'exact' });
+  let matchesQuery = supabase.from('tran_dau').select('*', { count: 'exact' });
+
+  if (giaiDauId) {
+    teamsQuery = teamsQuery.eq('giai_dau_id', giaiDauId);
+    matchesQuery = matchesQuery.eq('giai_dau_id', giaiDauId);
+  }
+
   const [teamsRes, matchesRes] = await Promise.all([
-    supabase.from('doi_bong').select('*', { count: 'exact' }),
-    supabase.from('tran_dau').select('*', { count: 'exact' })
+    teamsQuery,
+    matchesQuery
   ]);
 
-  const allMatches = await layDanhSachTranDau();
+  const allMatches = await layDanhSachTranDau(giaiDauId);
   const currentLive = allMatches.filter(m => m.trangThai === 'DANG_DIEN_RA');
   
   // Calculate standings to find leader
-  const standings = await layBangXepHang();
+  const standings = await layBangXepHang(giaiDauId);
   const leader = standings.sort((a, b) => b.diem - a.diem || b.hieuSo - a.hieuSo)[0];
 
   return {
@@ -386,10 +435,16 @@ export async function layTongQuan() {
   };
 }
 
-export async function layTopGhiBan() {
-  const { data, error } = await supabase
+export async function layTopGhiBan(giaiDauId?: string) {
+  let query = supabase
     .from('cau_thu')
-    .select('*, doi_bong(*)')
+    .select('*, doi_bong!inner(*)');
+
+  if (giaiDauId) {
+    query = query.eq('doi_bong.giai_dau_id', giaiDauId);
+  }
+
+  const { data, error } = await query
     .order('ban_thang', { ascending: false })
     .limit(10);
   
@@ -400,8 +455,8 @@ export async function layTopGhiBan() {
   }));
 }
 
-export async function layDuLieuKnockout() {
-  const bxh = await layBangXepHang();
+export async function layDuLieuKnockout(giaiDauId?: string) {
+  const bxh = await layBangXepHang(giaiDauId);
   const groups = ['A', 'B', 'C', 'D', 'E', 'F', 'G', 'H'];
   
   const standingsByGroup: Record<string, any[]> = {};
@@ -423,7 +478,7 @@ export async function layDuLieuKnockout() {
     [standingsByGroup['H']?.[0], standingsByGroup['G']?.[1]],
   ];
 
-  const allMatches = await layDanhSachTranDau();
+  const allMatches = await layDanhSachTranDau(giaiDauId);
 
   const groupMatches = allMatches.filter(m => m.vong?.startsWith('Vòng bảng') || m.vong?.toLowerCase().includes('bảng'));
   const allGroupCompleted = groupMatches.length > 0 && groupMatches.every(m => m.trangThai === 'KET_THUC');
@@ -668,11 +723,16 @@ export async function layDuLieuKnockout() {
 }
 
 // Thống kê Gamification & Football Achievements
-export async function layTopKienTao() {
-  const { data, error } = await supabase
+export async function layTopKienTao(giaiDauId?: string) {
+  let query = supabase
     .from('cau_thu')
-    .select('*, doi_bong(*)')
-    .limit(10);
+    .select('*, doi_bong!inner(*)');
+
+  if (giaiDauId) {
+    query = query.eq('doi_bong.giai_dau_id', giaiDauId);
+  }
+
+  const { data, error } = await query.limit(10);
   
   if (error || !data || data.length === 0) {
     return [
@@ -697,12 +757,17 @@ export async function layTopKienTao() {
   return assisters.sort((a, b) => b.kienTao - a.kienTao).slice(0, 5);
 }
 
-export async function layTopGangTayVang() {
-  const { data, error } = await supabase
+export async function layTopGangTayVang(giaiDauId?: string) {
+  let query = supabase
     .from('cau_thu')
-    .select('*, doi_bong(*)')
-    .eq('vi_tri', 'Thủ môn')
-    .limit(5);
+    .select('*, doi_bong!inner(*)')
+    .eq('vi_tri', 'Thủ môn');
+
+  if (giaiDauId) {
+    query = query.eq('doi_bong.giai_dau_id', giaiDauId);
+  }
+
+  const { data, error } = await query.limit(5);
 
   if (error || !data || data.length === 0) {
     const { data: anyPlayers } = await supabase
@@ -732,11 +797,16 @@ export async function layTopGangTayVang() {
   })).sort((a, b) => b.sachLuoi - a.sachLuoi);
 }
 
-export async function layTopThePhat() {
-  const { data, error } = await supabase
+export async function layTopThePhat(giaiDauId?: string) {
+  let query = supabase
     .from('cau_thu')
-    .select('*, doi_bong(*)')
-    .limit(5);
+    .select('*, doi_bong!inner(*)');
+
+  if (giaiDauId) {
+    query = query.eq('doi_bong.giai_dau_id', giaiDauId);
+  }
+
+  const { data, error } = await query.limit(5);
 
   if (error || !data || data.length === 0) {
     return [

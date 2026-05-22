@@ -14,7 +14,9 @@ import {
   updatePlayerGoals,
   createMatch,
   deleteMatch,
-  calculateMatchMinute
+  calculateMatchMinute,
+  layDanhSachGiaiDau,
+  createTournament
 } from '@/lib/api';
 
 import { useRouter } from 'next/navigation';
@@ -43,11 +45,8 @@ export default function QuanTriPage() {
 
   // Switcher states
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
-  const [tournaments, setTournaments] = useState<string[]>([
-    'Thiên Khôi Cúp 2024',
-    'TK Super League 2023'
-  ]);
-  const [selectedTournament, setSelectedTournament] = useState('Thiên Khôi Cúp 2024');
+  const [tournaments, setTournaments] = useState<any[]>([]);
+  const [selectedTournament, setSelectedTournament] = useState<any | null>(null);
 
   // New Tournament creation modal states
   const [isCreatingTournament, setIsCreatingTournament] = useState(false);
@@ -56,6 +55,7 @@ export default function QuanTriPage() {
     muaGiai: '2024',
     ngayBatDau: '2024-05-01'
   });
+
 
   // Modals state
   const [editingTeam, setEditingTeam] = useState<any | null>(null);
@@ -141,10 +141,13 @@ export default function QuanTriPage() {
           showToast(`⚠️ Đã đạt giới hạn ${maxTeams} đội, không thể thêm tiếp!`);
           break;
         }
-        const { error } = await createTeam(team);
+        const { error } = await createTeam({
+          ...team,
+          giaiDauId: selectedTournament?.id
+        });
         if (!error) successCount++;
       }
-      await fetchData();
+      await fetchData(selectedTournament?.id);
       setIsImportTeamsOpen(false);
       setImportTeamsPreview([]);
       showToast(`✅ Đã import thành công ${successCount} đội bóng từ file Excel!`);
@@ -187,7 +190,7 @@ export default function QuanTriPage() {
       const updatedTeam = { ...importPlayersTargetTeam, cauThu: mergedPlayers };
       const { error } = await updateTeam(updatedTeam);
       if (!error) {
-        await fetchData();
+        await fetchData(selectedTournament?.id);
         setIsImportPlayersOpen(false);
         setImportPlayersPreview([]);
         setImportPlayersTargetTeam(null);
@@ -215,27 +218,49 @@ export default function QuanTriPage() {
     checkAuth();
   }, [router]);
 
-  const fetchData = async () => {
+  const fetchData = async (activeTourneyId?: string) => {
     setLoading(true);
-    const [teamsData, matchesData] = await Promise.all([
-      layDanhSachDoi(),
-      layDanhSachTranDau()
-    ]);
-    setTeams(teamsData);
-    setLiveMatches(matchesData);
-    setLoading(false);
+    try {
+      const tourneys = await layDanhSachGiaiDau();
+      setTournaments(tourneys);
+
+      let currentTourney = selectedTournament;
+      if (activeTourneyId) {
+        currentTourney = tourneys.find((t: any) => t.id === activeTourneyId) || null;
+      }
+
+      if (!currentTourney && tourneys.length > 0) {
+        currentTourney = tourneys.find((t: any) => t.id === 'giai-thien-khoi-cup-2024') || tourneys[0];
+      }
+
+      setSelectedTournament(currentTourney);
+
+      const tourneyId = currentTourney?.id || null;
+
+      const [teamsData, matchesData] = await Promise.all([
+        layDanhSachDoi(tourneyId),
+        layDanhSachTranDau(tourneyId)
+      ]);
+      setTeams(teamsData);
+      setLiveMatches(matchesData);
+    } catch (err) {
+      console.error("Lỗi tải dữ liệu:", err);
+    } finally {
+      setLoading(false);
+    }
   };
+
 
   // Event Handlers for Teams & Schedule
   const handleAddTeam = () => setIsAddingTeam(true);
 
   const confirmAddTeam = async () => {
     if (!newTeamData.ten) {
-      alert("Vui lòng nhập tên đội bóng!");
+      showToast("⚠️ Vui lòng nhập tên đội bóng!");
       return;
     }
     if (teams.length >= maxTeams) {
-      alert(`[Lỗi] Vượt quá số lượng đội quy định! Giải đấu này chỉ cho phép tối đa ${maxTeams} đội.`);
+      showToast(`⚠️ [Lỗi] Vượt quá số lượng đội quy định! Giải đấu này chỉ cho phép tối đa ${maxTeams} đội.`);
       return;
     }
     const newTeam = {
@@ -244,12 +269,13 @@ export default function QuanTriPage() {
       vietTat: newTeamData.ten.substring(0, 3).toUpperCase(),
       logo: newTeamData.logo,
       bang: newTeamData.bang,
+      giaiDauId: selectedTournament?.id,
       cauThu: []
     };
 
     const { error } = await createTeam(newTeam);
     if (!error) {
-      await fetchData();
+      await fetchData(selectedTournament?.id);
       setIsAddingTeam(false);
       setNewTeamData({ ten: '', logo: '⚽', bang: 'A' });
       showToast(`Đã khởi tạo đội ${newTeam.ten} thành công!`);
@@ -258,12 +284,13 @@ export default function QuanTriPage() {
     }
   };
 
+
   const handleEditTeam = (team: any) => setEditingTeam({ ...team });
 
   const handleSaveTeam = async () => {
     const { error } = await updateTeam(editingTeam);
     if (!error) {
-      await fetchData();
+      await fetchData(selectedTournament?.id);
       setEditingTeam(null);
       showToast("Đã cập nhật thông tin đội bóng!");
     } else {
@@ -303,29 +330,34 @@ export default function QuanTriPage() {
       async () => {
         const { error } = await deleteTeam(teamId);
         if (!error) {
-          await fetchData();
+          await fetchData(selectedTournament?.id);
           showToast("Đã xóa đội bóng thành công!");
         }
       }
     );
   };
 
+
   const handleAutoSchedule = async () => {
     if (teams.length < 2) {
-      alert("Cần tối thiểu 2 đội bóng để sinh lịch!");
+      showToast("⚠️ Cần tối thiểu 2 đội bóng để sinh lịch!");
       return;
     }
 
     showConfirm(
       "XÁC NHẬN SINH LỊCH TỰ ĐỘNG",
-      "🔄 Xếp lịch tự động sẽ XÓA TOÀN BỘ lịch thi đấu nháp hiện tại và ghi đè lịch mới. Bạn có chắc chắn muốn tiếp tục?",
+      "🔄 Xếp lịch tự động sẽ XÓA TOÀN BỘ lịch thi đấu nháp của giải đấu hiện tại và ghi đè lịch mới. Bạn có chắc chắn muốn tiếp tục?",
       async () => {
 
         try {
           showToast("⏳ Đang chuẩn bị cơ sở dữ liệu lịch đấu...");
 
-          // 1. Delete all existing matches from Supabase to "start fresh"
-          const { data: allCurrentMatches, error: fetchErr } = await supabase.from('tran_dau').select('id');
+          // 1. Delete draft matches of the active tournament from Supabase to "start fresh"
+          const { data: allCurrentMatches, error: fetchErr } = await supabase
+            .from('tran_dau')
+            .select('id')
+            .eq('giai_dau_id', selectedTournament?.id)
+            .eq('trang_thai', 'SAP_DIEN_RA');
           if (fetchErr) throw fetchErr;
 
           if (allCurrentMatches && allCurrentMatches.length > 0) {
@@ -350,7 +382,7 @@ export default function QuanTriPage() {
           const roundsCount = numTeams - 1;
           const matchesPerRound = numTeams / 2;
 
-          const startBaseStr = newTournamentData.ngayBatDau || '2024-05-01';
+          const startBaseStr = selectedTournament?.ngay_bat_dau || '2024-05-01';
           let baseDate = new Date(startBaseStr);
           let accumulatedDelayDays = 0;
           const matchesToCreate: any[] = [];
@@ -411,7 +443,8 @@ export default function QuanTriPage() {
                 vong: `Vòng ${r + 1}`,
                 date: dateStr,
                 time: timeStr,
-                san: sanStr
+                san: sanStr,
+                giaiDauId: selectedTournament?.id
               });
             });
           }
@@ -422,11 +455,11 @@ export default function QuanTriPage() {
             if (createErr) throw createErr;
           }
 
-          await fetchData();
+          await fetchData(selectedTournament?.id);
           showToast(`✨ Đã tự động rải ${matchesToCreate.length} trận cho ${roundsCount} vòng đấu!`);
         } catch (err: any) {
           console.error(err);
-          alert(`Lỗi khi sinh lịch: ${err.message}`);
+          showToast(`❌ Lỗi khi sinh lịch: ${err.message}`);
         }
       }
     );
@@ -437,7 +470,7 @@ export default function QuanTriPage() {
   const handleSaveMatch = async () => {
     const { error } = await updateMatch(editingMatch);
     if (!error) {
-      await fetchData();
+      await fetchData(selectedTournament?.id);
       setEditingMatch(null);
       showToast("Đã cập nhật lịch thi đấu!");
     }
@@ -452,9 +485,12 @@ export default function QuanTriPage() {
       showToast('Hai đội không được trùng nhau!');
       return;
     }
-    const { error } = await createMatch(newMatchData);
+    const { error } = await createMatch({
+      ...newMatchData,
+      giaiDauId: selectedTournament?.id
+    });
     if (!error) {
-      await fetchData();
+      await fetchData(selectedTournament?.id);
       setIsAddingMatch(false);
       setNewMatchData({ doiNhaId: '', doiKhachId: '', vong: 'Vòng bảng', date: '', time: '15:00', san: 'Sân TK' });
       showToast('Đã tạo trận đấu mới thành công!');
@@ -470,7 +506,7 @@ export default function QuanTriPage() {
       async () => {
         const { error } = await deleteMatch(matchId);
         if (!error) {
-          await fetchData();
+          await fetchData(selectedTournament?.id);
           showToast('Đã xóa trận đấu!');
         }
       }
@@ -514,7 +550,7 @@ export default function QuanTriPage() {
         dangTamDung: false
       };
       await updateMatch(updated);
-      await fetchData();
+      await fetchData(selectedTournament?.id);
       showToast("Trận đấu đã bắt đầu!");
     }
   };
@@ -533,7 +569,7 @@ export default function QuanTriPage() {
         phut: Math.floor(passed / 60) + 1
       };
       await updateMatch(updated);
-      await fetchData();
+      await fetchData(selectedTournament?.id);
       showToast("Đã tạm dừng đồng hồ!");
     }
   };
@@ -547,7 +583,7 @@ export default function QuanTriPage() {
         batDauLuc: new Date().toISOString() // New reference point
       };
       await updateMatch(updated);
-      await fetchData();
+      await fetchData(selectedTournament?.id);
       showToast("Tiếp tục trận đấu!");
     }
   };
@@ -562,7 +598,7 @@ export default function QuanTriPage() {
           const finalPhut = calculateMatchMinute(match);
           const updated = { ...match, trangThai: 'KET_THUC', phut: finalPhut };
           await updateMatch(updated);
-          await fetchData();
+          await fetchData(selectedTournament?.id);
           showToast("Trận đấu đã kết thúc!");
         }
       }
@@ -606,7 +642,7 @@ export default function QuanTriPage() {
             dangTamDung: false
           };
           await updateMatch(updated);
-          await fetchData();
+          await fetchData(selectedTournament?.id);
           showToast("Trận đấu đã được reset về 0-0!");
         }
       }
@@ -673,7 +709,7 @@ export default function QuanTriPage() {
       }
     }
 
-    await fetchData();
+    await fetchData(selectedTournament?.id);
     showToast(`🔥 ${typeLabel} cho ${player.ten}!`);
     setActivePlayerParams(null);
   };
@@ -703,7 +739,7 @@ export default function QuanTriPage() {
           }
         }
 
-        await fetchData();
+        await fetchData(selectedTournament?.id);
         showToast("Đã hoàn tác sự kiện!");
       }
     );
@@ -724,22 +760,23 @@ export default function QuanTriPage() {
           </a>
           <div className={styles.switcherContainer}>
             <div className={styles.tournamentSwitcher} onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}>
-              {selectedTournament}
+              🏆 {selectedTournament?.ten || 'Chọn giải đấu...'}
               <svg className={`${styles.switcherArrow} ${isSwitcherOpen ? styles.switcherArrowOpen : ''}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
             {isSwitcherOpen && (
               <div className={styles.switcherDropdown}>
                 {tournaments.map((t) => (
                   <div
-                    key={t}
-                    className={`${styles.switcherOption} ${selectedTournament === t ? styles.switcherOptionActive : ''}`}
+                    key={t.id}
+                    className={`${styles.switcherOption} ${selectedTournament?.id === t.id ? styles.switcherOptionActive : ''}`}
                     onClick={() => {
                       setSelectedTournament(t);
                       setIsSwitcherOpen(false);
-                      showToast(`Đã chuyển sang giải đấu: ${t}`);
+                      fetchData(t.id);
+                      showToast(`Đã chuyển sang giải đấu: ${t.ten}`);
                     }}
                   >
-                    {t}
+                    🏆 {t.ten}
                   </div>
                 ))}
                 <div className={styles.switcherDivider} />
@@ -811,15 +848,62 @@ export default function QuanTriPage() {
 
           {activeTab === 'tong-quan' && (
             <div className={`${styles.content} animate-fade-in`}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <div>
                   <h2 className={styles.pageTitle}>Tổng quan Giải đấu</h2>
-                  <p className={styles.pageDesc}>Dashboard theo dõi thông số giải đấu Thiên Khôi Cúp 2024</p>
+                  <p className={styles.pageDesc}>Dashboard theo dõi thông số giải đấu {selectedTournament?.ten || ''}</p>
                 </div>
               </div>
-              <div className={styles.adminMatchList}>
-                <div className={styles.adminMatchItem}>
-                  <p>Nội dung tổng quan sẽ hiển thị ở đây (Ví dụ: Số đội, số trận đã đá, v.v...)</p>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
+                <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: '0 0 5px 0', fontSize: '13px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Tổng số trận</p>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#1e293b' }}>
+                    {liveMatches.filter((m: any) => m.trangThai === 'KET_THUC').length} / {liveMatches.length} <span style={{ fontSize: '14px', fontWeight: 500, color: '#94a3b8' }}>trận</span>
+                  </p>
+                </div>
+                <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: '0 0 5px 0', fontSize: '13px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Tổng bàn thắng</p>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#1e293b' }}>
+                    {liveMatches.reduce((acc: number, m: any) => acc + (m.tyNha || 0) + (m.tyKhach || 0), 0)}
+                  </p>
+                </div>
+                <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: '0 0 5px 0', fontSize: '13px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Tổng thẻ phạt</p>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#1e293b' }}>
+                    {liveMatches.reduce((acc: number, m: any) => {
+                      const events = m.suKien || [];
+                      const yellows = events.filter((e: any) => e.loai === 'CARD_YELLOW' || e.loai === 'THE_VANG').length;
+                      return acc + yellows;
+                    }, 0)} <span style={{ fontSize: '14px', fontWeight: 500, color: '#eab308' }}>Vàng</span> / {liveMatches.reduce((acc: number, m: any) => {
+                      const events = m.suKien || [];
+                      const reds = events.filter((e: any) => e.loai === 'CARD_RED' || e.loai === 'THE_DO').length;
+                      return acc + reds;
+                    }, 0)} <span style={{ fontSize: '14px', fontWeight: 500, color: '#ef4444' }}>Đỏ</span>
+                  </p>
+                </div>
+                <div style={{ background: '#fef2f2', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #fca5a5' }}>
+                  <p style={{ margin: '0 0 5px 0', fontSize: '13px', color: '#ef4444', fontWeight: 600, textTransform: 'uppercase' }}>Tổng Siêu Chốt</p>
+                  <p style={{ margin: 0, fontSize: '24px', fontWeight: 800, color: '#ef4444' }}>
+                    15 <span style={{ fontSize: '14px', fontWeight: 500 }}>🏠 Nhà</span>
+                  </p>
+                </div>
+              </div>
+
+              <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
+                <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', fontWeight: 700, color: '#1e293b' }}>Tiến độ giải đấu</h3>
+                <div style={{ width: '100%', height: '12px', background: '#f1f5f9', borderRadius: '6px', overflow: 'hidden' }}>
+                  <div style={{ 
+                    width: `${liveMatches.length > 0 ? Math.round((liveMatches.filter((m: any) => m.trangThai === 'KET_THUC').length / liveMatches.length) * 100) : 0}%`, 
+                    height: '100%', 
+                    background: 'var(--color-primary)',
+                    transition: 'width 0.5s ease'
+                  }}></div>
+                </div>
+                <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '10px', fontSize: '13px', color: '#64748b', fontWeight: 500 }}>
+                  <span>0%</span>
+                  <span>{liveMatches.length > 0 ? Math.round((liveMatches.filter((m: any) => m.trangThai === 'KET_THUC').length / liveMatches.length) * 100) : 0}% Hoàn thành</span>
+                  <span>100%</span>
                 </div>
               </div>
             </div>
@@ -827,11 +911,52 @@ export default function QuanTriPage() {
 
           {activeTab === 'bxh' && (
             <div className={`${styles.content} animate-fade-in`}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                 <div>
                   <h2 className={styles.pageTitle}>Cấu hình Bảng xếp hạng</h2>
                   <p className={styles.pageDesc}>Quản lý và điều chỉnh thứ hạng thủ công (nếu cần)</p>
                 </div>
+              </div>
+
+              <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid #e2e8f0', overflow: 'hidden' }}>
+                <div style={{ padding: '16px 20px', background: '#f8fafc', borderBottom: '1px solid #e2e8f0' }}>
+                  <p style={{ margin: 0, fontSize: '13px', color: '#475569', fontStyle: 'italic' }}>
+                    💡 Kéo thả để điều chỉnh thứ hạng thủ công trong trường hợp các đội bằng điểm/chỉ số phụ.
+                  </p>
+                </div>
+                
+                <table style={{ width: '100%', borderCollapse: 'collapse' }}>
+                  <thead>
+                    <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #e2e8f0', textAlign: 'left', color: '#475569', fontSize: '13px', textTransform: 'uppercase' }}>
+                      <th style={{ padding: '12px 16px', width: '40px' }}></th>
+                      <th style={{ padding: '12px 16px', width: '60px', textAlign: 'center' }}>Hạng</th>
+                      <th style={{ padding: '12px 16px' }}>Đội bóng</th>
+                      <th style={{ padding: '12px 16px', textAlign: 'center' }}>Bảng</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {teams.map((t, idx) => (
+                      <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9', cursor: 'grab' }}>
+                        <td style={{ padding: '12px 16px', color: '#94a3b8', cursor: 'grab' }}>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+                        </td>
+                        <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 700, color: '#1e293b' }}>{idx + 1}</td>
+                        <td style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{ fontSize: '20px' }}>{t.logo}</span>
+                          <span style={{ fontWeight: 600, color: '#1e293b' }}>{t.ten}</span>
+                        </td>
+                        <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                          <span style={{ display: 'inline-block', padding: '4px 8px', background: '#e2e8f0', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>{t.bang}</span>
+                        </td>
+                      </tr>
+                    ))}
+                    {teams.length === 0 && (
+                      <tr>
+                        <td colSpan={4} style={{ padding: '20px', textAlign: 'center', color: '#94a3b8' }}>Chưa có đội bóng nào</td>
+                      </tr>
+                    )}
+                  </tbody>
+                </table>
               </div>
             </div>
           )}
@@ -1746,30 +1871,39 @@ export default function QuanTriPage() {
 
               <div style={{ display: 'flex', gap: '10px', marginTop: '25px' }}>
                 <button
-                  className={styles.finishBtn}
-                  style={{ flex: 1, margin: 0 }}
-                  onClick={() => {
-                    if (!newTournamentData.ten) {
-                      alert("Vui lòng nhập tên giải đấu!");
-                      return;
-                    }
-                    const nameWithEmoji = `🏆 ${newTournamentData.ten}`;
-                    setTournaments([...tournaments, nameWithEmoji]);
-                    setSelectedTournament(nameWithEmoji);
-                    setIsCreatingTournament(false);
-                    showToast(`Đã khởi tạo thành công giải đấu: ${newTournamentData.ten}!`);
-                    // Reset form
-                    setNewTournamentData({ ten: '', muaGiai: '2025', ngayBatDau: '2025-05-01' });
-                  }}
-                >
-                  KHỞI TẠO GIẢI ĐẤU
-                </button>
-                <button
                   className={styles.undoBtn}
-                  style={{ flex: 1, margin: 0 }}
+                  style={{ flex: 1, margin: 0, background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}
                   onClick={() => setIsCreatingTournament(false)}
                 >
-                  HỦY
+                  HỦY BỎ
+                </button>
+                <button
+                  className={styles.finishBtn}
+                  style={{ flex: 1, margin: 0, background: '#ef4444', color: '#fff', border: 'none' }}
+                  onClick={async () => {
+                    if (!newTournamentData.ten) {
+                      showToast("⚠️ Vui lòng nhập tên giải đấu!");
+                      return;
+                    }
+                    const newId = `giai-${Date.now()}`;
+                    const payload = {
+                      id: newId,
+                      ten: newTournamentData.ten,
+                      muaGiai: newTournamentData.muaGiai,
+                      ngayBatDau: newTournamentData.ngayBatDau
+                    };
+                    const { error } = await createTournament(payload);
+                    if (!error) {
+                      setIsCreatingTournament(false);
+                      showToast(`🏆 Đã khởi tạo thành công giải đấu: ${newTournamentData.ten}!`);
+                      setNewTournamentData({ ten: '', muaGiai: '2025', ngayBatDau: '2025-05-01' });
+                      await fetchData(newId);
+                    } else {
+                      showToast(`❌ Lỗi: ${error.message}`);
+                    }
+                  }}
+                >
+                  TẠO GIẢI ĐẤU
                 </button>
               </div>
             </div>
@@ -1818,7 +1952,7 @@ export default function QuanTriPage() {
                       onClick={() => {
                         if (!newBlackoutDate) return;
                         if (blackoutDates.includes(newBlackoutDate)) {
-                          alert("Ngày nghỉ này đã tồn tại!");
+                          showToast("⚠️ Ngày nghỉ này đã được cấu hình!");
                           return;
                         }
                         setBlackoutDates([...blackoutDates, newBlackoutDate].sort());
@@ -1859,7 +1993,7 @@ export default function QuanTriPage() {
                   style={{ width: '100%', margin: 0, justifyContent: 'center' }}
                   onClick={async () => {
                     if (scheduleConfig.matchesPerWeek < 1) {
-                      alert("Số trận / Tuần tối thiểu phải là 1!");
+                      showToast("⚠️ Số trận / Tuần tối thiểu phải là 1!");
                       return;
                     }
                     await handleAutoSchedule();
@@ -1876,28 +2010,21 @@ export default function QuanTriPage() {
                     onClick={() => {
                       showConfirm(
                         "TẠO LẠI LỊCH THI ĐẤU",
-                        "Bạn có chắc muốn đập đi tạo lại lịch? Tất cả các trận đấu nháp sẽ bị xóa.",
+                        "🔄 Bạn có chắc muốn đập đi tạo lại lịch? Tất cả các trận đấu nháp của giải đấu hiện tại sẽ bị xóa.",
                         async () => {
                           try {
                             showToast("🧹 Đang dọn dẹp lịch cũ...");
-                            const allMatches = await layDanhSachTranDau();
-                            const currentTournamentMatches = allMatches.filter(m => {
-                              const titleLower = selectedTournament.toLowerCase();
-                              if (titleLower.includes('2024') && m.vong?.includes('Vòng')) return true;
-                              return false;
-                            });
+                            const draftMatches = liveMatches.filter(m => m.trangThai === 'SAP_DIEN_RA');
 
-                            for (const m of currentTournamentMatches) {
-                              if (m.trangThai === 'SAP_DIEN_RA') {
-                                await supabase.from('su_kien').delete().eq('tran_dau_id', m.id);
-                                await supabase.from('tran_dau').delete().eq('id', m.id);
-                              }
+                            for (const m of draftMatches) {
+                              await supabase.from('su_kien').delete().eq('tran_dau_id', m.id);
+                              await supabase.from('tran_dau').delete().eq('id', m.id);
                             }
-                            await fetchData();
+                            await fetchData(selectedTournament?.id);
                             showToast('Đã xóa toàn bộ lịch nháp!');
                             setIsSchedulerConfigOpen(false);
                           } catch (err: any) {
-                            alert("Lỗi khi xóa lịch: " + err.message);
+                            showToast("❌ Lỗi khi xóa lịch: " + err.message);
                           }
                         }
                       );
