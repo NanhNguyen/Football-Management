@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { layDuLieuKnockout } from '@/lib/api';
+import { usePublicTournament } from '@/components/PublicTournamentContext';
 
 interface MatchCardProps {
   match: {
@@ -148,13 +149,14 @@ function ConnectorSlot({ height, feederTop, feederBottom }: ConnectorSlotProps) 
 }
 
 export default function KnockoutPage() {
+  const { selectedTournamentId } = usePublicTournament();
   const [bracketData, setBracketData] = useState<any>(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await layDuLieuKnockout();
+        const res = await layDuLieuKnockout(selectedTournamentId || undefined);
         setBracketData(res);
       } catch (error) {
         console.error("Lỗi lấy sơ đồ knockout:", error);
@@ -166,7 +168,7 @@ export default function KnockoutPage() {
     loadData();
     const interval = setInterval(loadData, 3000); // Poll every 3 seconds for dynamic knockout bracket updates
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedTournamentId]);
 
   if (loading || !bracketData) {
     return (

@@ -1,6 +1,6 @@
 import type { Metadata } from "next";
 import "./globals.css";
-import TopNav from "@/components/TopNav";
+import PublicLayoutWrapper from "@/components/PublicLayoutWrapper";
 
 export const metadata: Metadata = {
   title: "TKSCORE | Hệ thống Quản lý Giải đấu",
@@ -18,10 +18,9 @@ export default function RootLayout({
   return (
     <html lang="vi">
       <body>
-        <TopNav />
-        <main style={{ paddingTop: 72 }}>
+        <PublicLayoutWrapper>
           {children}
-        </main>
+        </PublicLayoutWrapper>
       </body>
     </html>
   );

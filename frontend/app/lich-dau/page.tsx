@@ -1,25 +1,43 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { layDanhSachTranDau } from '@/lib/api';
 import LiveMatchCard from '@/components/LiveMatchCard';
 import ScheduleClient from '@/components/ScheduleClient';
+import { usePublicTournament } from '@/components/PublicTournamentContext';
 
-export const revalidate = 0;
-export const dynamic = 'force-dynamic';
+export default function LichDauPage() {
+  const { selectedTournamentId, selectedTournament } = usePublicTournament();
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function LichDauPage() {
-  let data: any[] = [];
+  useEffect(() => {
+    const loadMatches = async () => {
+      try {
+        const matches = await layDanhSachTranDau(selectedTournamentId || undefined);
+        setData(matches);
+      } catch (error) {
+        console.error("Lỗi lấy lịch thi đấu:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  try {
-    data = await layDanhSachTranDau();
-  } catch {
-    // Fallback schedule
-    data = [
-      { id: 't1', doiNha: { ten: 'TK Warriors', logo: '⚔️' }, doiKhach: { ten: 'Storm KD01', logo: '⛈️' }, tyDoiNha: 3, tyDoiKhach: 1, trangThai: 'KET_THUC', phut: 90, vong: 'Vòng bảng - Bảng A' },
-      { id: 't2', doiNha: { ten: 'Lions KD08', logo: '🦁' }, doiKhach: { ten: 'Sharks KD02', logo: '🦈' }, tyDoiNha: 0, tyDoiKhach: 0, trangThai: 'KET_THUC', phut: 90, vong: 'Vòng bảng - Bảng A' },
-      { id: 't3', doiNha: { ten: 'Titans KD05', logo: '🛡️' }, doiKhach: { ten: 'Phoenix KD03', logo: '🔥' }, tyDoiNha: 1, tyDoiKhach: 2, trangThai: 'DANG_DIEN_RA', phut: 65, vong: 'Vòng bảng - Bảng B' },
-      { id: 't4', doiNha: { ten: 'Sale FC', logo: '🦅' }, doiKhach: { ten: 'Eagles KD07', logo: '🦅' }, tyDoiNha: 0, tyDoiKhach: 0, trangThai: 'SAP_DIEN_RA', phut: 0, vong: 'Vòng bảng - Bảng C' },
-      { id: 't5', doiNha: { ten: 'Dragons KD09', logo: '🐲' }, doiKhach: { ten: 'Wolves KD10', logo: '🐺' }, tyDoiNha: 0, tyDoiKhach: 0, trangThai: 'SAP_DIEN_RA', phut: 0, vong: 'Vòng bảng - Bảng B' },
-    ];
+    loadMatches();
+    const interval = setInterval(loadMatches, 5000); // Poll matches every 5 seconds for real-time scores
+    return () => clearInterval(interval);
+  }, [selectedTournamentId]);
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
+          <p>Đang tải lịch thi đấu thời gian thực...</p>
+        </div>
+      </div>
+    );
   }
 
   const live = data.filter((t: any) => t.trangThai === 'DANG_DIEN_RA');
@@ -41,7 +59,7 @@ export default async function LichDauPage() {
     <div className={styles.page}>
       <div className={`${styles.header} animate-fade-up`}>
         <h2 className={styles.title}>Lịch thi đấu & Kết quả</h2>
-        <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt 2024</p>
+        <p className={styles.subtitle}>{selectedTournament?.ten || 'Giải đấu'} {selectedTournament?.mua_giai || ''}</p>
       </div>
 
       {/* LIVE SECTION */}

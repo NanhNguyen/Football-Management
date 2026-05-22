@@ -124,8 +124,8 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
       <div className={styles.scoreboard}>
         {/* Home Team */}
         <div className={styles.team}>
-          <span className={styles.teamLogo}>{match.doiNha?.logo ?? '—'}</span>
-          <span className={styles.teamName}>{match.doiNha?.ten ?? 'Đội A'}</span>
+          <span className={styles.teamLogo}>{match.doiNha?.logo ?? '⚽'}</span>
+          <span className={styles.teamName}>{match.doiNha?.ten ?? 'Chờ xác định'}</span>
         </div>
 
         {/* Score */}
@@ -149,8 +149,8 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
 
         {/* Away Team */}
         <div className={styles.team}>
-          <span className={styles.teamLogo}>{match.doiKhach?.logo ?? '—'}</span>
-          <span className={styles.teamName}>{match.doiKhach?.ten ?? 'Đội B'}</span>
+          <span className={styles.teamLogo}>{match.doiKhach?.logo ?? '⚽'}</span>
+          <span className={styles.teamName}>{match.doiKhach?.ten ?? 'Chờ xác định'}</span>
         </div>
       </div>
 

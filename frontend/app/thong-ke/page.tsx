@@ -1,23 +1,51 @@
+'use client';
+
+import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { layTopGhiBan, layTopKienTao, layTopGangTayVang, layTopThePhat } from '@/lib/api';
+import { usePublicTournament } from '@/components/PublicTournamentContext';
 
-export const revalidate = 0;
+export default function ThongKePage() {
+  const { selectedTournamentId } = usePublicTournament();
+  const [topGhiBan, setTopGhiBan] = useState<any[]>([]);
+  const [topKienTao, setTopKienTao] = useState<any[]>([]);
+  const [topGangTay, setTopGangTay] = useState<any[]>([]);
+  const [topThePhat, setTopThePhat] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
 
-export default async function ThongKePage() {
-  let topGhiBan: any[] = [];
-  let topKienTao: any[] = [];
-  let topGangTay: any[] = [];
-  let topThePhat: any[] = [];
+  useEffect(() => {
+    const loadStats = async () => {
+      try {
+        const id = selectedTournamentId || undefined;
+        const [gb, kt, gt, tp] = await Promise.all([
+          layTopGhiBan(id),
+          layTopKienTao(id),
+          layTopGangTayVang(id),
+          layTopThePhat(id)
+        ]);
+        setTopGhiBan(gb);
+        setTopKienTao(kt);
+        setTopGangTay(gt);
+        setTopThePhat(tp);
+      } catch (error) {
+        console.error('Error fetching statistics:', error);
+      } finally {
+        setLoading(false);
+      }
+    };
 
-  try {
-    [topGhiBan, topKienTao, topGangTay, topThePhat] = await Promise.all([
-      layTopGhiBan(),
-      layTopKienTao(),
-      layTopGangTayVang(),
-      layTopThePhat()
-    ]);
-  } catch (error) {
-    console.error('Error fetching statistics:', error);
+    loadStats();
+  }, [selectedTournamentId]);
+
+  if (loading) {
+    return (
+      <div className={styles.page}>
+        <div className={styles.loadingState}>
+          <div className={styles.spinner}></div>
+          <p>Đang tải dữ liệu thống kê giải đấu...</p>
+        </div>
+      </div>
+    );
   }
 
   // Best entities for top cards

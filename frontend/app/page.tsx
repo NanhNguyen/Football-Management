@@ -5,8 +5,10 @@ import styles from './page.module.css';
 import { layTongQuan, layTopGhiBan, layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
 import Link from 'next/link';
 import MatchCenterTabs from '@/components/MatchCenterTabs';
+import { usePublicTournament } from '@/components/PublicTournamentContext';
 
 export default function TongQuanPage() {
+  const { selectedTournamentId } = usePublicTournament();
   const [data, setData] = useState<any>(null);
   const [topScorers, setTopScorers] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -17,7 +19,10 @@ export default function TongQuanPage() {
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tqData, tbData] = await Promise.all([layTongQuan(), layTopGhiBan()]);
+        const [tqData, tbData] = await Promise.all([
+          layTongQuan(selectedTournamentId || undefined), 
+          layTopGhiBan(selectedTournamentId || undefined)
+        ]);
         setData(tqData);
         setTopScorers(tbData.slice(0, 3));
       } catch (error) {
@@ -30,7 +35,7 @@ export default function TongQuanPage() {
     loadData();
     const interval = setInterval(loadData, 5000); // 5 seconds polling (timer done locally)
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedTournamentId]);
 
   // Poll details of selected match in real-time if open
   useEffect(() => {
@@ -80,17 +85,7 @@ export default function TongQuanPage() {
 
   return (
     <div className={styles.page}>
-      {/* 1. Ticker / Alert Box */}
-      <div className={styles.tickerWrapper}>
-        <div className={styles.tickerContainer}>
-          <span className={styles.tickerBadge}>TIN NÓNG</span>
-          <div className={styles.marquee}>
-            <p>🔥 Khối Hội Sở vừa có pha Siêu Chốt +2 điểm! 🔴 Đội Quản lý dự án đang bứt phá mạnh mẽ trên BXH! ⭐ Giải đấu bước vào giai đoạn nước rút!</p>
-          </div>
-        </div>
-      </div>
-
-      {/* 2. Hero Section: Spotlight Banner */}
+      {/* 1. Hero Section: Spotlight Banner */}
       <section className={`${styles.hero} animate-fade-up`}>
         {spotlightMatch ? (
           <div

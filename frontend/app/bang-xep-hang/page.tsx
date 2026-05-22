@@ -3,15 +3,17 @@
 import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { layBangXepHang } from '@/lib/api';
+import { usePublicTournament } from '@/components/PublicTournamentContext';
 
 export default function BangXepHangPage() {
+  const { selectedTournamentId, selectedTournament } = usePublicTournament();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const res = await layBangXepHang();
+        const res = await layBangXepHang(selectedTournamentId || undefined);
         setData(res);
       } catch (error) {
         console.error("Lỗi lấy dữ liệu bảng xếp hạng:", error);
@@ -23,7 +25,7 @@ export default function BangXepHangPage() {
     loadData();
     const interval = setInterval(loadData, 3000); // Poll every 3 seconds for Premier League style live standings
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedTournamentId]);
 
   if (loading) {
     return (
@@ -56,7 +58,7 @@ export default function BangXepHangPage() {
           </span>
         </div>
         <h2 className={styles.title}>Bảng Xếp Hạng</h2>
-        <p className={styles.subtitle}>Thiên Khôi Cúp Siêu Chốt — Vòng bảng 2024</p>
+        <p className={styles.subtitle}>{selectedTournament?.ten || 'Giải đấu'} — Vòng bảng {selectedTournament?.mua_giai || ''}</p>
       </div>
 
       <div className={styles.groupGrid}>

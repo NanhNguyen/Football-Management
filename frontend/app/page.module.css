@@ -550,6 +550,21 @@
 }
 
 /* RESPONSIVE */
+@media (max-width: 1200px) {
+  .page {
+    padding: 0 var(--space-md) var(--space-xl);
+  }
+  
+  .spotlightContent {
+    gap: 24px;
+  }
+
+  .leaderboardGrid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 20px;
+  }
+}
+
 @media (max-width: 1024px) {
   .leaderboardGrid {
     grid-template-columns: repeat(2, 1fr);
@@ -559,8 +574,8 @@
 @media (max-width: 768px) {
   .spotlightContent {
     flex-direction: row;
-    gap: 16px;
-    padding: 0 16px 24px;
+    gap: 12px;
+    padding: 0 12px 20px;
   }
   
   .spotLogo {
@@ -583,6 +598,7 @@
 
   .leaderboardGrid {
     grid-template-columns: 1fr;
+    gap: 16px;
   }
 }
 

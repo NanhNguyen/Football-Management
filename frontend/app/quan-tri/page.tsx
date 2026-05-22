@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import styles from './page.module.css';
 import {
   layDanhSachDoi,
@@ -74,6 +74,16 @@ export default function QuanTriPage() {
   const [blackoutDates, setBlackoutDates] = useState<string[]>([]);
   const [newBlackoutDate, setNewBlackoutDate] = useState('');
   const [isSchedulerConfigOpen, setIsSchedulerConfigOpen] = useState(false);
+
+  // Dynamic tournament settings states
+  const [tournamentName, setTournamentName] = useState('');
+  const [tournamentSeason, setTournamentSeason] = useState('');
+  const [tournamentStartDate, setTournamentStartDate] = useState('');
+  const [tournamentEndDate, setTournamentEndDate] = useState('2024-06-30');
+  const [tournamentMaxPlayers, setTournamentMaxPlayers] = useState(20);
+  const [tournamentType, setTournamentType] = useState<'tournament' | 'league'>('tournament');
+  const [tournamentGroupLegs, setTournamentGroupLegs] = useState<1 | 2>(1);
+  const [tournamentLeagueRounds, setTournamentLeagueRounds] = useState<number>(5);
   const [confirmDialog, setConfirmDialog] = useState<{
     isOpen: boolean;
     title: string;
@@ -98,6 +108,11 @@ export default function QuanTriPage() {
     });
   };
 
+  const showToast = (message: string) => {
+    setToast({ message, visible: true });
+    setTimeout(() => setToast({ message: '', visible: false }), 3000);
+  };
+
   // Excel Import states
   const [isImportTeamsOpen, setIsImportTeamsOpen] = useState(false);
   const [isImportPlayersOpen, setIsImportPlayersOpen] = useState(false);
@@ -106,31 +121,157 @@ export default function QuanTriPage() {
   const [importPlayersTargetTeam, setImportPlayersTargetTeam] = useState<any>(null);
   const [importLoading, setImportLoading] = useState(false);
 
-  // Excel Import Handlers
-  const handleImportTeamsFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  // Custom enhanced states for modern Excel Import Modals (Drag-and-Drop / File details / Refs)
+  const [selectedTeamsFile, setSelectedTeamsFile] = useState<File | null>(null);
+  const [isTeamsDragActive, setIsTeamsDragActive] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const [selectedPlayersFile, setSelectedPlayersFile] = useState<File | null>(null);
+  const [isPlayersDragActive, setIsPlayersDragActive] = useState(false);
+  const playerFileInputRef = useRef<HTMLInputElement>(null);
+
+  // Excel Import Template Downloads
+  const downloadTeamsTemplate = () => {
+    try {
+      const templateData = [
+        { 'Tên đội': 'Thiên Khôi FC', 'Logo': '⚽', 'Bảng': 'A' },
+        { 'Tên đội': 'Hà Nội FC', 'Logo': '🏆', 'Bảng': 'B' },
+        { 'Tên đội': 'Hải Phòng FC', 'Logo': '⚓', 'Bảng': 'C' }
+      ];
+      const worksheet = XLSX.utils.json_to_sheet(templateData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sach Doi Bong");
+      XLSX.writeFile(workbook, "TKScore_Template_DoiBong.xlsx");
+      showToast("📥 Đã tải file mẫu TKScore_Template_DoiBong.xlsx!");
+    } catch (err: any) {
+      showToast(`❌ Lỗi tải template: ${err.message}`);
+    }
+  };
+
+  const downloadPlayersTemplate = () => {
+    try {
+      const templateData = [
+        { 'Tên cầu thủ': 'Nguyễn Văn A', 'Số áo': 10, 'Vị trí': 'Tiền đạo' },
+        { 'Tên cầu thủ': 'Trần Thị B', 'Số áo': 1, 'Vị trí': 'Thủ môn' },
+        { 'Tên cầu thủ': 'Phạm Văn C', 'Số áo': 4, 'Vị trí': 'Hậu vệ' }
+      ];
+      const worksheet = XLSX.utils.json_to_sheet(templateData);
+      const workbook = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sach Cau Thu");
+      XLSX.writeFile(workbook, "TKScore_Template_CauThu.xlsx");
+      showToast("📥 Đã tải file mẫu TKScore_Template_CauThu.xlsx!");
+    } catch (err: any) {
+      showToast(`❌ Lỗi tải template: ${err.message}`);
+    }
+  };
+
+  // Excel Parsing Processors
+  const processTeamsFile = (file: File) => {
+    setSelectedTeamsFile(file);
     const reader = new FileReader();
     reader.onload = (evt) => {
-      const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const json: any[] = XLSX.utils.sheet_to_json(sheet);
-      // Map columns: Tên đội | Logo | Bảng
-      const parsed = json.map((row, i) => ({
-        id: `doi-import-${Date.now()}-${i}`,
-        ten: row['Tên đội'] || row['ten'] || row['Team'] || row['name'] || '',
-        logo: row['Logo'] || row['logo'] || '⚽',
-        bang: row['Bảng'] || row['bang'] || row['Group'] || 'A',
-        vietTat: (row['Tên đội'] || row['ten'] || row['Team'] || row['name'] || '').substring(0, 3).toUpperCase(),
-        cauThu: []
-      })).filter(t => t.ten.trim() !== '');
-      setImportTeamsPreview(parsed);
+      try {
+        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const json: any[] = XLSX.utils.sheet_to_json(sheet);
+        // Map columns: Tên đội | Logo | Bảng
+        const parsed = json.map((row, i) => ({
+          id: `doi-import-${Date.now()}-${i}`,
+          ten: row['Tên đội'] || row['ten'] || row['Team'] || row['name'] || '',
+          logo: row['Logo'] || row['logo'] || '⚽',
+          bang: row['Bảng'] || row['bang'] || row['Group'] || 'A',
+          vietTat: (row['Tên đội'] || row['ten'] || row['Team'] || row['name'] || '').substring(0, 3).toUpperCase(),
+          cauThu: []
+        })).filter(t => t.ten.trim() !== '');
+
+        if (parsed.length === 0) {
+          showToast("⚠️ File Excel không có dữ liệu hợp lệ hoặc thiếu cột 'Tên đội'!");
+          setSelectedTeamsFile(null);
+          setImportTeamsPreview([]);
+        } else {
+          setImportTeamsPreview(parsed);
+          showToast(`📋 Đã đọc ${parsed.length} đội bóng từ file!`);
+        }
+      } catch (err: any) {
+        showToast(`❌ Lỗi đọc file: ${err.message}`);
+        setSelectedTeamsFile(null);
+        setImportTeamsPreview([]);
+      }
     };
     reader.readAsArrayBuffer(file);
   };
 
+  const processPlayersFile = (file: File) => {
+    setSelectedPlayersFile(file);
+    const reader = new FileReader();
+    reader.onload = (evt) => {
+      try {
+        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
+        const workbook = XLSX.read(data, { type: 'array' });
+        const sheetName = workbook.SheetNames[0];
+        const sheet = workbook.Sheets[sheetName];
+        const json: any[] = XLSX.utils.sheet_to_json(sheet);
+        // Map columns: Tên cầu thủ | Số áo | Vị trí
+        const parsed = json.map((row, i) => ({
+          id: `ct-import-${Date.now()}-${i}`,
+          ten: row['Tên cầu thủ'] || row['Tên'] || row['ten'] || row['Player'] || row['name'] || '',
+          soAo: Number(row['Số áo'] || row['soAo'] || row['Number'] || row['number'] || i + 1),
+          viTri: row['Vị trí'] || row['viTri'] || row['Position'] || row['position'] || 'Chưa rõ',
+          banThang: 0
+        })).filter(p => p.ten.trim() !== '');
+
+        if (parsed.length === 0) {
+          showToast("⚠️ File Excel không có dữ liệu hợp lệ hoặc thiếu cột 'Tên cầu thủ'!");
+          setSelectedPlayersFile(null);
+          setImportPlayersPreview([]);
+        } else {
+          setImportPlayersPreview(parsed);
+          showToast(`📋 Đã đọc ${parsed.length} cầu thủ từ file!`);
+        }
+      } catch (err: any) {
+        showToast(`❌ Lỗi đọc file: ${err.message}`);
+        setSelectedPlayersFile(null);
+        setImportPlayersPreview([]);
+      }
+    };
+    reader.readAsArrayBuffer(file);
+  };
+
+  // File selection handlers
+  const handleImportTeamsFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processTeamsFile(file);
+    }
+  };
+
+  const handleImportPlayersFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processPlayersFile(file);
+    }
+  };
+
+  // Reset/Clear helpers
+  const handleClearTeamsImport = () => {
+    setSelectedTeamsFile(null);
+    setImportTeamsPreview([]);
+    if (fileInputRef.current) {
+      fileInputRef.current.value = '';
+    }
+  };
+
+  const handleClearPlayersImport = () => {
+    setSelectedPlayersFile(null);
+    setImportPlayersPreview([]);
+    if (playerFileInputRef.current) {
+      playerFileInputRef.current.value = '';
+    }
+  };
+
+  // Confirm Import handlers to DB
   const handleConfirmImportTeams = async () => {
     if (importTeamsPreview.length === 0) return;
     setImportLoading(true);
@@ -149,36 +290,13 @@ export default function QuanTriPage() {
       }
       await fetchData(selectedTournament?.id);
       setIsImportTeamsOpen(false);
-      setImportTeamsPreview([]);
+      handleClearTeamsImport();
       showToast(`✅ Đã import thành công ${successCount} đội bóng từ file Excel!`);
     } catch (err: any) {
       showToast(`❌ Lỗi import: ${err.message}`);
     } finally {
       setImportLoading(false);
     }
-  };
-
-  const handleImportPlayersFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-      const workbook = XLSX.read(data, { type: 'array' });
-      const sheetName = workbook.SheetNames[0];
-      const sheet = workbook.Sheets[sheetName];
-      const json: any[] = XLSX.utils.sheet_to_json(sheet);
-      // Map columns: Tên cầu thủ | Số áo | Vị trí
-      const parsed = json.map((row, i) => ({
-        id: `ct-import-${Date.now()}-${i}`,
-        ten: row['Tên cầu thủ'] || row['Tên'] || row['ten'] || row['Player'] || row['name'] || '',
-        soAo: Number(row['Số áo'] || row['soAo'] || row['Number'] || row['number'] || i + 1),
-        viTri: row['Vị trí'] || row['viTri'] || row['Position'] || row['position'] || 'Chưa rõ',
-        banThang: 0
-      })).filter(p => p.ten.trim() !== '');
-      setImportPlayersPreview(parsed);
-    };
-    reader.readAsArrayBuffer(file);
   };
 
   const handleConfirmImportPlayers = async () => {
@@ -192,7 +310,7 @@ export default function QuanTriPage() {
       if (!error) {
         await fetchData(selectedTournament?.id);
         setIsImportPlayersOpen(false);
-        setImportPlayersPreview([]);
+        handleClearPlayersImport();
         setImportPlayersTargetTeam(null);
         showToast(`✅ Đã import ${importPlayersPreview.length} cầu thủ vào đội ${importPlayersTargetTeam.ten}!`);
       } else {
@@ -204,6 +322,7 @@ export default function QuanTriPage() {
       setImportLoading(false);
     }
   };
+
 
   // Fetch data on mount & check auth
   useEffect(() => {
@@ -234,6 +353,36 @@ export default function QuanTriPage() {
       }
 
       setSelectedTournament(currentTourney);
+
+      if (currentTourney) {
+        setTournamentName(currentTourney.ten || '');
+        setTournamentSeason(currentTourney.mua_giai || '');
+        setTournamentStartDate(currentTourney.ngay_bat_dau || '');
+
+        const localConfigStr = localStorage.getItem(`giai_dau_config_${currentTourney.id}`);
+        if (localConfigStr) {
+          try {
+            const config = JSON.parse(localConfigStr);
+            setTournamentEndDate(config.ngayKetThuc || '2024-06-30');
+            setMaxTeams(config.maxTeams || 16);
+            setTournamentMaxPlayers(config.maxPlayers || 20);
+            setTournamentType(config.theThuc || 'tournament');
+            setTournamentGroupLegs(config.luotVongBang || 1);
+            setTournamentLeagueRounds(config.soVongLeague || 5);
+            setStandingsConfig(config.standingsConfig || { sChot: true, phongDo: true, thePhat: false });
+          } catch (e) {
+            console.error('Error loading tournament config:', e);
+          }
+        } else {
+          setTournamentEndDate('2024-06-30');
+          setMaxTeams(16);
+          setTournamentMaxPlayers(20);
+          setTournamentType('tournament');
+          setTournamentGroupLegs(1);
+          setTournamentLeagueRounds(5);
+          setStandingsConfig({ sChot: true, phongDo: true, thePhat: false });
+        }
+      }
 
       const tourneyId = currentTourney?.id || null;
 
@@ -337,6 +486,43 @@ export default function QuanTriPage() {
     );
   };
 
+  const handleSaveTournamentConfig = async () => {
+    if (!selectedTournament) return;
+    try {
+      showToast("⏳ Đang lưu cấu hình giải đấu...");
+
+      // Update core fields in Supabase
+      const { error } = await supabase
+        .from('giai_dau')
+        .update({
+          ten: tournamentName,
+          mua_giai: tournamentSeason,
+          ngay_bat_dau: tournamentStartDate
+        })
+        .eq('id', selectedTournament.id);
+
+      if (error) throw error;
+
+      // Save additional configuration to localStorage
+      const config = {
+        ngayKetThuc: tournamentEndDate,
+        maxTeams: maxTeams || 16,
+        maxPlayers: tournamentMaxPlayers || 20,
+        theThuc: tournamentType,
+        luotVongBang: tournamentGroupLegs,
+        soVongLeague: tournamentLeagueRounds || 5,
+        standingsConfig
+      };
+      localStorage.setItem(`giai_dau_config_${selectedTournament.id}`, JSON.stringify(config));
+
+      showToast("✨ Đã lưu cấu hình giải đấu thành công!");
+      await fetchData(selectedTournament.id);
+    } catch (err: any) {
+      console.error(err);
+      showToast(`❌ Lỗi khi lưu cấu hình: ${err.message}`);
+    }
+  };
+
 
   const handleAutoSchedule = async () => {
     if (teams.length < 2) {
@@ -348,7 +534,6 @@ export default function QuanTriPage() {
       "XÁC NHẬN SINH LỊCH TỰ ĐỘNG",
       "🔄 Xếp lịch tự động sẽ XÓA TOÀN BỘ lịch thi đấu nháp của giải đấu hiện tại và ghi đè lịch mới. Bạn có chắc chắn muốn tiếp tục?",
       async () => {
-
         try {
           showToast("⏳ Đang chuẩn bị cơ sở dữ liệu lịch đấu...");
 
@@ -362,91 +547,262 @@ export default function QuanTriPage() {
 
           if (allCurrentMatches && allCurrentMatches.length > 0) {
             for (const m of allCurrentMatches) {
-              // Delete events for each match
               await supabase.from('su_kien').delete().eq('tran_dau_id', m.id);
-              // Delete the match itself
               await supabase.from('tran_dau').delete().eq('id', m.id);
             }
           }
 
           showToast("⚡ Đang sinh lịch đấu tự động...");
 
-          // 2. Circle Method Round-Robin Matchmaker
-          const list = [...teams];
-          const N = list.length;
-          if (N % 2 !== 0) {
-            list.push({ id: 'BYE', ten: 'Nghỉ' });
-          }
+          // Helper function: Circle Method Round-Robin
+          const generateRoundRobin = (groupTeams: any[], legs: number, maxRoundsOverride?: number) => {
+            const list = [...groupTeams];
+            const N = list.length;
+            if (N < 2) return [];
 
-          const numTeams = list.length;
-          const roundsCount = numTeams - 1;
-          const matchesPerRound = numTeams / 2;
+            const hasBye = N % 2 !== 0;
+            if (hasBye) {
+              list.push({ id: 'BYE', ten: 'Nghỉ' });
+            }
 
-          const startBaseStr = selectedTournament?.ngay_bat_dau || '2024-05-01';
+            const numTeams = list.length;
+            const singleRoundsCount = numTeams - 1;
+            const matchesPerRound = numTeams / 2;
+
+            const singleLegRounds: { home: any; away: any }[][] = [];
+
+            for (let r = 0; r < singleRoundsCount; r++) {
+              const roundMatches: { home: any; away: any }[] = [];
+              for (let i = 0; i < matchesPerRound; i++) {
+                const homeIdx = (r + i) % (numTeams - 1);
+                let awayIdx = (numTeams - 1 - i + r) % (numTeams - 1);
+
+                if (i === 0) {
+                  awayIdx = numTeams - 1;
+                }
+
+                const home = list[homeIdx];
+                const away = list[awayIdx];
+
+                if (home.id !== 'BYE' && away.id !== 'BYE') {
+                  if (r % 2 === 0) {
+                    roundMatches.push({ home, away });
+                  } else {
+                    roundMatches.push({ home: away, away: home });
+                  }
+                }
+              }
+              singleLegRounds.push(roundMatches);
+            }
+
+            let allRounds: { home: any; away: any; isReturnLeg: boolean }[][] = [];
+
+            for (let leg = 0; leg < legs; leg++) {
+              for (let r = 0; r < singleRoundsCount; r++) {
+                const roundMatches = singleLegRounds[r].map(m => {
+                  if (leg % 2 === 1) {
+                    return { home: m.away, away: m.home, isReturnLeg: true };
+                  }
+                  return { home: m.home, away: m.away, isReturnLeg: false };
+                });
+                allRounds.push(roundMatches);
+              }
+            }
+
+            if (maxRoundsOverride && maxRoundsOverride > 0) {
+              allRounds = allRounds.slice(0, maxRoundsOverride);
+            }
+
+            return allRounds;
+          };
+
+          const formatDateString = (dateObj: Date) => {
+            const y = dateObj.getFullYear();
+            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
+            const d = String(dateObj.getDate()).padStart(2, '0');
+            return `${y}-${m}-${d}`;
+          };
+
+          const startBaseStr = tournamentStartDate || selectedTournament?.ngay_bat_dau || '2024-05-01';
           let baseDate = new Date(startBaseStr);
           let accumulatedDelayDays = 0;
+          const blackoutSet = new Set(blackoutDates);
           const matchesToCreate: any[] = [];
+          let totalRounds = 0;
 
-          for (let r = 0; r < roundsCount; r++) {
-            // Round base date: each round starts 7 days after the previous base round
-            const roundBaseDate = new Date(baseDate.getTime() + r * 7 * 24 * 60 * 60 * 1000);
-            let roundDate = new Date(roundBaseDate.getTime() + accumulatedDelayDays * 24 * 60 * 60 * 1000);
-
-            // Check against Blackout Dates
-            const blackoutSet = new Set(blackoutDates);
-            const formatDateString = (dateObj: Date) => {
-              const y = dateObj.getFullYear();
-              const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-              const d = String(dateObj.getDate()).padStart(2, '0');
-              return `${y}-${m}-${d}`;
-            };
-
-            while (blackoutSet.has(formatDateString(roundDate))) {
-              // Cascading Delay: Delay this round and shift all subsequent rounds by 7 days
-              roundDate = new Date(roundDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-              accumulatedDelayDays += 7;
-            }
-
-            // Generate pairings for round `r`
-            const roundMatches = [];
-            for (let i = 0; i < matchesPerRound; i++) {
-              const homeIdx = (r + i) % (numTeams - 1);
-              let awayIdx = (numTeams - 1 - i + r) % (numTeams - 1);
-
-              if (i === 0) {
-                awayIdx = numTeams - 1;
-              }
-
-              const home = list[homeIdx];
-              const away = list[awayIdx];
-
-              if (home.id !== 'BYE' && away.id !== 'BYE') {
-                roundMatches.push({ home, away });
-              }
-            }
-
-            // Distribute round matches based on matchesPerWeek (strictly min 1)
-            const limitPerWeek = Math.max(1, scheduleConfig.matchesPerWeek || 8);
-            roundMatches.forEach((m, idx) => {
-              const offsetDays = Math.floor(idx / limitPerWeek);
-              const matchDateObj = new Date(roundDate.getTime() + offsetDays * 24 * 60 * 60 * 1000);
-              const dateStr = formatDateString(matchDateObj);
-
-              // Timeslots: alternate between 15:00, 17:00, 19:00
-              const timeSlots = ["15:00", "17:00", "19:00"];
-              const timeStr = timeSlots[idx % timeSlots.length];
-              const sanStr = `Sân TK ${(idx % 2) + 1}`;
-
-              matchesToCreate.push({
-                doiNhaId: m.home.id,
-                doiKhachId: m.away.id,
-                vong: `Vòng ${r + 1}`,
-                date: dateStr,
-                time: timeStr,
-                san: sanStr,
-                giaiDauId: selectedTournament?.id
-              });
+          if (tournamentType === 'tournament') {
+            // 2A. Tournament Format: Group-based scheduling
+            const groups: { [key: string]: any[] } = {};
+            teams.forEach(t => {
+              const gName = t.bang || 'A';
+              if (!groups[gName]) groups[gName] = [];
+              groups[gName].push(t);
             });
+
+            const groupRounds: { [gName: string]: any[][] } = {};
+            let maxRounds = 0;
+            Object.keys(groups).forEach(gName => {
+              const rounds = generateRoundRobin(groups[gName], tournamentGroupLegs || 1);
+              groupRounds[gName] = rounds;
+              if (rounds.length > maxRounds) {
+                maxRounds = rounds.length;
+              }
+            });
+
+            totalRounds = maxRounds;
+
+            // Distribute round matches week-by-week (round-by-round) across all groups
+            for (let r = 0; r < maxRounds; r++) {
+              const roundMatches: any[] = [];
+              Object.keys(groupRounds).forEach(gName => {
+                const rounds = groupRounds[gName];
+                if (rounds[r]) {
+                  rounds[r].forEach(m => {
+                    roundMatches.push({ ...m, bang: gName });
+                  });
+                }
+              });
+
+              if (roundMatches.length === 0) continue;
+
+              const roundBaseDate = new Date(baseDate.getTime() + r * 7 * 24 * 60 * 60 * 1000);
+              let roundDate = new Date(roundBaseDate.getTime() + accumulatedDelayDays * 24 * 60 * 60 * 1000);
+
+              while (blackoutSet.has(formatDateString(roundDate))) {
+                roundDate = new Date(roundDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+                accumulatedDelayDays += 7;
+              }
+
+              const limitPerWeek = Math.max(1, scheduleConfig.matchesPerWeek || 8);
+              roundMatches.forEach((m, idx) => {
+                const offsetDays = Math.floor(idx / limitPerWeek);
+                const matchDateObj = new Date(roundDate.getTime() + offsetDays * 24 * 60 * 60 * 1000);
+                const dateStr = formatDateString(matchDateObj);
+
+                const timeSlots = ["15:00", "17:00", "19:00"];
+                const timeStr = timeSlots[idx % timeSlots.length];
+                const sanStr = `Sân TK ${(idx % 2) + 1}`;
+
+                matchesToCreate.push({
+                  doiNhaId: m.home.id,
+                  doiKhachId: m.away.id,
+                  vong: `Bảng ${m.bang} - Vòng ${r + 1}`,
+                  date: dateStr,
+                  time: timeStr,
+                  san: sanStr,
+                  giaiDauId: selectedTournament?.id
+                });
+              });
+            }
+
+            // 2C. Automatically append Knockout Stages for Tournament Type
+            let lastGroupMatchDate = new Date(baseDate);
+            matchesToCreate.forEach(m => {
+              const d = new Date(m.date);
+              if (d > lastGroupMatchDate) {
+                lastGroupMatchDate = d;
+              }
+            });
+
+            // Start knockout stages 7 days after the last group match
+            let knockoutBaseDate = new Date(lastGroupMatchDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+
+            const stagesToProcess = [
+              { key: 'Vòng 1/8', matchKeys: Array.from({ length: 8 }, (_, idx) => `Trận ${idx + 1}`), condition: teams.length >= 16 },
+              { key: 'Tứ kết', matchKeys: Array.from({ length: 4 }, (_, idx) => `Trận ${idx + 1}`), condition: teams.length >= 8 },
+              { key: 'Bán kết', matchKeys: Array.from({ length: 2 }, (_, idx) => `Trận ${idx + 1}`), condition: teams.length >= 4 },
+              { key: 'Chung kết & Tranh hạng ba', matchKeys: ['Tranh hạng ba', 'Chung kết'], condition: teams.length >= 2 }
+            ];
+
+            let stageIndex = 0;
+            stagesToProcess.forEach(stage => {
+              if (!stage.condition) return;
+
+              // Calculate date for this stage (one stage per week)
+              let currentStageDate = new Date(knockoutBaseDate.getTime() + stageIndex * 7 * 24 * 60 * 60 * 1000);
+
+              // Skip blackout dates
+              while (blackoutSet.has(formatDateString(currentStageDate))) {
+                knockoutBaseDate = new Date(knockoutBaseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+                currentStageDate = new Date(knockoutBaseDate.getTime() + stageIndex * 7 * 24 * 60 * 60 * 1000);
+              }
+
+              const dateStr = formatDateString(currentStageDate);
+              const limitPerWeek = Math.max(1, scheduleConfig.matchesPerWeek || 8);
+
+              stage.matchKeys.forEach((label, idx) => {
+                const offsetDays = Math.floor(idx / limitPerWeek);
+                const matchDateObj = new Date(currentStageDate.getTime() + offsetDays * 24 * 60 * 60 * 1000);
+                const matchDateStr = formatDateString(matchDateObj);
+
+                const timeSlots = ["15:00", "17:00", "19:00"];
+                const timeStr = timeSlots[idx % timeSlots.length];
+                const sanStr = `Sân TK ${(idx % 2) + 1}`;
+
+                let roundLabel = '';
+                if (stage.key === 'Chung kết & Tranh hạng ba') {
+                  roundLabel = label;
+                } else {
+                  roundLabel = `${stage.key} - ${label}`;
+                }
+
+                matchesToCreate.push({
+                  doiNhaId: null,
+                  doiKhachId: null,
+                  vong: roundLabel,
+                  date: matchDateStr,
+                  time: timeStr,
+                  san: sanStr,
+                  giaiDauId: selectedTournament?.id
+                });
+              });
+
+              stageIndex++;
+            });
+
+            totalRounds += stageIndex;
+          } else {
+            // 2B. League Format: Single large round-robin table capped by round count
+            const roundsRequired = Math.max(1, tournamentLeagueRounds || 5);
+            const singleLegRoundsCount = teams.length % 2 === 0 ? teams.length - 1 : teams.length;
+            const legsToGenerate = Math.ceil(roundsRequired / (singleLegRoundsCount || 1)) || 1;
+
+            const leagueRounds = generateRoundRobin(teams, legsToGenerate, roundsRequired);
+            totalRounds = leagueRounds.length;
+
+            for (let r = 0; r < leagueRounds.length; r++) {
+              const roundMatches = leagueRounds[r] || [];
+              if (roundMatches.length === 0) continue;
+
+              const roundBaseDate = new Date(baseDate.getTime() + r * 7 * 24 * 60 * 60 * 1000);
+              let roundDate = new Date(roundBaseDate.getTime() + accumulatedDelayDays * 24 * 60 * 60 * 1000);
+
+              while (blackoutSet.has(formatDateString(roundDate))) {
+                roundDate = new Date(roundDate.getTime() + 7 * 24 * 60 * 60 * 1000);
+                accumulatedDelayDays += 7;
+              }
+
+              const limitPerWeek = Math.max(1, scheduleConfig.matchesPerWeek || 8);
+              roundMatches.forEach((m, idx) => {
+                const offsetDays = Math.floor(idx / limitPerWeek);
+                const matchDateObj = new Date(roundDate.getTime() + offsetDays * 24 * 60 * 60 * 1000);
+                const dateStr = formatDateString(matchDateObj);
+
+                const timeSlots = ["15:00", "17:00", "19:00"];
+                const timeStr = timeSlots[idx % timeSlots.length];
+                const sanStr = `Sân TK ${(idx % 2) + 1}`;
+
+                matchesToCreate.push({
+                  doiNhaId: m.home.id,
+                  doiKhachId: m.away.id,
+                  vong: `Vòng ${r + 1}`,
+                  date: dateStr,
+                  time: timeStr,
+                  san: sanStr,
+                  giaiDauId: selectedTournament?.id
+                });
+              });
+            }
           }
 
           // 3. Batch Create matches in database
@@ -456,7 +812,7 @@ export default function QuanTriPage() {
           }
 
           await fetchData(selectedTournament?.id);
-          showToast(`✨ Đã tự động rải ${matchesToCreate.length} trận cho ${roundsCount} vòng đấu!`);
+          showToast(`✨ Đã tự động xếp ${matchesToCreate.length} trận đấu cho ${totalRounds} vòng đấu thành công!`);
         } catch (err: any) {
           console.error(err);
           showToast(`❌ Lỗi khi sinh lịch: ${err.message}`);
@@ -647,11 +1003,6 @@ export default function QuanTriPage() {
         }
       }
     );
-  };
-
-  const showToast = (message: string) => {
-    setToast({ message, visible: true });
-    setTimeout(() => setToast({ message: '', visible: false }), 3000);
   };
 
   const handleLogout = async () => {
@@ -854,7 +1205,7 @@ export default function QuanTriPage() {
                   <p className={styles.pageDesc}>Dashboard theo dõi thông số giải đấu {selectedTournament?.ten || ''}</p>
                 </div>
               </div>
-              
+
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '20px', marginBottom: '30px' }}>
                 <div style={{ background: '#fff', borderRadius: '12px', padding: '20px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
                   <p style={{ margin: '0 0 5px 0', fontSize: '13px', color: '#64748b', fontWeight: 600, textTransform: 'uppercase' }}>Tổng số trận</p>
@@ -893,9 +1244,9 @@ export default function QuanTriPage() {
               <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
                 <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', fontWeight: 700, color: '#1e293b' }}>Tiến độ giải đấu</h3>
                 <div style={{ width: '100%', height: '12px', background: '#f1f5f9', borderRadius: '6px', overflow: 'hidden' }}>
-                  <div style={{ 
-                    width: `${liveMatches.length > 0 ? Math.round((liveMatches.filter((m: any) => m.trangThai === 'KET_THUC').length / liveMatches.length) * 100) : 0}%`, 
-                    height: '100%', 
+                  <div style={{
+                    width: `${liveMatches.length > 0 ? Math.round((liveMatches.filter((m: any) => m.trangThai === 'KET_THUC').length / liveMatches.length) * 100) : 0}%`,
+                    height: '100%',
                     background: 'var(--color-primary)',
                     transition: 'width 0.5s ease'
                   }}></div>
@@ -924,7 +1275,7 @@ export default function QuanTriPage() {
                     💡 Kéo thả để điều chỉnh thứ hạng thủ công trong trường hợp các đội bằng điểm/chỉ số phụ.
                   </p>
                 </div>
-                
+
                 <table style={{ width: '100%', borderCollapse: 'collapse' }}>
                   <thead>
                     <tr style={{ background: '#f1f5f9', borderBottom: '1px solid #e2e8f0', textAlign: 'left', color: '#475569', fontSize: '13px', textTransform: 'uppercase' }}>
@@ -938,7 +1289,7 @@ export default function QuanTriPage() {
                     {teams.map((t, idx) => (
                       <tr key={t.id} style={{ borderBottom: '1px solid #f1f5f9', cursor: 'grab' }}>
                         <td style={{ padding: '12px 16px', color: '#94a3b8', cursor: 'grab' }}>
-                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="12" r="1"/><circle cx="9" cy="5" r="1"/><circle cx="9" cy="19" r="1"/><circle cx="15" cy="12" r="1"/><circle cx="15" cy="5" r="1"/><circle cx="15" cy="19" r="1"/></svg>
+                          <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="9" cy="12" r="1" /><circle cx="9" cy="5" r="1" /><circle cx="9" cy="19" r="1" /><circle cx="15" cy="12" r="1" /><circle cx="15" cy="5" r="1" /><circle cx="15" cy="19" r="1" /></svg>
                         </td>
                         <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 700, color: '#1e293b' }}>{idx + 1}</td>
                         <td style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
@@ -968,7 +1319,7 @@ export default function QuanTriPage() {
                   <h2 className={styles.pageTitle}>Cài đặt giải đấu</h2>
                   <p className={styles.pageDesc}>Cấu hình thông tin cơ bản và giới hạn của giải đấu</p>
                 </div>
-                <button className={styles.addBtn} onClick={() => showToast("Đã lưu cấu hình!")}>Lưu cấu hình</button>
+                <button className={styles.addBtn} onClick={handleSaveTournamentConfig}>Lưu cấu hình</button>
               </div>
 
               <div className={styles.formCard}>
@@ -976,19 +1327,39 @@ export default function QuanTriPage() {
                 <div className={styles.formGrid}>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Tên giải đấu</label>
-                    <input type="text" className={styles.input} defaultValue="Thiên Khôi Cúp 2024" />
+                    <input
+                      type="text"
+                      className={styles.input}
+                      value={tournamentName}
+                      onChange={(e) => setTournamentName(e.target.value)}
+                    />
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Mùa giải</label>
-                    <input type="text" className={styles.input} defaultValue="2024" />
+                    <input
+                      type="text"
+                      className={styles.input}
+                      value={tournamentSeason}
+                      onChange={(e) => setTournamentSeason(e.target.value)}
+                    />
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Ngày khai mạc</label>
-                    <input type="date" className={styles.input} defaultValue="2024-05-01" />
+                    <input
+                      type="date"
+                      className={styles.input}
+                      value={tournamentStartDate}
+                      onChange={(e) => setTournamentStartDate(e.target.value)}
+                    />
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Ngày bế mạc</label>
-                    <input type="date" className={styles.input} defaultValue="2024-06-30" />
+                    <input
+                      type="date"
+                      className={styles.input}
+                      value={tournamentEndDate}
+                      onChange={(e) => setTournamentEndDate(e.target.value)}
+                    />
                   </div>
                 </div>
 
@@ -998,13 +1369,67 @@ export default function QuanTriPage() {
                 <div className={styles.formGrid}>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Số đội tối đa</label>
-                    <input type="number" className={styles.input} value={maxTeams} onChange={(e) => setMaxTeams(Number(e.target.value))} />
+                    <input
+                      type="number"
+                      className={styles.input}
+                      value={maxTeams === 0 ? '' : maxTeams}
+                      onChange={(e) => setMaxTeams(e.target.value === '' ? 0 : Number(e.target.value))}
+                    />
                     <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>Nếu thêm vượt quá số này trong Quản lý Đội, hệ thống sẽ chặn lại.</p>
                   </div>
                   <div className={styles.formGroup}>
                     <label className={styles.label}>Số cầu thủ tối đa / đội</label>
-                    <input type="number" className={styles.input} defaultValue={20} />
+                    <input
+                      type="number"
+                      className={styles.input}
+                      value={tournamentMaxPlayers === 0 ? '' : tournamentMaxPlayers}
+                      onChange={(e) => setTournamentMaxPlayers(e.target.value === '' ? 0 : Number(e.target.value))}
+                    />
                   </div>
+                </div>
+
+                <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-light)', margin: '24px 0' }} />
+
+                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>Thể thức & Sắp lịch thi đấu</h3>
+                <div className={styles.formGrid}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label}>Thể thức thi đấu</label>
+                    <select
+                      className={styles.input}
+                      value={tournamentType}
+                      onChange={(e) => setTournamentType(e.target.value as 'tournament' | 'league')}
+                      style={{ width: '100%', height: '42px', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                    >
+                      <option value="tournament">Đấu cúp chia bảng (Tournament)</option>
+                      <option value="league">Đấu vòng tròn toàn giải (League)</option>
+                    </select>
+                  </div>
+
+                  {tournamentType === 'tournament' ? (
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>Số lượt đá vòng bảng</label>
+                      <select
+                        className={styles.input}
+                        value={tournamentGroupLegs}
+                        onChange={(e) => setTournamentGroupLegs(Number(e.target.value) as 1 | 2)}
+                        style={{ width: '100%', height: '42px', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                      >
+                        <option value={1}>1 lượt (Đá vòng tròn 1 lượt)</option>
+                        <option value={2}>2 lượt (Lượt đi - Lượt về)</option>
+                      </select>
+                    </div>
+                  ) : (
+                    <div className={styles.formGroup}>
+                      <label className={styles.label}>Số vòng đấu thi đấu</label>
+                      <input
+                        type="number"
+                        className={styles.input}
+                        value={tournamentLeagueRounds === 0 ? '' : tournamentLeagueRounds}
+                        onChange={(e) => setTournamentLeagueRounds(e.target.value === '' ? 0 : Number(e.target.value))}
+                        min={1}
+                      />
+                    </div>
+                  )}
                 </div>
 
                 <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-light)', margin: '24px 0' }} />
@@ -1036,7 +1461,7 @@ export default function QuanTriPage() {
                   <p className={styles.pageDesc}>Danh sách các đội tham gia Thiên Khôi Cúp Siêu Chốt</p>
                 </div>
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <button className={styles.editBtnCompact} style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => { setImportTeamsPreview([]); setIsImportTeamsOpen(true); }}>📥 Import từ Excel</button>
+                  <button className={styles.editBtnCompact} style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => { setImportTeamsPreview([]); setIsImportTeamsOpen(true); }}>Thêm đội từ file Excel</button>
                   <button className={styles.addBtn} onClick={handleAddTeam}>+ Thêm đội mới</button>
                 </div>
               </div>
@@ -1161,8 +1586,8 @@ export default function QuanTriPage() {
                         <div className={styles.matchListInfo}>
                           <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, width: '80px' }}>{m.vong}</span>
                           <div className={styles.listTeam}>
-                            <span>{m.doiNha?.logo}</span>
-                            <span style={{ fontWeight: 700 }}>{m.doiNha?.ten}</span>
+                            <span>{m.doiNha?.logo || '⚽'}</span>
+                            <span style={{ fontWeight: 700 }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
                           </div>
                           <div style={{ display: 'flex', gap: '8px', fontWeight: 800, fontSize: '18px', width: '60px', justifyContent: 'center' }}>
                             <span>{m.tyNha}</span>
@@ -1170,8 +1595,8 @@ export default function QuanTriPage() {
                             <span>{m.tyKhach}</span>
                           </div>
                           <div className={styles.listTeam}>
-                            <span>{m.doiKhach?.logo}</span>
-                            <span style={{ fontWeight: 700 }}>{m.doiKhach?.ten}</span>
+                            <span>{m.doiKhach?.logo || '⚽'}</span>
+                            <span style={{ fontWeight: 700 }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
                           </div>
                         </div>
 
@@ -1232,9 +1657,9 @@ export default function QuanTriPage() {
                     {/* LEFT — Doi nha */}
                     <div className={styles.consoleTeamPanel}>
                       <div className={styles.consoleTeamHeader}>
-                        <span className={styles.consoleTeamEmoji}>{selectedMatch.doiNha?.logo}</span>
+                        <span className={styles.consoleTeamEmoji}>{selectedMatch.doiNha?.logo || '⚽'}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
-                          <div className={styles.consoleTeamName}>{selectedMatch.doiNha?.ten}</div>
+                          <div className={styles.consoleTeamName}>{selectedMatch.doiNha?.ten || 'Chờ xác định'}</div>
                           <div className={styles.consoleTeamLabel} style={{ color: '#f87171' }}>DOI NHA</div>
                         </div>
                         <div className={styles.consoleTeamScore} style={{ color: '#f87171' }}>{selectedMatch.tyNha || 0}</div>
@@ -1325,10 +1750,10 @@ export default function QuanTriPage() {
                       <div className={styles.consoleTeamHeader}>
                         <div className={styles.consoleTeamScore} style={{ color: '#60a5fa' }}>{selectedMatch.tyKhach || 0}</div>
                         <div style={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
-                          <div className={styles.consoleTeamName}>{selectedMatch.doiKhach?.ten}</div>
+                          <div className={styles.consoleTeamName}>{selectedMatch.doiKhach?.ten || 'Chờ xác định'}</div>
                           <div className={styles.consoleTeamLabel} style={{ color: '#60a5fa', textAlign: 'right' }}>DOI KHACH</div>
                         </div>
-                        <span className={styles.consoleTeamEmoji}>{selectedMatch.doiKhach?.logo}</span>
+                        <span className={styles.consoleTeamEmoji}>{selectedMatch.doiKhach?.logo || '⚽'}</span>
                       </div>
                       <div className={styles.consoleRosterGrid}>
                         {(!selectedMatch.doiKhach?.cauThu || selectedMatch.doiKhach.cauThu.length === 0) && (
@@ -1548,7 +1973,7 @@ export default function QuanTriPage() {
                       setIsImportPlayersOpen(true);
                     }}
                   >
-                    📥 Import từ Excel
+                    Thêm Cầu Thủ từ file Excel
                   </button>
                 </div>
 
@@ -1653,7 +2078,7 @@ export default function QuanTriPage() {
               <h3>CHỈNH SỬA LỊCH THI ĐẤU</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '15px' }}>
                 <p style={{ color: '#64748b', fontSize: '13px' }}>
-                  {editingMatch.doiNha?.ten} vs {editingMatch.doiKhach?.ten}
+                  {(editingMatch.doiNha?.ten || 'Chờ xác định')} vs {(editingMatch.doiKhach?.ten || 'Chờ xác định')}
                 </p>
                 <input className={styles.modalInput} placeholder="Vòng đấu" value={editingMatch.vong || ''} onChange={(e) => setEditingMatch({ ...editingMatch, vong: e.target.value })} />
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
@@ -1928,10 +2353,10 @@ export default function QuanTriPage() {
                     type="number"
                     min="1"
                     className={styles.modalInput}
-                    value={scheduleConfig.matchesPerWeek}
+                    value={scheduleConfig.matchesPerWeek === 0 ? '' : scheduleConfig.matchesPerWeek}
                     onChange={(e) => {
-                      const val = Number(e.target.value);
-                      setScheduleConfig({ ...scheduleConfig, matchesPerWeek: val < 1 ? 1 : val });
+                      const val = e.target.value === '' ? 0 : Number(e.target.value);
+                      setScheduleConfig({ ...scheduleConfig, matchesPerWeek: val });
                     }}
                   />
                 </div>
@@ -2079,50 +2504,172 @@ export default function QuanTriPage() {
         {/* Import Teams from Excel Modal */}
         {isImportTeamsOpen && (
           <div className={styles.overlay} style={{ zIndex: 9998 }}>
-            <div className={styles.modal} style={{ maxWidth: '650px', width: '100%', padding: '30px' }}>
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b' }}>
-                📥 IMPORT DANH SÁCH ĐỘI BÓNG
+            <div className={styles.modal} style={{ maxWidth: '650px', width: '100%', padding: '30px', position: 'relative' }}>
+              {/* Close Button */}
+              <button
+                onClick={() => { setIsImportTeamsOpen(false); handleClearTeamsImport(); }}
+                style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', fontSize: '20px', color: '#94a3b8', cursor: 'pointer', transition: 'color 0.2s' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#1e293b'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
+              >
+                ✕
+              </button>
+
+              <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>📥</span> IMPORT DANH SÁCH ĐỘI BÓNG
               </h3>
               <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
-                Tải lên file Excel (.xlsx / .xls) chứa danh sách đội bóng. Các cột bắt buộc: <strong>Tên đội</strong>. Cột tùy chọn: <strong>Logo</strong>, <strong>Bảng</strong>.
+                Tải lên danh sách câu lạc bộ của bạn để nhanh chóng chuẩn bị lịch đấu và quản lý cầu thủ.
               </p>
 
-              {/* Upload area */}
-              <div style={{ background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '12px', padding: '24px', textAlign: 'center', marginBottom: '20px', cursor: 'pointer', transition: 'all 0.2s' }}>
-                <div style={{ fontSize: '40px', marginBottom: '8px' }}>📁</div>
-                <p style={{ fontSize: '14px', color: '#475569', fontWeight: 600, margin: '0 0 8px 0' }}>Kéo thả file Excel hoặc bấm để chọn</p>
-                <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 12px 0' }}>Hỗ trợ: .xlsx, .xls</p>
-                <input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleImportTeamsFile}
-                  style={{ display: 'block', width: '100%', padding: '8px', fontSize: '13px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#fff', cursor: 'pointer' }}
-                />
+              {/* Guide and Download template */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '13px', color: '#475569' }}>
+                  <span style={{ fontWeight: 600 }}>Các cột bắt buộc:</span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, background: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: '4px', border: '1px solid #fecaca', margin: '0 4px' }}>Tên đội</span>
+                  <span style={{ fontWeight: 600, marginLeft: '6px' }}>. Cột tùy chọn:</span>
+                  <span style={{ fontSize: '11px', fontWeight: 600, background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', margin: '0 4px' }}>Logo</span>
+                  <span style={{ fontSize: '11px', fontWeight: 600, background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', margin: '0 4px' }}>Bảng</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={downloadTeamsTemplate}
+                  style={{ background: 'none', border: 'none', color: '#D71920', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#ae0011'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#D71920'}
+                >
+                  ⬇️ Tải file mẫu (.xlsx)
+                </button>
               </div>
+
+              {/* Upload Dropzone / File Selected State */}
+              {selectedTeamsFile === null ? (
+                <div
+                  onClick={() => fileInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setIsTeamsDragActive(true); }}
+                  onDragLeave={() => setIsTeamsDragActive(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsTeamsDragActive(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) processTeamsFile(file);
+                  }}
+                  style={{
+                    background: isTeamsDragActive ? 'rgba(215, 25, 32, 0.04)' : '#fff',
+                    border: isTeamsDragActive ? '2px dashed #D71920' : '2px dashed #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '40px 24px',
+                    textAlign: 'center',
+                    marginBottom: '20px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease-in-out',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: isTeamsDragActive ? '0 0 16px rgba(215, 25, 32, 0.1)' : 'none'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = '#D71920'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = isTeamsDragActive ? '#D71920' : '#cbd5e1'}
+                >
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleImportTeamsFile}
+                    style={{ display: 'none' }}
+                  />
+                  {/* Premium Cloud Upload Icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={isTeamsDragActive ? '#D71920' : '#10b981'}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      marginBottom: '16px',
+                      transition: 'all 0.2s ease',
+                      filter: isTeamsDragActive ? 'drop-shadow(0 4px 12px rgba(215, 25, 32, 0.15))' : 'drop-shadow(0 4px 12px rgba(16, 185, 129, 0.15))'
+                    }}
+                  >
+                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                    <path d="M12 12v9" />
+                    <path d="m16 16-4-4-4 4" />
+                  </svg>
+                  <p style={{ fontSize: '16px', color: '#1e293b', fontWeight: 600, margin: '0 0 6px 0' }}>
+                    Kéo thả file Excel vào đây
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                    Hoặc bấm để chọn file từ máy tính <span style={{ fontWeight: 600, color: '#475569' }}>(Hỗ trợ .xls, .xlsx)</span>
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {/* Green Excel File Icon */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e8f5e9', width: '38px', height: '38px', borderRadius: '8px' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px' }}>
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="8" y1="13" x2="16" y2="13" />
+                        <line x1="8" y1="17" x2="16" y2="17" />
+                        <line x1="10" y1="9" x2="9" y2="9" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b', wordBreak: 'break-all' }}>{selectedTeamsFile.name}</p>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>Dung lượng: {(selectedTeamsFile.size / 1024).toFixed(1)} KB</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClearTeamsImport}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                    title="Xóa file đã chọn"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      <line x1="10" y1="11" x2="10" y2="17" />
+                      <line x1="14" y1="11" x2="14" y2="17" />
+                    </svg>
+                  </button>
+                </div>
+              )}
 
               {/* Preview table */}
               {importTeamsPreview.length > 0 && (
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                    ✅ XEM TRƯỚC ({importTeamsPreview.length} đội)
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                    📋 XEM TRƯỚC DANH SÁCH ({importTeamsPreview.length} đội)
                   </label>
-                  <div style={{ maxHeight: '200px', overflowY: 'auto', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                    <table className={styles.adminTable} style={{ marginBottom: 0 }}>
+                  <div style={{ maxHeight: '180px', overflowY: 'auto', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#fff' }}>
+                    <table className={styles.adminTable} style={{ marginBottom: 0, width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
-                        <tr>
-                          <th style={{ padding: '8px 12px', fontSize: '12px' }}>#</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px' }}>Logo</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px' }}>Tên đội</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px' }}>Bảng</th>
+                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, zIndex: 10 }}>
+                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>#</th>
+                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Logo</th>
+                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Tên đội bóng</th>
+                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Bảng</th>
                         </tr>
                       </thead>
                       <tbody>
                         {importTeamsPreview.map((t, i) => (
-                          <tr key={i}>
-                            <td style={{ padding: '6px 12px', fontSize: '13px' }}>{i + 1}</td>
-                            <td style={{ padding: '6px 12px', fontSize: '18px' }}>{t.logo}</td>
-                            <td style={{ padding: '6px 12px', fontSize: '13px', fontWeight: 600 }}>{t.ten}</td>
-                            <td style={{ padding: '6px 12px', fontSize: '13px' }}>Bảng {t.bang}</td>
+                          <tr key={t.id} style={{ borderBottom: i === importTeamsPreview.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '8px 12px', fontSize: '13px', color: '#64748b' }}>{i + 1}</td>
+                            <td style={{ padding: '8px 12px', fontSize: '18px' }}>{t.logo}</td>
+                            <td style={{ padding: '8px 12px', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>{t.ten}</td>
+                            <td style={{ padding: '8px 12px', fontSize: '13px', color: '#475569' }}>
+                              <span style={{ background: '#f1f5f9', color: '#334155', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>
+                                Bảng {t.bang}
+                              </span>
+                            </td>
                           </tr>
                         ))}
                       </tbody>
@@ -2131,21 +2678,69 @@ export default function QuanTriPage() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
                 <button
-                  className={styles.finishBtn}
-                  style={{ flex: 1, margin: 0, justifyContent: 'center', opacity: importTeamsPreview.length === 0 || importLoading ? 0.5 : 1 }}
-                  disabled={importTeamsPreview.length === 0 || importLoading}
-                  onClick={handleConfirmImportTeams}
-                >
-                  {importLoading ? '⏳ Đang import...' : `✅ IMPORT ${importTeamsPreview.length} ĐỘI`}
-                </button>
-                <button
-                  className={styles.undoBtn}
-                  style={{ flex: 1, margin: 0 }}
-                  onClick={() => { setIsImportTeamsOpen(false); setImportTeamsPreview([]); }}
+                  type="button"
+                  style={{
+                    flex: 1,
+                    margin: 0,
+                    height: '44px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#fff',
+                    color: '#64748b',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onClick={() => { setIsImportTeamsOpen(false); handleClearTeamsImport(); }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.background = '#f8fafc'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = '#fff'; }}
                 >
                   HỦY
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    margin: 0,
+                    height: '44px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    borderRadius: '8px',
+                    background: importTeamsPreview.length === 0 || importLoading ? '#e2e8f0' : '#D71920',
+                    color: importTeamsPreview.length === 0 || importLoading ? '#94a3b8' : '#fff',
+                    cursor: importTeamsPreview.length === 0 || importLoading ? 'not-allowed' : 'pointer',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: importTeamsPreview.length === 0 || importLoading ? 'none' : '0 4px 14px rgba(215, 25, 32, 0.4)'
+                  }}
+                  disabled={importTeamsPreview.length === 0 || importLoading}
+                  onClick={handleConfirmImportTeams}
+                  onMouseEnter={(e) => {
+                    if (importTeamsPreview.length > 0 && !importLoading) {
+                      e.currentTarget.style.background = '#ae0011';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (importTeamsPreview.length > 0 && !importLoading) {
+                      e.currentTarget.style.background = '#D71920';
+                    }
+                  }}
+                >
+                  {importLoading ? (
+                    <>⏳ Đang import...</>
+                  ) : importTeamsPreview.length === 0 ? (
+                    <>IMPORT ĐỘI</>
+                  ) : (
+                    <>IMPORT {importTeamsPreview.length} ĐỘI</>
+                  )}
                 </button>
               </div>
             </div>
@@ -2155,57 +2750,172 @@ export default function QuanTriPage() {
         {/* Import Players from Excel Modal */}
         {isImportPlayersOpen && (
           <div className={styles.overlay} style={{ zIndex: 9998 }}>
-            <div className={styles.modal} style={{ maxWidth: '650px', width: '100%', padding: '30px' }}>
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b' }}>
-                📥 IMPORT DANH SÁCH CẦU THỦ
+            <div className={styles.modal} style={{ maxWidth: '650px', width: '100%', padding: '30px', position: 'relative' }}>
+              {/* Close Button */}
+              <button
+                onClick={() => { setIsImportPlayersOpen(false); handleClearPlayersImport(); setImportPlayersTargetTeam(null); }}
+                style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', fontSize: '20px', color: '#94a3b8', cursor: 'pointer', transition: 'color 0.2s' }}
+                onMouseEnter={(e) => e.currentTarget.style.color = '#1e293b'}
+                onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
+              >
+                ✕
+              </button>
+
+              <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span>📥</span> IMPORT DANH SÁCH CẦU THỦ
               </h3>
-              <p style={{ margin: '0 0 6px 0', fontSize: '13px', color: '#64748b' }}>
-                Tải lên file Excel chứa danh sách cầu thủ cho đội <strong style={{ color: '#1e293b' }}>{importPlayersTargetTeam?.ten || '...'}</strong>.
-              </p>
-              <p style={{ margin: '0 0 20px 0', fontSize: '12px', color: '#94a3b8' }}>
-                Các cột bắt buộc: <strong>Tên cầu thủ</strong>. Cột tùy chọn: <strong>Số áo</strong>, <strong>Vị trí</strong>.
+              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
+                Tải lên danh sách cầu thủ cho đội <strong style={{ color: '#1e293b' }}>{importPlayersTargetTeam?.ten || '...'}</strong> để theo dõi kiến tạo và bàn thắng.
               </p>
 
-              {/* Upload area */}
-              <div style={{ background: '#f8fafc', border: '2px dashed #cbd5e1', borderRadius: '12px', padding: '24px', textAlign: 'center', marginBottom: '20px', cursor: 'pointer', transition: 'all 0.2s' }}>
-                <div style={{ fontSize: '40px', marginBottom: '8px' }}>📁</div>
-                <p style={{ fontSize: '14px', color: '#475569', fontWeight: 600, margin: '0 0 8px 0' }}>Kéo thả file Excel hoặc bấm để chọn</p>
-                <p style={{ fontSize: '12px', color: '#94a3b8', margin: '0 0 12px 0' }}>Hỗ trợ: .xlsx, .xls</p>
-                <input
-                  type="file"
-                  accept=".xlsx,.xls"
-                  onChange={handleImportPlayersFile}
-                  style={{ display: 'block', width: '100%', padding: '8px', fontSize: '13px', border: '1px solid #e2e8f0', borderRadius: '8px', background: '#fff', cursor: 'pointer' }}
-                />
+              {/* Guide and Download template */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '13px', color: '#475569' }}>
+                  <span style={{ fontWeight: 600 }}>Các cột bắt buộc:</span>
+                  <span style={{ fontSize: '11px', fontWeight: 700, background: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: '4px', border: '1px solid #fecaca', margin: '0 4px' }}>Tên cầu thủ</span>
+                  <span style={{ fontWeight: 600, marginLeft: '6px' }}>. Cột tùy chọn:</span>
+                  <span style={{ fontSize: '11px', fontWeight: 600, background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', margin: '0 4px' }}>Số áo</span>
+                  <span style={{ fontSize: '11px', fontWeight: 600, background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', margin: '0 4px' }}>Vị trí</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={downloadPlayersTemplate}
+                  style={{ background: 'none', border: 'none', color: '#D71920', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#ae0011'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#D71920'}
+                >
+                  ⬇️ Tải file mẫu (.xlsx)
+                </button>
               </div>
+
+              {/* Upload Dropzone / File Selected State */}
+              {selectedPlayersFile === null ? (
+                <div
+                  onClick={() => playerFileInputRef.current?.click()}
+                  onDragOver={(e) => { e.preventDefault(); setIsPlayersDragActive(true); }}
+                  onDragLeave={() => setIsPlayersDragActive(false)}
+                  onDrop={(e) => {
+                    e.preventDefault();
+                    setIsPlayersDragActive(false);
+                    const file = e.dataTransfer.files?.[0];
+                    if (file) processPlayersFile(file);
+                  }}
+                  style={{
+                    background: isPlayersDragActive ? 'rgba(215, 25, 32, 0.04)' : '#fff',
+                    border: isPlayersDragActive ? '2px dashed #D71920' : '2px dashed #cbd5e1',
+                    borderRadius: '12px',
+                    padding: '40px 24px',
+                    textAlign: 'center',
+                    marginBottom: '20px',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease-in-out',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: isPlayersDragActive ? '0 0 16px rgba(215, 25, 32, 0.1)' : 'none'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.borderColor = '#D71920'}
+                  onMouseLeave={(e) => e.currentTarget.style.borderColor = isPlayersDragActive ? '#D71920' : '#cbd5e1'}
+                >
+                  <input
+                    ref={playerFileInputRef}
+                    type="file"
+                    accept=".xlsx,.xls"
+                    onChange={handleImportPlayersFile}
+                    style={{ display: 'none' }}
+                  />
+                  {/* Premium Cloud Upload Icon */}
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke={isPlayersDragActive ? '#D71920' : '#10b981'}
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    style={{
+                      width: '56px',
+                      height: '56px',
+                      marginBottom: '16px',
+                      transition: 'all 0.2s ease',
+                      filter: isPlayersDragActive ? 'drop-shadow(0 4px 12px rgba(215, 25, 32, 0.15))' : 'drop-shadow(0 4px 12px rgba(16, 185, 129, 0.15))'
+                    }}
+                  >
+                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                    <path d="M12 12v9" />
+                    <path d="m16 16-4-4-4 4" />
+                  </svg>
+                  <p style={{ fontSize: '16px', color: '#1e293b', fontWeight: 600, margin: '0 0 6px 0' }}>
+                    Kéo thả file Excel vào đây
+                  </p>
+                  <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                    Hoặc bấm để chọn file từ máy tính <span style={{ fontWeight: 600, color: '#475569' }}>(Hỗ trợ .xls, .xlsx)</span>
+                  </p>
+                </div>
+              ) : (
+                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    {/* Green Excel File Icon */}
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e8f5e9', width: '38px', height: '38px', borderRadius: '8px' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px' }}>
+                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
+                        <polyline points="14 2 14 8 20 8" />
+                        <line x1="8" y1="13" x2="16" y2="13" />
+                        <line x1="8" y1="17" x2="16" y2="17" />
+                        <line x1="10" y1="9" x2="9" y2="9" />
+                      </svg>
+                    </div>
+                    <div>
+                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b', wordBreak: 'break-all' }}>{selectedPlayersFile.name}</p>
+                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>Dung lượng: {(selectedPlayersFile.size / 1024).toFixed(1)} KB</p>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleClearPlayersImport}
+                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
+                    onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
+                    title="Xóa file đã chọn"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="3 6 5 6 21 6" />
+                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
+                      <line x1="10" y1="11" x2="10" y2="17" />
+                      <line x1="14" y1="11" x2="14" y2="17" />
+                    </svg>
+                  </button>
+                </div>
+              )}
 
               {/* Preview table */}
               {importPlayersPreview.length > 0 && (
-                <div style={{ marginBottom: '20px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                    ✅ XEM TRƯỚC ({importPlayersPreview.length} cầu thủ)
+                <div style={{ marginBottom: '24px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                    📋 XEM TRƯỚC DANH SÁCH ({importPlayersPreview.length} cầu thủ)
                   </label>
-                  <div style={{ maxHeight: '200px', overflowY: 'auto', borderRadius: '10px', border: '1px solid #e2e8f0' }}>
-                    <table className={styles.adminTable} style={{ marginBottom: 0 }}>
+                  <div style={{ maxHeight: '180px', overflowY: 'auto', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#fff' }}>
+                    <table className={styles.adminTable} style={{ marginBottom: 0, width: '100%', borderCollapse: 'collapse' }}>
                       <thead>
-                        <tr>
-                          <th style={{ padding: '8px 12px', fontSize: '12px' }}>#</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px' }}>Số áo</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px' }}>Tên cầu thủ</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px' }}>Vị trí</th>
+                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, zIndex: 10 }}>
+                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>#</th>
+                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Số áo</th>
+                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Tên cầu thủ</th>
+                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Vị trí</th>
                         </tr>
                       </thead>
                       <tbody>
                         {importPlayersPreview.map((p, i) => (
-                          <tr key={i}>
-                            <td style={{ padding: '6px 12px', fontSize: '13px' }}>{i + 1}</td>
-                            <td style={{ padding: '6px 12px' }}>
+                          <tr key={p.id} style={{ borderBottom: i === importPlayersPreview.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
+                            <td style={{ padding: '8px 12px', fontSize: '13px', color: '#64748b' }}>{i + 1}</td>
+                            <td style={{ padding: '8px 12px' }}>
                               <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', background: '#fee2e2', color: '#ef4444', borderRadius: '50%', fontSize: '11px', fontWeight: 700 }}>
                                 {p.soAo}
                               </span>
                             </td>
-                            <td style={{ padding: '6px 12px', fontSize: '13px', fontWeight: 600 }}>{p.ten}</td>
-                            <td style={{ padding: '6px 12px', fontSize: '12px', color: '#64748b' }}>{p.viTri}</td>
+                            <td style={{ padding: '8px 12px', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>{p.ten}</td>
+                            <td style={{ padding: '8px 12px', fontSize: '12px', color: '#64748b' }}>{p.viTri}</td>
                           </tr>
                         ))}
                       </tbody>
@@ -2214,21 +2924,69 @@ export default function QuanTriPage() {
                 </div>
               )}
 
-              <div style={{ display: 'flex', gap: '10px' }}>
+              {/* Action Buttons */}
+              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
                 <button
-                  className={styles.finishBtn}
-                  style={{ flex: 1, margin: 0, justifyContent: 'center', opacity: importPlayersPreview.length === 0 || importLoading ? 0.5 : 1 }}
-                  disabled={importPlayersPreview.length === 0 || importLoading}
-                  onClick={handleConfirmImportPlayers}
-                >
-                  {importLoading ? '⏳ Đang import...' : `✅ IMPORT ${importPlayersPreview.length} CẦU THỦ`}
-                </button>
-                <button
-                  className={styles.undoBtn}
-                  style={{ flex: 1, margin: 0 }}
-                  onClick={() => { setIsImportPlayersOpen(false); setImportPlayersPreview([]); setImportPlayersTargetTeam(null); }}
+                  type="button"
+                  style={{
+                    flex: 1,
+                    margin: 0,
+                    height: '44px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    borderRadius: '8px',
+                    border: '1px solid #cbd5e1',
+                    background: '#fff',
+                    color: '#64748b',
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease'
+                  }}
+                  onClick={() => { setIsImportPlayersOpen(false); handleClearPlayersImport(); setImportPlayersTargetTeam(null); }}
+                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.background = '#f8fafc'; }}
+                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = '#fff'; }}
                 >
                   HỦY
+                </button>
+                <button
+                  type="button"
+                  style={{
+                    flex: 1,
+                    margin: 0,
+                    height: '44px',
+                    fontWeight: 700,
+                    fontSize: '14px',
+                    borderRadius: '8px',
+                    background: importPlayersPreview.length === 0 || importLoading ? '#e2e8f0' : '#D71920',
+                    color: importPlayersPreview.length === 0 || importLoading ? '#94a3b8' : '#fff',
+                    cursor: importPlayersPreview.length === 0 || importLoading ? 'not-allowed' : 'pointer',
+                    border: 'none',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '8px',
+                    transition: 'all 0.2s ease',
+                    boxShadow: importPlayersPreview.length === 0 || importLoading ? 'none' : '0 4px 14px rgba(215, 25, 32, 0.4)'
+                  }}
+                  disabled={importPlayersPreview.length === 0 || importLoading}
+                  onClick={handleConfirmImportPlayers}
+                  onMouseEnter={(e) => {
+                    if (importPlayersPreview.length > 0 && !importLoading) {
+                      e.currentTarget.style.background = '#ae0011';
+                    }
+                  }}
+                  onMouseLeave={(e) => {
+                    if (importPlayersPreview.length > 0 && !importLoading) {
+                      e.currentTarget.style.background = '#D71920';
+                    }
+                  }}
+                >
+                  {importLoading ? (
+                    <>⏳ Đang import...</>
+                  ) : importPlayersPreview.length === 0 ? (
+                    <>IMPORT CẦU THỦ</>
+                  ) : (
+                    <>IMPORT {importPlayersPreview.length} CẦU THỦ</>
+                  )}
                 </button>
               </div>
             </div>

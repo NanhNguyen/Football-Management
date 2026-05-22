@@ -1,0 +1,40 @@
+.layoutContainer {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--color-bg);
+  width: 100%;
+}
+
+.mainArea {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  min-width: 0; /* Important: prevents content from overflowing flex parent */
+  position: relative;
+  width: 100%;
+}
+
+.contentBody {
+  flex: 1;
+  padding-top: 80px; /* Account for sticky Topbar (64px + 16px gap) */
+  padding-bottom: 80px; /* Account for sticky bottom nav on mobile */
+  width: 100%;
+  box-sizing: border-box;
+}
+
+/* Adjust paddings for desktop screens */
+@media (min-width: 1024px) {
+  .layoutContainer {
+    padding-left: 260px; /* Make space for fixed Left Sidebar */
+  }
+
+  .contentBody {
+    padding-bottom: var(--space-xl); /* No mobile bottom nav space needed on desktop */
+  }
+}
+
+@media (max-width: 768px) {
+  .contentBody {
+    padding-top: 76px;
+  }
+}
