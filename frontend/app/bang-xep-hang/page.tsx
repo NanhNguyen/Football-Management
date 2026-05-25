@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import styles from './page.module.css';
 import { layBangXepHang } from '@/lib/api';
 import { usePublicTournament } from '@/components/PublicTournamentContext';
@@ -28,14 +29,7 @@ export default function BangXepHangPage() {
   }, [selectedTournamentId]);
 
   if (loading) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
-          <p>Đang tải dữ liệu bảng xếp hạng thời gian thực...</p>
-        </div>
-      </div>
-    );
+    return <GlobalSkeletonLoader />;
   }
 
   // Group data by 'bang'

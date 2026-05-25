@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
+import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import styles from './page.module.css';
 import { supabase } from '@/lib/supabase';
 import { layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
@@ -96,19 +97,7 @@ export default function ChiTietTranDauPage() {
   }, [id]);
 
   if (loading) {
-    return (
-      <div className={styles.page}>
-        <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', minHeight: '300px', gap: '16px' }}>
-          <div style={{ width: '40px', height: '40px', border: '3px solid #f1f5f9', borderTopColor: '#d71920', borderRadius: '50%', animation: 'spin 1s linear infinite' }} />
-          <p style={{ color: '#64748b', fontWeight: 600 }}>Đang tải thông tin trận đấu thời gian thực...</p>
-          <style>{`
-            @keyframes spin {
-              to { transform: rotate(360deg); }
-            }
-          `}</style>
-        </div>
-      </div>
-    );
+    return <GlobalSkeletonLoader />;
   }
 
   // Fallback data if match doesn't exist

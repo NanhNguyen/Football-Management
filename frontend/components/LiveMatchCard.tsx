@@ -80,10 +80,10 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
   const tyKhach = match.tyKhach !== undefined ? match.tyKhach : match.tyDoiKhach;
 
   // Real scorers calculation
-  const goals = (match.suKien || []).filter((sk: any) => 
-    sk.loai === 'BAN_THANG' || 
-    sk.loai === 'GOAL_NORMAL' || 
-    sk.loai === 'GOAL_PEN' || 
+  const goals = (match.suKien || []).filter((sk: any) =>
+    sk.loai === 'BAN_THANG' ||
+    sk.loai === 'GOAL_NORMAL' ||
+    sk.loai === 'GOAL_PEN' ||
     sk.loai === 'GOAL_OG'
   );
 
@@ -162,7 +162,7 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
               <span key={g.id} className={styles.scorerItem}>
                 {g.cauThu?.ten || 'Cầu thủ'}{' '}
                 <span className={styles.scorerMinute} style={{ fontSize: '10px', color: '#94a3b8' }}>
-                  {g.phut}&apos;{g.loai === 'GOAL_OG' ? ' (og)' : ''} ⚽
+                  {g.phut}&apos;{g.loai === 'GOAL_OG' ? ' (OG)' : ''} ⚽
                 </span>
               </span>
             ))}
@@ -171,7 +171,7 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
             {awayGoals.map((g: any) => (
               <span key={g.id} className={styles.scorerItem}>
                 <span className={styles.scorerMinute} style={{ fontSize: '10px', color: '#94a3b8' }}>
-                  ⚽ {g.phut}&apos;{g.loai === 'GOAL_OG' ? ' (og)' : ''}
+                  ⚽ {g.phut}&apos;{g.loai === 'GOAL_OG' ? ' (OG)' : ''}
                 </span>{' '}
                 {g.cauThu?.ten || 'Cầu thủ'}
               </span>

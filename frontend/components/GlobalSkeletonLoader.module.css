@@ -1,0 +1,205 @@
+.skeletonPulse {
+  animation: skeletonPulseKeyframe 1.5s ease-in-out infinite;
+}
+
+@keyframes skeletonPulseKeyframe {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.skeletonWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding: var(--space-xl) var(--space-lg) var(--space-xxl);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.skeletonHero {
+  position: relative;
+  width: 100%;
+  height: 320px;
+  border-radius: 24px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+}
+
+.skeletonShimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: skeletonShimmerKeyframe 1.8s infinite;
+  transform: translateX(-100%);
+}
+
+@keyframes skeletonShimmerKeyframe {
+  100% { transform: translateX(100%); }
+}
+
+.skeletonSection {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-md);
+}
+
+.skeletonSectionHeader {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.skeletonTitle {
+  height: 24px;
+  width: 180px;
+  background: #e2e8f0;
+  border-radius: var(--radius-sm);
+}
+
+.skeletonLink {
+  height: 16px;
+  width: 100px;
+  background: #e2e8f0;
+  border-radius: var(--radius-sm);
+}
+
+.skeletonTabs {
+  display: flex;
+  gap: 12px;
+  border-bottom: 2px solid #e2e8f0;
+  padding-bottom: 12px;
+  margin-bottom: var(--space-md);
+}
+
+.skeletonTab {
+  height: 36px;
+  width: 120px;
+  background: #e2e8f0;
+  border-radius: 20px;
+}
+
+.skeletonMatchesGrid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: var(--space-md);
+}
+
+.skeletonMatchCard {
+  height: 120px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-lg);
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  position: relative;
+  overflow: hidden;
+}
+
+.skeletonMatchTeams {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.skeletonMatchTeamRow {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.skeletonLogoCircle {
+  width: 24px;
+  height: 24px;
+  background: #e2e8f0;
+  border-radius: 50%;
+}
+
+.skeletonTextLine {
+  height: 14px;
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.skeletonTextLineShort {
+  width: 80px;
+}
+
+.skeletonTextLineMedium {
+  width: 140px;
+}
+
+.skeletonTextLineLong {
+  width: 100%;
+}
+
+.skeletonLeaderboardGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--space-xl);
+}
+
+.skeletonLbCard {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 20px;
+  padding: var(--space-xl);
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.skeletonLbRow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid #f1f5f9;
+}
+
+.skeletonLbRowLeft {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.skeletonBadge {
+  width: 20px;
+  height: 20px;
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.skeletonPoints {
+  width: 32px;
+  height: 16px;
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+@media (max-width: 768px) {
+  .skeletonLeaderboardGrid {
+    grid-template-columns: 1fr;
+    gap: 16px;
+  }
+  .skeletonHero {
+    height: 200px;
+  }
+}

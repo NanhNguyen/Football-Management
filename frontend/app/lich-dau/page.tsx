@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import styles from './page.module.css';
 import { layDanhSachTranDau } from '@/lib/api';
 import LiveMatchCard from '@/components/LiveMatchCard';
@@ -30,14 +31,7 @@ export default function LichDauPage() {
   }, [selectedTournamentId]);
 
   if (loading) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
-          <p>Đang tải lịch thi đấu thời gian thực...</p>
-        </div>
-      </div>
-    );
+    return <GlobalSkeletonLoader />;
   }
 
   const live = data.filter((t: any) => t.trangThai === 'DANG_DIEN_RA');

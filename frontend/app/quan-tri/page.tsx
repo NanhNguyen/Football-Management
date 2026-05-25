@@ -21,7 +21,8 @@ import {
 
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
-import Loading from './loading';
+import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
+
 import * as XLSX from 'xlsx';
 
 const sidebarItems = [
@@ -35,12 +36,19 @@ const sidebarItems = [
 
 export default function QuanTriPage() {
   const router = useRouter();
-  const [activeTab, setActiveTab] = useState('cai-dat');
+  const [activeTab, setActiveTab] = useState('lich');
+  useEffect(() => {
+    const savedTab = localStorage.getItem('adminActiveTab');
+    if (savedTab) {
+      setActiveTab(savedTab);
+    }
+  }, []);
   const [liveMatches, setLiveMatches] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
-  const [activePlayerParams, setActivePlayerParams] = useState<{ matchId: string, teamId: string, player: any } | null>(null);
+  const [activePlayerParams, setActivePlayerParams] = useState<{ matchId: string, teamId: string, player: any, isBench?: boolean } | null>(null);
+  const [pendingSubOut, setPendingSubOut] = useState<{ player: any, teamId: string } | null>(null);
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
 
   // Switcher states
@@ -81,6 +89,9 @@ export default function QuanTriPage() {
   const [tournamentStartDate, setTournamentStartDate] = useState('');
   const [tournamentEndDate, setTournamentEndDate] = useState('2024-06-30');
   const [tournamentMaxPlayers, setTournamentMaxPlayers] = useState(20);
+  const [starterCount, setStarterCount] = useState<number>(7);
+  const [benchCount, setBenchCount] = useState<number>(7);
+  const [isSelectingSubstitute, setIsSelectingSubstitute] = useState(false);
   const [tournamentType, setTournamentType] = useState<'tournament' | 'league'>('tournament');
   const [tournamentGroupLegs, setTournamentGroupLegs] = useState<1 | 2>(1);
   const [tournamentLeagueRounds, setTournamentLeagueRounds] = useState<number>(5);
@@ -337,6 +348,40 @@ export default function QuanTriPage() {
     checkAuth();
   }, [router]);
 
+  const calculateCurrentRoster = (team: any, events: any[], limit: number) => {
+    if (!team || !team.cauThu) return { starters: [], bench: [] };
+    let starters: any[] = [];
+    let bench: any[] = [];
+    
+    // Initial assignment
+    team.cauThu.forEach((p: any, idx: number) => {
+      if (idx < limit) starters.push(p);
+      else bench.push(p);
+    });
+
+    // Apply substitutions
+    if (events) {
+      const subs = events.filter((e: any) => e.loai === 'SUB' || e.loai === 'THAY_NGUOI').sort((a: any, b: any) => a.phut - b.phut);
+      subs.forEach((sub: any) => {
+        const inPlayerId = sub.cauThuId;
+        const outPlayerMatch = sub.moTa?.match(/cho (.*?)$/);
+        const outPlayerName = outPlayerMatch ? outPlayerMatch[1].trim() : '';
+        
+        const outIdx = starters.findIndex(p => p.ten === outPlayerName);
+        const inIdx = bench.findIndex(p => p.id === inPlayerId);
+        
+        if (outIdx >= 0 && inIdx >= 0) {
+          const outP = starters[outIdx];
+          starters.splice(outIdx, 1);
+          starters.push(bench[inIdx]);
+          bench.splice(inIdx, 1);
+          bench.push(outP);
+        }
+      });
+    }
+    return { starters, bench };
+  };
+
   const fetchData = async (activeTourneyId?: string) => {
     setLoading(true);
     try {
@@ -349,12 +394,23 @@ export default function QuanTriPage() {
       }
 
       if (!currentTourney && tourneys.length > 0) {
-        currentTourney = tourneys.find((t: any) => t.id === 'giai-thien-khoi-cup-2024') || tourneys[0];
+        const savedTourneyId = localStorage.getItem('adminActiveTournament');
+        if (savedTourneyId) {
+          currentTourney = tourneys.find((t: any) => t.id === savedTourneyId) || null;
+        }
+        if (!currentTourney) {
+          currentTourney = tourneys.find((t: any) => t.id === 'giai-thien-khoi-cup-2024') || tourneys[0];
+        }
+      }
+
+      if (currentTourney && selectedTournament && currentTourney.id !== selectedTournament.id) {
+        setSelectedMatchId(null);
       }
 
       setSelectedTournament(currentTourney);
 
       if (currentTourney) {
+        localStorage.setItem('adminActiveTournament', currentTourney.id);
         setTournamentName(currentTourney.ten || '');
         setTournamentSeason(currentTourney.mua_giai || '');
         setTournamentStartDate(currentTourney.ngay_bat_dau || '');
@@ -366,6 +422,8 @@ export default function QuanTriPage() {
             setTournamentEndDate(config.ngayKetThuc || '2024-06-30');
             setMaxTeams(config.maxTeams || 16);
             setTournamentMaxPlayers(config.maxPlayers || 20);
+            setStarterCount(config.starterCount || 7);
+            setBenchCount(config.benchCount || 7);
             setTournamentType(config.theThuc || 'tournament');
             setTournamentGroupLegs(config.luotVongBang || 1);
             setTournamentLeagueRounds(config.soVongLeague || 5);
@@ -377,6 +435,8 @@ export default function QuanTriPage() {
           setTournamentEndDate('2024-06-30');
           setMaxTeams(16);
           setTournamentMaxPlayers(20);
+          setStarterCount(7);
+          setBenchCount(7);
           setTournamentType('tournament');
           setTournamentGroupLegs(1);
           setTournamentLeagueRounds(5);
@@ -508,6 +568,8 @@ export default function QuanTriPage() {
         ngayKetThuc: tournamentEndDate,
         maxTeams: maxTeams || 16,
         maxPlayers: tournamentMaxPlayers || 20,
+        starterCount: starterCount || 7,
+        benchCount: benchCount || 7,
         theThuc: tournamentType,
         luotVongBang: tournamentGroupLegs,
         soVongLeague: tournamentLeagueRounds || 5,
@@ -987,6 +1049,36 @@ export default function QuanTriPage() {
     }
   };
 
+  const handleTemporaryPauseToggle = async (matchId: string) => {
+    const match = liveMatches.find(m => m.id === matchId);
+    if (match) {
+      if (match.dangTamDung) {
+        const updated = {
+          ...match,
+          dangTamDung: false,
+          batDauLuc: new Date().toISOString()
+        };
+        await updateMatch(updated);
+        await fetchData(selectedTournament?.id);
+        showToast("▶ Trận đấu tiếp tục!");
+      } else {
+        const now = new Date().getTime();
+        const start = new Date(match.batDauLuc).getTime();
+        const passed = Math.floor((now - start) / 1000) + (match.thoiGianDaQua || 0);
+
+        const updated = {
+          ...match,
+          dangTamDung: true,
+          thoiGianDaQua: passed,
+          phut: Math.floor(passed / 60) + 1
+        };
+        await updateMatch(updated);
+        await fetchData(selectedTournament?.id);
+        showToast("⏸ Trận đấu đã tạm dừng!");
+      }
+    }
+  };
+
   const handleFinishMatch = async (matchId: string) => {
     showConfirm(
       "KẾT THÚC TRẬN ĐẤU",
@@ -1057,6 +1149,33 @@ export default function QuanTriPage() {
   const handleLogout = async () => {
     await supabase.auth.signOut();
     router.push('/login');
+  };
+
+  const handleExecuteSubstitution = async (inPlayer: any, outPlayer: any, teamId: string) => {
+    if (!selectedMatch) return;
+    try {
+      const description = `Vào sân thay cho ${outPlayer.ten}`;
+      const res = await addEvent({
+        matchId: selectedMatch.id,
+        type: 'SUB',
+        minute: selectedMatch.phut || 0,
+        teamId: teamId,
+        playerId: inPlayer.id,
+        description: description
+      });
+      // Wait, is addEvent signature like this? Let's check `handleActionSelect`.
+      // `await addEvent({ matchId, teamId, playerId: player.id, type: eventType, minute: selectedMatch.phut || 0, description: ... });`
+      // So no error field from res.
+      
+      showToast(`🔄 Đã thay người: ${inPlayer.ten} vào thay ${outPlayer.ten}`);
+      await fetchData(selectedTournament?.id);
+      setIsSelectingSubstitute(false);
+      setActivePlayerParams(null);
+      setPendingSubOut(null);
+    } catch (e) {
+      console.error(e);
+      showToast("❌ Lỗi khi thay người!");
+    }
   };
 
   const handleActionSelect = async (type: string, subType?: string) => {
@@ -1146,7 +1265,7 @@ export default function QuanTriPage() {
   };
 
   if (loading) {
-    return <Loading />;
+    return <GlobalSkeletonLoader />;
   }
 
   return (
@@ -1212,7 +1331,7 @@ export default function QuanTriPage() {
               <button
                 key={item.id}
                 className={`${styles.sidebarItem} ${activeTab === item.id ? styles.sidebarItemActive : ''}`}
-                onClick={() => setActiveTab(item.id)}
+                onClick={() => { setActiveTab(item.id); localStorage.setItem('adminActiveTab', item.id); }}
               >
                 <span>{item.label}</span>
               </button>
@@ -1246,7 +1365,7 @@ export default function QuanTriPage() {
         {/* Main Content */}
         <main className={styles.main}>
 
-          {activeTab === 'tong-quan' && (
+          {false && ( /* activeTab === 'tong-quan' */
             <div className={`${styles.content} animate-fade-in`}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <div>
@@ -1289,6 +1408,26 @@ export default function QuanTriPage() {
                   </p>
                 </div>
               </div>
+              <div className={styles.configGrid} style={{ marginTop: '20px' }}>
+                <div>
+                  <label className={styles.inputLabel}>Số người đá chính</label>
+                  <input
+                    type="number"
+                    className={styles.inputField}
+                    value={starterCount}
+                    onChange={(e) => setStarterCount(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className={styles.inputLabel}>Số người dự bị tối đa</label>
+                  <input
+                    type="number"
+                    className={styles.inputField}
+                    value={benchCount}
+                    onChange={(e) => setBenchCount(Number(e.target.value))}
+                  />
+                </div>
+              </div>
 
               <div style={{ background: '#fff', borderRadius: '12px', padding: '24px', boxShadow: '0 2px 8px rgba(0,0,0,0.05)', border: '1px solid #e2e8f0' }}>
                 <h3 style={{ margin: '0 0 15px 0', fontSize: '16px', fontWeight: 700, color: '#1e293b' }}>Tiến độ giải đấu</h3>
@@ -1309,12 +1448,32 @@ export default function QuanTriPage() {
             </div>
           )}
 
-          {activeTab === 'bxh' && (
+          {false && ( /* activeTab === 'bxh' */
             <div className={`${styles.content} animate-fade-in`}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '15px' }}>
                 <div>
                   <h2 className={styles.pageTitle}>Cấu hình Bảng xếp hạng</h2>
                   <p className={styles.pageDesc}>Quản lý và điều chỉnh thứ hạng thủ công (nếu cần)</p>
+                </div>
+              </div>
+              <div className={styles.configGrid} style={{ marginTop: '20px' }}>
+                <div>
+                  <label className={styles.inputLabel}>Số người đá chính</label>
+                  <input
+                    type="number"
+                    className={styles.inputField}
+                    value={starterCount}
+                    onChange={(e) => setStarterCount(Number(e.target.value))}
+                  />
+                </div>
+                <div>
+                  <label className={styles.inputLabel}>Số người dự bị tối đa</label>
+                  <input
+                    type="number"
+                    className={styles.inputField}
+                    value={benchCount}
+                    onChange={(e) => setBenchCount(Number(e.target.value))}
+                  />
                 </div>
               </div>
 
@@ -1702,25 +1861,50 @@ export default function QuanTriPage() {
                         </div>
                       </div>
                       <div className={styles.consoleRosterGrid}>
-                        {(!selectedMatch.doiNha?.cauThu || selectedMatch.doiNha.cauThu.length === 0) && (
+                        {(!selectedMatch.doiNha?.cauThu || selectedMatch.doiNha.cauThu.length === 0) ? (
                           <p className={styles.consoleEmptyRoster}>Chua co cau thu nao</p>
-                        )}
-                        {selectedMatch.doiNha?.cauThu?.map((player: any) => {
+                        ) : (
+                          (() => {
+                            const { starters, bench } = calculateCurrentRoster(selectedMatch.doiNha, selectedMatch.suKien, starterCount);
+                            const renderPlayer = (player: any, isBench: boolean) => {
                           const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
                           const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
                           const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
                           const chotCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'CHOT' && ev.cauThuId === player.id).length || 0;
                           const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
                           const isClickable = !hasRedCard && selectedMatch.trangThai === 'DANG_DIEN_RA';
+                          
+                          const isPendingSub = pendingSubOut?.player?.id === player.id;
+                          const isOtherPending = pendingSubOut && pendingSubOut.teamId === selectedMatch.doiNha.id && !isPendingSub;
+                          const dimClass = isOtherPending && !isBench ? styles.consolePlayerDimmed : '';
+                          const highlightClass = pendingSubOut && isBench && pendingSubOut.teamId === selectedMatch.doiNha.id ? styles.consolePlayerHighlighted : '';
+                          const benchClass = isBench ? styles.consolePlayerBench : '';
+                          
+                          const handleClick = () => {
+                            if (!isClickable) return;
+                            if (pendingSubOut) {
+                              if (pendingSubOut.teamId !== selectedMatch.doiNha.id) return;
+                              if (isPendingSub) {
+                                setPendingSubOut(null); // Cancel
+                              } else if (isBench) {
+                                handleExecuteSubstitution(player, pendingSubOut.player, pendingSubOut.teamId);
+                              }
+                            } else {
+                              setActivePlayerParams({ matchId: selectedMatch.id, teamId: selectedMatch.doiNha.id, player, isBench });
+                            }
+                          };
+
                           return (
                             <button
                               key={player.id}
-                              className={`${styles.consolePlayerBtn} ${hasRedCard ? styles.consolePlayerRedCarded : ''} ${isClickable ? styles.consolePlayerActive : ''}`}
-                              onClick={() => isClickable && setActivePlayerParams({ matchId: selectedMatch.id, teamId: selectedMatch.doiNha.id, player })}
-                              disabled={!isClickable}
+                              className={`${styles.consolePlayerBtn} ${benchClass} ${hasRedCard ? styles.consolePlayerRedCarded : ''} ${isClickable ? styles.consolePlayerActive : ''} ${dimClass} ${highlightClass}`}
+                              onClick={handleClick}
+                              disabled={!isClickable && !isPendingSub}
                             >
                               <div className={styles.consolePlayerNo}>{player.soAo}</div>
-                              <div className={styles.consolePlayerName}>{player.ten}</div>
+                              <div className={styles.consolePlayerName}>{player.ten || 'Chưa đặt tên'}</div>
+                              
+                              {/* Action Badges */}
                               <div className={styles.consolePlayerBadges}>
                                 {goalCount > 0 && <span>{goalCount > 1 ? goalCount : ''}&#x26BD;</span>}
                                 {chotCount > 0 && <span>{chotCount > 1 ? chotCount : ''}&#x26A1;</span>}
@@ -1730,8 +1914,18 @@ export default function QuanTriPage() {
                               </div>
                             </button>
                           );
-                        })}
-                      </div>
+                        };
+                        return (
+                          <>
+                            <div className={styles.rosterHeader}>🏟️ ĐỘI HÌNH CHÍNH</div>
+                            {starters.map(p => renderPlayer(p, false))}
+                            <div className={styles.rosterHeader} style={{marginTop: '10px', color: '#64748b', borderColor: '#cbd5e1'}}>🔄 CẦU THỦ DỰ BỊ</div>
+                            {bench.map(p => renderPlayer(p, true))}
+                          </>
+                        );
+                      })()
+                    )}
+                  </div>
                     </div>
 
                     {/* CENTER — Scoreboard + Event Log */}
@@ -1783,12 +1977,24 @@ export default function QuanTriPage() {
                         )}
 
                         {getMatchHalfState(selectedMatch) === '1_active' && (
-                          <button 
-                            className={`${styles.consoleMainCta} ${styles.ctaEndH1}`}
-                            onClick={() => handlePauseMatch(selectedMatch.id)}
-                          >
-                            ⏸ KẾT THÚC HIỆP 1
-                          </button>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                            <button 
+                              className={styles.consoleMainCta}
+                              style={{ 
+                                background: selectedMatch.dangTamDung ? '#10b981' : '#2563eb',
+                                boxShadow: selectedMatch.dangTamDung ? '0 4px 14px rgba(16, 185, 129, 0.3)' : '0 4px 14px rgba(37, 99, 235, 0.3)'
+                              }}
+                              onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}
+                            >
+                              {selectedMatch.dangTamDung ? '▶ TIẾP TỤC TRẬN ĐẤU' : '⏸ TẠM DỪNG TRẬN ĐẤU'}
+                            </button>
+                            <button 
+                              className={`${styles.consoleMainCta} ${styles.ctaEndH1}`}
+                              onClick={() => handlePauseMatch(selectedMatch.id)}
+                            >
+                              ⏸ KẾT THÚC HIỆP 1
+                            </button>
+                          </div>
                         )}
 
                         {getMatchHalfState(selectedMatch) === 'half_time' && (
@@ -1804,12 +2010,24 @@ export default function QuanTriPage() {
                         )}
 
                         {getMatchHalfState(selectedMatch) === '2_active' && (
-                          <button 
-                            className={`${styles.consoleMainCta} ${styles.ctaEndMatch}`}
-                            onClick={() => handleFinishMatch(selectedMatch.id)}
-                          >
-                            ⏹ KẾT THÚC TRẬN ĐẤU
-                          </button>
+                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                            <button 
+                              className={styles.consoleMainCta}
+                              style={{ 
+                                background: selectedMatch.dangTamDung ? '#10b981' : '#2563eb',
+                                boxShadow: selectedMatch.dangTamDung ? '0 4px 14px rgba(16, 185, 129, 0.3)' : '0 4px 14px rgba(37, 99, 235, 0.3)'
+                              }}
+                              onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}
+                            >
+                              {selectedMatch.dangTamDung ? '▶ TIẾP TỤC TRẬN ĐẤU' : '⏸ TẠM DỪNG TRẬN ĐẤU'}
+                            </button>
+                            <button 
+                              className={`${styles.consoleMainCta} ${styles.ctaEndMatch}`}
+                              onClick={() => handleFinishMatch(selectedMatch.id)}
+                            >
+                              ⏹ KẾT THÚC TRẬN ĐẤU
+                            </button>
+                          </div>
                         )}
 
                         {getMatchHalfState(selectedMatch) === 'finished' && (
@@ -1855,25 +2073,50 @@ export default function QuanTriPage() {
                         <span className={styles.consoleTeamEmoji}>{selectedMatch.doiKhach?.logo || '⚽'}</span>
                       </div>
                       <div className={styles.consoleRosterGrid}>
-                        {(!selectedMatch.doiKhach?.cauThu || selectedMatch.doiKhach.cauThu.length === 0) && (
+                        {(!selectedMatch.doiKhach?.cauThu || selectedMatch.doiKhach.cauThu.length === 0) ? (
                           <p className={styles.consoleEmptyRoster}>Chua co cau thu nao</p>
-                        )}
-                        {selectedMatch.doiKhach?.cauThu?.map((player: any) => {
+                        ) : (
+                          (() => {
+                            const { starters, bench } = calculateCurrentRoster(selectedMatch.doiKhach, selectedMatch.suKien, starterCount);
+                            const renderPlayer = (player: any, isBench: boolean) => {
                           const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
                           const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
                           const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
                           const chotCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'CHOT' && ev.cauThuId === player.id).length || 0;
                           const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
                           const isClickable = !hasRedCard && selectedMatch.trangThai === 'DANG_DIEN_RA';
+                          
+                          const isPendingSub = pendingSubOut?.player?.id === player.id;
+                          const isOtherPending = pendingSubOut && pendingSubOut.teamId === selectedMatch.doiKhach.id && !isPendingSub;
+                          const dimClass = isOtherPending && !isBench ? styles.consolePlayerDimmed : '';
+                          const highlightClass = pendingSubOut && isBench && pendingSubOut.teamId === selectedMatch.doiKhach.id ? styles.consolePlayerHighlighted : '';
+                          const benchClass = isBench ? styles.consolePlayerBench : '';
+                          
+                          const handleClick = () => {
+                            if (!isClickable) return;
+                            if (pendingSubOut) {
+                              if (pendingSubOut.teamId !== selectedMatch.doiKhach.id) return;
+                              if (isPendingSub) {
+                                setPendingSubOut(null); // Cancel
+                              } else if (isBench) {
+                                handleExecuteSubstitution(player, pendingSubOut.player, pendingSubOut.teamId);
+                              }
+                            } else {
+                              setActivePlayerParams({ matchId: selectedMatch.id, teamId: selectedMatch.doiKhach.id, player, isBench });
+                            }
+                          };
+
                           return (
                             <button
                               key={player.id}
-                              className={`${styles.consolePlayerBtn} ${hasRedCard ? styles.consolePlayerRedCarded : ''} ${isClickable ? styles.consolePlayerActive : ''}`}
-                              onClick={() => isClickable && setActivePlayerParams({ matchId: selectedMatch.id, teamId: selectedMatch.doiKhach.id, player })}
-                              disabled={!isClickable}
+                              className={`${styles.consolePlayerBtn} ${benchClass} ${hasRedCard ? styles.consolePlayerRedCarded : ''} ${isClickable ? styles.consolePlayerActive : ''} ${dimClass} ${highlightClass}`}
+                              onClick={handleClick}
+                              disabled={!isClickable && !isPendingSub}
                             >
                               <div className={styles.consolePlayerNo}>{player.soAo}</div>
-                              <div className={styles.consolePlayerName}>{player.ten}</div>
+                              <div className={styles.consolePlayerName}>{player.ten || 'Chưa đặt tên'}</div>
+                              
+                              {/* Action Badges */}
                               <div className={styles.consolePlayerBadges}>
                                 {goalCount > 0 && <span>{goalCount > 1 ? goalCount : ''}&#x26BD;</span>}
                                 {chotCount > 0 && <span>{chotCount > 1 ? chotCount : ''}&#x26A1;</span>}
@@ -1883,8 +2126,18 @@ export default function QuanTriPage() {
                               </div>
                             </button>
                           );
-                        })}
-                      </div>
+                        };
+                        return (
+                          <>
+                            <div className={styles.rosterHeader}>🏟️ ĐỘI HÌNH CHÍNH</div>
+                            {starters.map(p => renderPlayer(p, false))}
+                            <div className={styles.rosterHeader} style={{marginTop: '10px', color: '#64748b', borderColor: '#cbd5e1'}}>🔄 CẦU THỦ DỰ BỊ</div>
+                            {bench.map(p => renderPlayer(p, true))}
+                          </>
+                        );
+                      })()
+                    )}
+                  </div>
                     </div>
                   </div>
                 </div>
@@ -1914,8 +2167,43 @@ export default function QuanTriPage() {
                 </div>
               </div>
 
-              <div className={styles.bottomSheetActionsGrid}>
-                <button className={`${styles.bsActionCard} ${styles.bsGoalNormal}`} onClick={() => handleActionSelect('goal', 'normal')}>
+              {isSelectingSubstitute ? (
+                <div className={styles.bottomSheetActionsGrid} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  <div style={{fontWeight: 600, fontSize: '14px', color: '#64748b'}}>Chọn người {activePlayerParams.isBench ? 'được thay ra' : 'vào thay'}</div>
+                  {(() => {
+                    const team = activePlayerParams.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha : selectedMatch.doiKhach;
+                    const { starters, bench } = calculateCurrentRoster(team, selectedMatch.suKien, starterCount);
+                    const targetList = activePlayerParams.isBench ? starters : bench;
+                    
+                    return targetList.map((p: any) => (
+                      <button 
+                        key={p.id} 
+                        className={styles.bsActionCard} 
+                        onClick={() => {
+                          if (activePlayerParams.isBench) {
+                            handleExecuteSubstitution(activePlayerParams.player, p, activePlayerParams.teamId);
+                          } else {
+                            handleExecuteSubstitution(p, activePlayerParams.player, activePlayerParams.teamId);
+                          }
+                        }}
+                        style={{justifyContent: 'flex-start', padding: '12px'}}
+                      >
+                        <span style={{marginRight: '10px', background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', fontSize: '12px'}}>{p.soAo}</span>
+                        <span style={{fontWeight: 600}}>{p.ten}</span>
+                      </button>
+                    ));
+                  })()}
+                  <button className={styles.bsCancelBtn} onClick={() => setIsSelectingSubstitute(false)}>
+                    Hủy
+                  </button>
+                </div>
+              ) : (
+                <div className={styles.bottomSheetActionsGrid}>
+                  <button className={`${styles.bsActionCard} ${styles.bsSub}`} onClick={() => setIsSelectingSubstitute(true)}>
+                    <span className={styles.bsActionIcon}>🔄</span>
+                    <span className={styles.bsActionText}>{activePlayerParams.isBench ? 'Vào sân' : 'Thay ra'}</span>
+                  </button>
+                  <button className={`${styles.bsActionCard} ${styles.bsGoalNormal}`} onClick={() => handleActionSelect('goal', 'normal')}>
                   <span className={styles.bsActionIcon}>⚽</span>
                   <span className={styles.bsActionText}>Bàn thắng</span>
                 </button>
@@ -1950,9 +2238,10 @@ export default function QuanTriPage() {
                   <span className={styles.bsActionText}>Cầu thủ MOTM</span>
                 </button>
               </div>
+              )}
 
               <div style={{ padding: '16px 0 8px 0', marginTop: '12px' }}>
-                <button className={styles.finishBtn} style={{ width: '100%', margin: 0, background: '#334155' }} onClick={() => setActivePlayerParams(null)}>
+                <button className={styles.finishBtn} style={{ width: '100%', margin: 0, background: '#d71920', color: '#ffffff' }} onClick={() => setActivePlayerParams(null)}>
                   Hủy bỏ
                 </button>
               </div>

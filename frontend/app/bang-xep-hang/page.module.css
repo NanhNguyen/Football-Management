@@ -1,18 +1,25 @@
 .page {
-  max-width: 1200px;
+  max-width: 1000px;
   margin: 0 auto;
-  padding: var(--space-lg);
+  padding: var(--space-lg) var(--space-md) var(--space-xxl);
+  display: flex;
+  flex-direction: column;
 }
 
 .header {
   margin-bottom: var(--space-xl);
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 
 .title {
   font-family: 'Poppins', sans-serif;
-  font-size: 28px;
-  font-weight: 700;
+  font-size: 32px;
+  font-weight: 800;
   color: var(--color-text);
+  letter-spacing: -0.5px;
 }
 
 .subtitle {
@@ -25,6 +32,10 @@
   display: grid;
   grid-template-columns: repeat(2, 1fr);
   gap: var(--space-xl);
+}
+
+.leagueGrid {
+  grid-template-columns: 1fr !important;
 }
 
 .groupSection {
@@ -106,7 +117,7 @@
   font-weight: 600;
 }
 
-.rowQualified {
+.rowQualified td:first-child {
   border-left: 4px solid var(--color-primary);
 }
 
@@ -282,6 +293,7 @@
 
 .liveBadgeContainer {
   display: flex;
+  justify-content: center;
   margin-bottom: var(--space-xs);
 }
 
@@ -319,3 +331,187 @@
   font-size: 13px;
   font-weight: 500;
 }
+
+.rowChampion {
+  background: rgba(245, 158, 11, 0.04) !important;
+}
+.rowChampion:hover {
+  background: rgba(245, 158, 11, 0.07) !important;
+}
+.rowChampion td:first-child {
+  border-left: 6px solid #f59e0b !important;
+}
+
+.rowRelegated {
+  background: rgba(239, 68, 68, 0.03) !important;
+}
+.rowRelegated:hover {
+  background: rgba(239, 68, 68, 0.06) !important;
+}
+.rowRelegated td:first-child {
+  border-left: 6px solid #ef4444 !important;
+}
+
+.pointsChampion {
+  background: #f59e0b !important;
+  color: white !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(245, 158, 11, 0.3);
+}
+
+.pointsRelegated {
+  background: #ef4444 !important;
+  color: white !important;
+  font-weight: 800 !important;
+  box-shadow: 0 2px 6px rgba(239, 68, 68, 0.3);
+}
+
+.pointsNormalLeague {
+  background: #475569 !important;
+  color: white !important;
+  font-weight: 700 !important;
+}
+
+/* PREMIUM GREY-WHITE SKELETON LOADER STYLES */
+.skeletonPulse {
+  animation: skeletonPulseKeyframe 1.5s ease-in-out infinite;
+}
+
+@keyframes skeletonPulseKeyframe {
+  0% { opacity: 0.6; }
+  50% { opacity: 1; }
+  100% { opacity: 0.6; }
+}
+
+.skeletonWrapper {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-xl);
+  padding: var(--space-xl) var(--space-lg) var(--space-xxl);
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.skeletonHeader {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-lg);
+}
+
+.skeletonTitle {
+  height: 36px;
+  width: 240px;
+  background: #e2e8f0;
+  border-radius: var(--radius-sm);
+}
+
+.skeletonSubtitle {
+  height: 18px;
+  width: 320px;
+  background: #e2e8f0;
+  border-radius: var(--radius-sm);
+}
+
+.skeletonBadge {
+  height: 22px;
+  width: 130px;
+  background: #e2e8f0;
+  border-radius: 20px;
+}
+
+.skeletonTableWrap {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: var(--radius-lg);
+  padding: var(--space-md);
+  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.02);
+  overflow: hidden;
+  position: relative;
+}
+
+.skeletonShimmer {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0) 0%,
+    rgba(255, 255, 255, 0.6) 50%,
+    rgba(255, 255, 255, 0) 100%
+  );
+  animation: skeletonShimmerKeyframe 1.8s infinite;
+  transform: translateX(-100%);
+}
+
+@keyframes skeletonShimmerKeyframe {
+  100% { transform: translateX(100%); }
+}
+
+.skeletonTable {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.skeletonTableHeaderRow {
+  border-bottom: 2px solid #e2e8f0;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-md);
+}
+
+.skeletonTableRow {
+  border-bottom: 1px solid #f1f5f9;
+  height: 56px;
+  display: flex;
+  align-items: center;
+  padding: 0 var(--space-md);
+}
+
+.skeletonTeamCell {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex: 1;
+}
+
+.skeletonLogoCircle {
+  width: 28px;
+  height: 28px;
+  background: #e2e8f0;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.skeletonTextLine {
+  height: 14px;
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.skeletonTextLineShort {
+  width: 60px;
+}
+
+.skeletonTextLineMedium {
+  width: 120px;
+}
+
+.skeletonNumberBlock {
+  width: 24px;
+  height: 16px;
+  background: #e2e8f0;
+  border-radius: 4px;
+}
+
+.skeletonPtsCircle {
+  width: 32px;
+  height: 32px;
+  background: #cbd5e1;
+  border-radius: 50%;
+}
+

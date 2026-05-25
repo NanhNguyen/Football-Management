@@ -19,6 +19,47 @@ export default function TopNav() {
   const [user, setUser] = useState<any>(null);
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isLeague, setIsLeague] = useState(false);
+
+  useEffect(() => {
+    const selectedId = localStorage.getItem('public_selected_tournament_id');
+    if (selectedId) {
+      const configStr = localStorage.getItem(`giai_dau_config_${selectedId}`);
+      let isLeagueVal = false;
+      if (configStr) {
+        try {
+          const config = JSON.parse(configStr);
+          isLeagueVal = config.theThuc === 'league';
+        } catch (e) {
+          isLeagueVal = false;
+        }
+      }
+      
+      // Fallback: fetch selected tournament from Supabase to check the name
+      const checkLeagueFallback = async () => {
+        try {
+          const { data, error } = await supabase
+            .from('giai_dau')
+            .select('ten')
+            .eq('id', selectedId)
+            .single();
+          if (data && !error) {
+            const nameLower = data.ten?.toLowerCase() || '';
+            const isLeagueName = nameLower.includes('epl') || nameLower.includes('league');
+            setIsLeague(isLeagueVal || isLeagueName);
+          } else {
+            setIsLeague(isLeagueVal);
+          }
+        } catch (err) {
+          setIsLeague(isLeagueVal);
+        }
+      };
+      
+      checkLeagueFallback();
+    } else {
+      setIsLeague(false);
+    }
+  }, [pathname]);
 
   useEffect(() => {
     // Check initial session and handle auto-refresh
@@ -91,15 +132,17 @@ export default function TopNav() {
 
       {/* CENTER — Menu */}
       <nav className={styles.centerNav}>
-        {menuItems.map((item) => (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`${styles.navLink} ${pathname === item.href ? styles.navLinkActive : ''}`}
-          >
-            {item.label}
-          </Link>
-        ))}
+        {menuItems
+          .filter((item) => !(item.href === '/knock-out' && isLeague))
+          .map((item) => (
+            <Link
+              key={item.href}
+              href={item.href}
+              className={`${styles.navLink} ${pathname === item.href ? styles.navLinkActive : ''}`}
+            >
+              {item.label}
+            </Link>
+          ))}
       </nav>
 
       {/* RIGHT — Profile & Actions */}

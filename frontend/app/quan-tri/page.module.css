@@ -990,7 +990,8 @@
 }
 
 .finishBtn {
-  background: #1e293b;
+  background: #ffffff;
+  color: #1e293b;
   color: white;
   border: none;
   padding: 20px;
@@ -1417,7 +1418,8 @@
   bottom: 40px;
   right: 40px;
   padding: 20px 35px;
-  background: #1e293b;
+  background: #ffffff;
+  color: #1e293b;
   color: white;
   font-size: 16px;
   font-weight: 700;
@@ -1592,7 +1594,7 @@
   border-radius: 8px;
   background: transparent;
   border: none;
-  color: #94a3b8;
+  color: #64748b;
   cursor: pointer;
   transition: all 0.2s;
 }
@@ -1603,7 +1605,7 @@
 }
 
 .iconBtnDanger:hover {
-  background: rgba(239, 68, 68, 0.1);
+  background: #fef2f2;
   color: #ef4444;
 }
 
@@ -1674,7 +1676,7 @@
 }
 
 .timePlaceholder {
-  color: #94a3b8;
+  color: #64748b;
   display: flex;
   flex-direction: column;
   line-height: 1.2;
@@ -1690,7 +1692,7 @@
 }
 
 .emptyPlaceholder {
-  color: #94a3b8;
+  color: #64748b;
   font-style: italic;
   font-size: 13px;
 }
@@ -1863,7 +1865,7 @@
 .teamGridTitle {
   font-size: 14px;
   font-weight: 600;
-  color: #94a3b8;
+  color: #64748b;
   margin-bottom: 12px;
   text-transform: uppercase;
   letter-spacing: 0.5px;
@@ -1928,7 +1930,7 @@
 .timelineTitle {
   font-size: 16px;
   font-weight: 600;
-  color: #f8fafc;
+  color: #1e293b;
   margin-bottom: 16px;
   display: flex;
   align-items: center;
@@ -1965,7 +1967,7 @@
 }
 .timelineTeam {
   font-size: 11px;
-  color: #94a3b8;
+  color: #64748b;
   font-weight: 600;
 }
 .timelineDesc {
@@ -1974,7 +1976,7 @@
   font-weight: 500;
 }
 .undoEventBtn {
-  background: rgba(239, 68, 68, 0.1);
+  background: #fef2f2;
   color: #ef4444;
   border: 1px solid rgba(239, 68, 68, 0.2);
   width: 36px;
@@ -1987,7 +1989,7 @@
   transition: all 0.2s;
 }
 .undoEventBtn:hover:not(:disabled) {
-  background: rgba(239, 68, 68, 0.2);
+  background: #fee2e2;
 }
 .undoEventBtn:disabled {
   opacity: 0.5;
@@ -2014,12 +2016,12 @@
   bottom: 0;
   left: 0;
   right: 0;
-  background: #1e293b;
+  background: #ffffff;
   border-radius: 24px 24px 0 0;
   padding: 24px;
   z-index: 1001;
   animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 -10px 40px rgba(0,0,0,0.3);
+  box-shadow: 0 -10px 40px rgba(0, 0, 0, 0.12);
   max-height: 90vh;
   overflow-y: auto;
 }
@@ -2032,19 +2034,19 @@
 .bottomSheetHandle {
   width: 40px;
   height: 4px;
-  background: #475569;
+  background: #e2e8f0;
   border-radius: 4px;
   margin-bottom: 16px;
 }
 .bottomSheetHeader h3 {
   font-size: 20px;
   font-weight: 700;
-  color: #fff;
+  color: #1e293b;
   margin-bottom: 4px;
 }
 .bottomSheetSubtitle {
   font-size: 13px;
-  color: #94a3b8;
+  color: #64748b;
 }
 .bottomSheetActions {
   display: flex;
@@ -2122,7 +2124,8 @@
 .teamRosterBox {
   background: rgba(30, 41, 59, 0.4);
   backdrop-filter: blur(10px);
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid #e2e8f0;
+  color: #1e293b;
   border-radius: 20px;
   padding: 20px;
   transition: all 0.3s ease;
@@ -2136,7 +2139,7 @@
 .rosterTeamTitle {
   font-size: 18px;
   font-weight: 700;
-  color: #f8fafc;
+  color: #1e293b;
   margin-bottom: 20px;
   display: flex;
   align-items: center;
@@ -2151,7 +2154,8 @@
 
 .rosterGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
   gap: 12px;
 }
 
@@ -2260,39 +2264,57 @@
   align-items: center;
   gap: 16px;
   width: 100%;
-  padding: 8px 12px;
-  background: rgba(255, 255, 255, 0.03);
+  padding: 12px 16px;
+  background: #f8fafc;
   border-radius: 16px;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid #e2e8f0;
+  color: #1e293b;
 }
 
 .sheetPlayerJersey {
   font-size: 28px;
   font-weight: 900;
-  color: var(--color-primary);
-  background: rgba(215, 25, 32, 0.1);
+  color: #d71920;
+  background: #fef2f2;
   width: 56px;
   height: 56px;
   display: flex;
   align-items: center;
   justify-content: center;
   border-radius: 12px;
-  border: 1px solid rgba(215, 25, 32, 0.2);
+  border: 1px solid #fecaca;
 }
 
 .sheetPlayerFullName {
   font-size: 18px;
-  font-weight: 700;
-  color: #ffffff;
+  font-weight: 800;
+  color: #1e293b;
   margin: 0 0 2px 0;
 }
 
 .sheetPlayerTeamName {
   font-size: 12px;
-  color: #94a3b8;
+  color: #d71920;
   margin: 0;
-  font-weight: 600;
+  font-weight: 700;
   text-transform: uppercase;
+}
+
+.bsCancelBtn {
+  width: 100%;
+  padding: 14px;
+  border-radius: 14px;
+  font-size: 14px;
+  font-weight: 700;
+  border: 1px solid #e2e8f0;
+  background: #ffffff;
+  color: #64748b;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.bsCancelBtn:hover {
+  background: #f8fafc;
+  color: #1e293b;
 }
 
 /* 2x4 Bottom Action Grid */
@@ -2311,7 +2333,8 @@
   border-radius: 16px;
   font-size: 14px;
   font-weight: 700;
-  border: 1px solid rgba(255, 255, 255, 0.05);
+  border: 1px solid #e2e8f0;
+  color: #1e293b;
   cursor: pointer;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
   text-align: left;
@@ -2330,24 +2353,24 @@
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: rgba(255, 255, 255, 0.08);
+  background: #f1f5f9;
 }
 
 .bsActionText {
-  color: #f8fafc;
+  color: #1e293b;
 }
 
 /* Color Coding for Action Cards */
 .bsGoalNormal {
-  background: rgba(59, 130, 246, 0.1);
-  border-color: rgba(59, 130, 246, 0.2);
+  background: #fef2f2;
+  border-color: #fecaca;
 }
 .bsGoalNormal:hover {
-  background: rgba(59, 130, 246, 0.2);
-  border-color: rgba(59, 130, 246, 0.4);
+  background: #fee2e2;
+  border-color: #fca5a5;
 }
 .bsGoalNormal .bsActionIcon {
-  background: rgba(59, 130, 246, 0.2);
+  background: #fee2e2;
 }
 
 .bsGoalPen {
@@ -2375,15 +2398,15 @@
 }
 
 .bsChotDeal {
-  background: rgba(239, 68, 68, 0.1);
+  background: #fef2f2;
   border-color: rgba(239, 68, 68, 0.25);
 }
 .bsChotDeal:hover {
-  background: rgba(239, 68, 68, 0.2);
+  background: #fee2e2;
   border-color: rgba(239, 68, 68, 0.4);
 }
 .bsChotDeal .bsActionIcon {
-  background: rgba(239, 68, 68, 0.2);
+  background: #fee2e2;
 }
 
 .bsYellow {
@@ -2660,7 +2683,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   text-transform: uppercase;
-  color: #94a3b8;
+  color: #64748b;
   margin-top: 1px;
 }
 
@@ -2674,7 +2697,8 @@
 
 .consoleRosterGrid {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
   gap: 5px;
   overflow-y: auto;
   flex: 1;
@@ -2689,7 +2713,7 @@
 .consoleEmptyRoster {
   grid-column: 1 / -1;
   text-align: center;
-  color: #94a3b8;
+  color: #64748b;
   font-size: 12px;
   padding: 20px 0;
 }
@@ -2729,10 +2753,10 @@
 }
 
 .consolePlayerNo {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 900;
   color: #1e293b;
-  line-height: 1;
+  line-height: 1.1;
   background: transparent;
   width: auto;
   height: auto;
@@ -2747,15 +2771,16 @@
 }
 
 .consolePlayerName {
-  font-size: 11px;
-  color: #475569;
-  font-weight: 600;
+  font-size: 12px;
+  color: #1e293b;
+  font-weight: 700;
   text-align: center;
   width: 100%;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  padding: 0 2px;
+  padding: 0 4px;
+  margin-top: 1px;
 }
 
 .consolePlayerBadges {
@@ -2862,7 +2887,7 @@
 .consoleEventLogTitle {
   font-size: 10px;
   font-weight: 800;
-  color: #94a3b8;
+  color: #64748b;
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 7px 10px 5px;
@@ -3031,7 +3056,7 @@
 .consoleCentralHalfLabel {
   font-size: 11px;
   font-weight: 800;
-  color: #94a3b8;
+  color: #64748b;
   letter-spacing: 0.08em;
   margin-top: 6px;
   text-transform: uppercase;
@@ -3111,3 +3136,205 @@
 .ctaReset:hover {
   background: #334155;
 }
+
+/* Substitution & Roster Splits Styles */
+.bsSub {
+  background: rgba(14, 165, 233, 0.1);
+  border-color: rgba(14, 165, 233, 0.2);
+}
+.bsSub:hover {
+  background: rgba(14, 165, 233, 0.2);
+  border-color: rgba(14, 165, 233, 0.4);
+}
+.bsSub .bsActionIcon {
+  background: rgba(14, 165, 233, 0.2);
+}
+
+.rosterHeader {
+  grid-column: 1 / -1;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 16px 0 8px 0;
+  border-bottom: 2px solid #334155;
+  padding-bottom: 6px;
+  font-size: 14px;
+  font-weight: 900;
+  color: #1e293b;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
+}
+
+.benchBadge {
+  font-size: 9px;
+  font-weight: 800;
+  color: #64748b;
+  background: #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  text-transform: uppercase;
+}
+
+.substituteGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 8px;
+  gap: 10px;
+  margin-top: 12px;
+  max-height: 240px;
+  overflow-y: auto;
+  padding: 4px;
+}
+
+.substitutePlayerBtn {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: #1e293b;
+}
+
+.substitutePlayerBtn:hover {
+  background: rgba(14, 165, 233, 0.15);
+  border-color: rgba(14, 165, 233, 0.3);
+  transform: translateY(-2px);
+}
+
+.substitutePlayerBtn:active {
+  transform: scale(0.95);
+}
+
+.substitutePlayerNo {
+  font-size: 16px;
+  font-weight: 800;
+  color: #0ea5e9;
+}
+
+.substitutePlayerName {
+  font-size: 12px;
+  font-weight: 700;
+  text-align: center;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
+}
+
+/* Referee Search & Filter Premium Styles */
+.refereeFilterGroup {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin: 20px 0 24px 0;
+  padding: 20px;
+  background: #ffffff;
+  border: 1px solid var(--color-border-light);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+.refereeSearchWrapper {
+  position: relative;
+  width: 100%;
+}
+
+.refereeSearchInput {
+  width: 100%;
+  padding: 12px 16px 12px 42px;
+  font-size: 14px;
+  font-weight: 500;
+  border-radius: var(--radius-md);
+  border: 1.5px solid var(--color-border-light);
+  background-color: #ffffff;
+  color: var(--color-text);
+  transition: all 0.2s ease-in-out;
+}
+
+.refereeSearchInput:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 4px rgba(220, 38, 38, 0.1);
+}
+
+.refereeSearchIcon {
+  position: absolute;
+  left: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--color-text-muted);
+  font-size: 16px;
+  pointer-events: none;
+}
+
+.pillTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 4px;
+}
+
+.pillTab {
+  padding: 8px 16px;
+  font-size: 13px;
+  font-weight: 700;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--color-border-light);
+  background-color: #1e293b;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  user-select: none;
+}
+
+.pillTab:hover {
+  background-color: #f1f5f9;
+  color: var(--color-text);
+  border-color: #cbd5e1;
+}
+
+.pillTabActive {
+  background-color: #334155;
+  color: #ffffff;
+  border-color: #334155;
+  box-shadow: 0 4px 10px rgba(51, 65, 85, 0.2);
+}
+
+.subPillTabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px dashed var(--color-border-light);
+}
+
+.subPillTab {
+  padding: 6px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--color-border-light);
+  background-color: #ffffff;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.subPillTab:hover {
+  background-color: #1e293b;
+  color: var(--color-text);
+}
+
+.subPillTabActive {
+  background-color: var(--color-primary);
+  color: #ffffff;
+  border-color: var(--color-primary);
+  box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
+}
+

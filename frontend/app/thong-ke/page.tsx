@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import styles from './page.module.css';
 import { layTopGhiBan, layTopKienTao, layTopGangTayVang, layTopThePhat } from '@/lib/api';
 import { usePublicTournament } from '@/components/PublicTournamentContext';
@@ -38,14 +39,7 @@ export default function ThongKePage() {
   }, [selectedTournamentId]);
 
   if (loading) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
-          <p>Đang tải dữ liệu thống kê giải đấu...</p>
-        </div>
-      </div>
-    );
+    return <GlobalSkeletonLoader />;
   }
 
   // Best entities for top cards

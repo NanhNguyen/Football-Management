@@ -21,9 +21,29 @@ const menuItems = [
 
 export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
   const pathname = usePathname();
-  const { selectedTournament, tournaments, setSelectedTournamentId } = usePublicTournament();
+  const { selectedTournament, tournaments, setSelectedTournamentId, selectedTournamentId } = usePublicTournament();
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const [isLeague, setIsLeague] = useState(false);
+
+  // Read configuration for selected tournament to check format
+  useEffect(() => {
+    if (selectedTournamentId) {
+      const isLeagueName = !!(selectedTournament?.ten?.toLowerCase().includes('epl') || 
+                            selectedTournament?.ten?.toLowerCase().includes('league'));
+      const configStr = localStorage.getItem(`giai_dau_config_${selectedTournamentId}`);
+      if (configStr) {
+        try {
+          const config = JSON.parse(configStr);
+          setIsLeague(config.theThuc === 'league' || (config.theThuc !== 'tournament' && isLeagueName));
+        } catch (e) {
+          setIsLeague(isLeagueName);
+        }
+      } else {
+        setIsLeague(isLeagueName);
+      }
+    }
+  }, [selectedTournamentId, selectedTournament]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -39,7 +59,15 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
   // Close sidebar on path change (useful for mobile navigation)
   useEffect(() => {
     onClose();
-  }, [pathname]);
+  }, [pathname, onClose]);
+
+  // Filter Knock-out tab if in League mode
+  const filteredMenuItems = menuItems.filter(item => {
+    if (item.href === '/knock-out') {
+      return !isLeague;
+    }
+    return true;
+  });
 
   return (
     <>
@@ -107,7 +135,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
         <nav className={styles.navMenu}>
           <p className={styles.navLabel}>MENU ĐIỀU HƯỚNG</p>
           <div className={styles.menuItemsList}>
-            {menuItems.map((item) => {
+            {filteredMenuItems.map((item) => {
               const isActive = pathname === item.href;
               return (
                 <Link

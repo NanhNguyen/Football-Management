@@ -1,6 +1,7 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import styles from './page.module.css';
 import { layTongQuan, layTopGhiBan, layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
 import Link from 'next/link';
@@ -64,14 +65,7 @@ export default function TongQuanPage() {
   }, []);
 
   if (loading) {
-    return (
-      <div className={styles.page}>
-        <div className={styles.loadingState}>
-          <div className={styles.spinner}></div>
-          <p>Đang tải dữ liệu tổng quan thời gian thực...</p>
-        </div>
-      </div>
-    );
+    return <GlobalSkeletonLoader />;
   }
 
   const spotlightMatch = data?.tranLive?.[0] || data?.tranSapDienRa?.[0];

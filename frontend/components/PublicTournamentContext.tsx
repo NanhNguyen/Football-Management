@@ -25,6 +25,14 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
   const [selectedTournamentId, setSelectedTournamentIdState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
 
+  // Sync with localStorage as soon as possible on client side
+  useEffect(() => {
+    const savedId = localStorage.getItem('public_selected_tournament_id');
+    if (savedId) {
+      setSelectedTournamentIdState(savedId);
+    }
+  }, []);
+
   // Fetch initial list of tournaments
   useEffect(() => {
     const fetchTournaments = async () => {
