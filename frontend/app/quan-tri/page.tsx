@@ -26,9 +26,7 @@ import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import * as XLSX from 'xlsx';
 
 const sidebarItems = [
-  { label: 'Tổng quan', id: 'tong-quan' },
   { label: 'Lịch đấu', id: 'lich' },
-  { label: 'Bảng xếp hạng', id: 'bxh' },
   { label: 'Quản lý đội', id: 'doi' },
   { label: 'Trọng tài', id: 'referee' },
   { label: 'Cài đặt giải đấu', id: 'cai-dat' },
