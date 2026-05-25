@@ -990,22 +990,23 @@
 }
 
 .finishBtn {
-  background: #ffffff;
-  color: #1e293b;
+  background: #d71920;
   color: white;
   border: none;
-  padding: 20px;
+  padding: 16px 20px;
   border-radius: var(--radius-lg);
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 700;
   width: 100%;
   cursor: pointer;
   transition: all 0.2s;
-  margin-top: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .finishBtn:hover {
-  background: #0f172a;
+  background: #b91c1c;
 }
 
 .resetBtn {
