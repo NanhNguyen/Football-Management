@@ -85,6 +85,30 @@ export class AppService {
     return this.enrichTranDau(tran);
   }
 
+  layDanhSachCauThuTrongTran(id: string) {
+    const tran = danhSachTranDau.find((t) => t.id === id);
+    if (!tran) return { error: 'Không tìm thấy trận đấu' };
+    
+    const doiNha = danhSachDoi.find((d) => d.id === tran.doiNhaId);
+    const doiKhach = danhSachDoi.find((d) => d.id === tran.doiKhachId);
+    
+    const parseRoster = (team: any) => {
+      if (!team) return { starting_lineup: [], substitutes: [] };
+      const teamPlayers = team.cauThu || [];
+      
+      const starting_lineup = teamPlayers.filter((p: any) => !p.viTri?.startsWith('Dự bị'));
+      const substitutes = teamPlayers.filter((p: any) => p.viTri?.startsWith('Dự bị'));
+      
+      return { starting_lineup, substitutes };
+    };
+
+    return {
+      tranId: id,
+      doiNha: parseRoster(doiNha),
+      doiKhach: parseRoster(doiKhach)
+    };
+  }
+
   // ===== BẢNG XẾP HẠNG =====
   layBangXepHang() {
     return bangXepHang.map((bxh) => ({

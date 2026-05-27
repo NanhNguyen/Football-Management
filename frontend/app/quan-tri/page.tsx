@@ -81,6 +81,10 @@ export default function QuanTriPage() {
   const [newBlackoutDate, setNewBlackoutDate] = useState('');
   const [isSchedulerConfigOpen, setIsSchedulerConfigOpen] = useState(false);
 
+  // Referee filtering states
+  const [refereeFilterVong, setRefereeFilterVong] = useState<string>('all');
+  const [refereeFilterBang, setRefereeFilterBang] = useState<string>('all');
+
   // Dynamic tournament settings states
   const [tournamentName, setTournamentName] = useState('');
   const [tournamentSeason, setTournamentSeason] = useState('');
@@ -1262,6 +1266,109 @@ export default function QuanTriPage() {
     );
   };
 
+  // Helper to extract round and group from vong string
+  const parseVongDetails = (vongStr: string = '') => {
+    const str = vongStr.trim();
+    if (str.includes('Bảng') && str.includes(' - ')) {
+      const parts = str.split(' - ');
+      const bang = parts[0].trim(); // e.g. "Bảng A"
+      const vong = parts[1].trim(); // e.g. "Vòng 1"
+      return { bang, vong, isKnockout: false };
+    }
+    if (str.toLowerCase().includes('1/8')) {
+      return { bang: '', vong: 'Vòng 1/8', isKnockout: true };
+    }
+    if (str.toLowerCase().includes('tứ kết')) {
+      return { bang: '', vong: 'Tứ kết', isKnockout: true };
+    }
+    if (str.toLowerCase().includes('bán kết')) {
+      return { bang: '', vong: 'Bán kết', isKnockout: true };
+    }
+    if (str.toLowerCase().includes('tranh hạng ba')) {
+      return { bang: '', vong: 'Tranh hạng ba', isKnockout: true };
+    }
+    if (str.toLowerCase().includes('chung kết')) {
+      return { bang: '', vong: 'Chung kết', isKnockout: true };
+    }
+    return { bang: '', vong: str, isKnockout: !str.toLowerCase().startsWith('vòng') };
+  };
+
+  const getRoundPriority = (roundName: string) => {
+    const name = roundName.toLowerCase();
+    if (name.includes('1/8')) return 100;
+    if (name.includes('tứ kết')) return 200;
+    if (name.includes('bán kết')) return 300;
+    if (name.includes('hạng ba')) return 400;
+    if (name.includes('chung kết')) return 500;
+    
+    const match = name.match(/vòng\s+(\d+)/);
+    if (match) {
+      return parseInt(match[1], 10);
+    }
+    return 9999;
+  };
+
+  // Extract all unique round names and group names from active tournament matches
+  const { uniqueRounds, uniqueGroups } = (() => {
+    const roundsSet = new Set<string>();
+    const groupsSet = new Set<string>();
+    
+    liveMatches.forEach(m => {
+      const { bang, vong } = parseVongDetails(m.vong);
+      if (vong) roundsSet.add(vong);
+      if (bang) groupsSet.add(bang);
+    });
+    
+    const sortedRounds = Array.from(roundsSet).sort((a, b) => {
+      return getRoundPriority(a) - getRoundPriority(b);
+    });
+    
+    const sortedGroups = Array.from(groupsSet).sort();
+    
+    return { uniqueRounds: sortedRounds, uniqueGroups: sortedGroups };
+  })();
+
+  const isKnockoutActive = refereeFilterVong !== 'all' && (
+    refereeFilterVong.toLowerCase().includes('1/8') ||
+    refereeFilterVong.toLowerCase().includes('tứ kết') ||
+    refereeFilterVong.toLowerCase().includes('bán kết') ||
+    refereeFilterVong.toLowerCase().includes('hạng ba') ||
+    refereeFilterVong.toLowerCase().includes('chung kết')
+  );
+
+  const filteredAndSortedRefereeMatches = (() => {
+    let list = liveMatches.filter(m => {
+      const { bang, vong } = parseVongDetails(m.vong);
+      
+      if (refereeFilterVong !== 'all' && vong !== refereeFilterVong) {
+        return false;
+      }
+      
+      if (!isKnockoutActive && refereeFilterBang !== 'all' && bang !== refereeFilterBang) {
+        return false;
+      }
+      
+      return true;
+    });
+    
+    return list.sort((a, b) => {
+      const isLiveA = a.trangThai === 'DANG_DIEN_RA';
+      const isLiveB = b.trangThai === 'DANG_DIEN_RA';
+      if (isLiveA && !isLiveB) return -1;
+      if (!isLiveA && isLiveB) return 1;
+      
+      const pA = getRoundPriority(parseVongDetails(a.vong).vong);
+      const pB = getRoundPriority(parseVongDetails(b.vong).vong);
+      if (pA !== pB) return pA - pB;
+      
+      const gA = parseVongDetails(a.vong).bang || '';
+      const gB = parseVongDetails(b.vong).bang || '';
+      if (gA !== gB) return gA.localeCompare(gB);
+      
+      return a.id.localeCompare(b.id);
+    });
+  })();
+
   if (loading) {
     return <GlobalSkeletonLoader />;
   }
@@ -1786,39 +1893,85 @@ export default function QuanTriPage() {
                   <h2 className={styles.pageTitle}>Trung tâm Điều khiển</h2>
                   <p className={styles.pageDesc}>Chọn một trận đấu để bắt đầu điều khiển và cập nhật tỉ số</p>
 
-                  <div className={styles.adminMatchList}>
-                    {liveMatches.map(m => (
-                      <div key={m.id} className={styles.adminMatchItem} onClick={() => setSelectedMatchId(m.id)}>
-                        <div className={styles.matchListInfo}>
-                          <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, width: '80px' }}>{m.vong}</span>
-                          <div className={styles.listTeam}>
-                            <span>{m.doiNha?.logo || '⚽'}</span>
-                            <span style={{ fontWeight: 700 }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
-                          </div>
-                          <div style={{ display: 'flex', gap: '8px', fontWeight: 800, fontSize: '18px', width: '60px', justifyContent: 'center' }}>
-                            <span>{m.tyNha}</span>
-                            <span>-</span>
-                            <span>{m.tyKhach}</span>
-                          </div>
-                          <div className={styles.listTeam}>
-                            <span>{m.doiKhach?.logo || '⚽'}</span>
-                            <span style={{ fontWeight: 700 }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
-                          </div>
-                        </div>
+                  {/* Referee Filter Bar */}
+                  <div className={styles.refereeFilterBar}>
+                    <div className={styles.refereeFilterItem}>
+                      <label className={styles.refereeFilterLabel}>Vòng đấu</label>
+                      <select 
+                        className={styles.refereeFilterSelect}
+                        value={refereeFilterVong}
+                        onChange={(e) => {
+                          setRefereeFilterVong(e.target.value);
+                          setRefereeFilterBang('all'); // Reset group filter when round changes
+                        }}
+                      >
+                        <option value="all">Tất cả các vòng</option>
+                        {uniqueRounds.map(r => (
+                          <option key={r} value={r}>{r}</option>
+                        ))}
+                      </select>
+                    </div>
 
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                          <span className={`
-                          ${styles.listStatus} 
-                          ${m.trangThai === 'DANG_DIEN_RA' ? styles.statusLive : ''}
-                          ${m.trangThai === 'KET_THUC' ? styles.statusFinished : ''}
-                        `}>
-                            {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - ${calculateMatchMinute(m)}'` : `LIVE - ${calculateMatchMinute(m)}'`) :
-                              m.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ'}
-                          </span>
-                          <span style={{ color: '#cbd5e1' }}>➜</span>
-                        </div>
+                    {!isKnockoutActive && uniqueGroups.length > 0 && (
+                      <div className={styles.refereeFilterItem}>
+                        <label className={styles.refereeFilterLabel}>Bảng đấu</label>
+                        <select 
+                          className={styles.refereeFilterSelect}
+                          value={refereeFilterBang}
+                          onChange={(e) => setRefereeFilterBang(e.target.value)}
+                        >
+                          <option value="all">Tất cả các bảng</option>
+                          {uniqueGroups.map(g => (
+                            <option key={g} value={g}>{g}</option>
+                          ))}
+                        </select>
                       </div>
-                    ))}
+                    )}
+                  </div>
+
+                  <div className={styles.adminMatchList}>
+                    {filteredAndSortedRefereeMatches.length > 0 ? (
+                      filteredAndSortedRefereeMatches.map(m => (
+                        <div 
+                          key={m.id} 
+                          className={`${styles.adminMatchItem} ${m.trangThai === 'DANG_DIEN_RA' ? styles.adminMatchItemLive : ''}`} 
+                          onClick={() => setSelectedMatchId(m.id)}
+                        >
+                          <div className={styles.matchListInfo}>
+                            <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, width: '80px' }}>{m.vong}</span>
+                            <div className={styles.listTeam}>
+                              <span>{m.doiNha?.logo || '⚽'}</span>
+                              <span style={{ fontWeight: 700 }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
+                            </div>
+                            <div style={{ display: 'flex', gap: '8px', fontWeight: 800, fontSize: '18px', width: '60px', justifyContent: 'center' }}>
+                              <span>{m.tyNha}</span>
+                              <span>-</span>
+                              <span>{m.tyKhach}</span>
+                            </div>
+                            <div className={styles.listTeam}>
+                              <span>{m.doiKhach?.logo || '⚽'}</span>
+                              <span style={{ fontWeight: 700 }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
+                            </div>
+                          </div>
+
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
+                            <span className={`
+                            ${styles.listStatus} 
+                            ${m.trangThai === 'DANG_DIEN_RA' ? styles.statusLive : ''}
+                            ${m.trangThai === 'KET_THUC' ? styles.statusFinished : ''}
+                          `}>
+                              {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - ${calculateMatchMinute(m)}'` : `LIVE - ${calculateMatchMinute(m)}'`) :
+                                m.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ'}
+                            </span>
+                            <span style={{ color: '#cbd5e1' }}>➜</span>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className={styles.consoleEmptyRoster} style={{ padding: '40px', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
+                        Không tìm thấy trận đấu nào thỏa mãn bộ lọc.
+                      </div>
+                    )}
                   </div>
                 </div>
               ) : selectedMatch && (
@@ -1917,8 +2070,36 @@ export default function QuanTriPage() {
                           <>
                             <div className={styles.rosterHeader}>🏟️ ĐỘI HÌNH CHÍNH</div>
                             {starters.map(p => renderPlayer(p, false))}
-                            <div className={styles.rosterHeader} style={{marginTop: '10px', color: '#64748b', borderColor: '#cbd5e1'}}>🔄 CẦU THỦ DỰ BỊ</div>
-                            {bench.map(p => renderPlayer(p, true))}
+                            
+                            <div className={styles.rosterHeader} style={{marginTop: '20px', color: '#64748b', borderColor: '#cbd5e1'}}>🔄 CẦU THỦ DỰ BỊ</div>
+                            <div className={styles.benchListView}>
+                              {bench.length === 0 ? (
+                                <p style={{ fontSize: '12px', color: '#94a3b8', padding: '8px 12px', margin: 0, gridColumn: '1 / -1' }}>Không có cầu thủ dự bị</p>
+                              ) : (
+                                bench.map((player: any) => {
+                                  const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
+                                  const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
+                                  const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
+                                  const chotCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'CHOT' && ev.cauThuId === player.id).length || 0;
+                                  const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
+
+                                  return (
+                                    <div key={player.id} className={styles.benchListRow}>
+                                      <span className={styles.benchListNo}>#{player.soAo}</span>
+                                      <span className={styles.benchListName}>{player.ten}</span>
+                                      
+                                      <div className={styles.benchListBadges}>
+                                        {goalCount > 0 && <span title="Bàn thắng">⚽ {goalCount > 1 ? goalCount : ''}</span>}
+                                        {chotCount > 0 && <span title="Siêu chốt">⚡ {chotCount > 1 ? chotCount : ''}</span>}
+                                        {yellowCount > 0 && <span style={{ background: '#fef08a', color: '#a16207' }} title="Thẻ vàng">🟨 {yellowCount > 1 ? yellowCount : ''}</span>}
+                                        {hasRedCard && <span style={{ background: '#fee2e2', color: '#b91c1c' }} title="Thẻ đỏ">🟥</span>}
+                                        {isMotm && <span style={{ background: '#faf5ff', color: '#7e22ce' }}>🏅 MVP</span>}
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
                           </>
                         );
                       })()
@@ -2129,8 +2310,36 @@ export default function QuanTriPage() {
                           <>
                             <div className={styles.rosterHeader}>🏟️ ĐỘI HÌNH CHÍNH</div>
                             {starters.map(p => renderPlayer(p, false))}
-                            <div className={styles.rosterHeader} style={{marginTop: '10px', color: '#64748b', borderColor: '#cbd5e1'}}>🔄 CẦU THỦ DỰ BỊ</div>
-                            {bench.map(p => renderPlayer(p, true))}
+                            
+                            <div className={styles.rosterHeader} style={{marginTop: '20px', color: '#64748b', borderColor: '#cbd5e1'}}>🔄 CẦU THỦ DỰ BỊ</div>
+                            <div className={styles.benchListView}>
+                              {bench.length === 0 ? (
+                                <p style={{ fontSize: '12px', color: '#94a3b8', padding: '8px 12px', margin: 0, gridColumn: '1 / -1' }}>Không có cầu thủ dự bị</p>
+                              ) : (
+                                bench.map((player: any) => {
+                                  const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
+                                  const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
+                                  const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
+                                  const chotCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'CHOT' && ev.cauThuId === player.id).length || 0;
+                                  const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
+
+                                  return (
+                                    <div key={player.id} className={styles.benchListRow}>
+                                      <span className={styles.benchListNo}>#{player.soAo}</span>
+                                      <span className={styles.benchListName}>{player.ten}</span>
+                                      
+                                      <div className={styles.benchListBadges}>
+                                        {goalCount > 0 && <span title="Bàn thắng">⚽ {goalCount > 1 ? goalCount : ''}</span>}
+                                        {chotCount > 0 && <span title="Siêu chốt">⚡ {chotCount > 1 ? chotCount : ''}</span>}
+                                        {yellowCount > 0 && <span style={{ background: '#fef08a', color: '#a16207' }} title="Thẻ vàng">🟨 {yellowCount > 1 ? yellowCount : ''}</span>}
+                                        {hasRedCard && <span style={{ background: '#fee2e2', color: '#b91c1c' }} title="Thẻ đỏ">🟥</span>}
+                                        {isMotm && <span style={{ background: '#faf5ff', color: '#7e22ce' }}>🏅 MVP</span>}
+                                      </div>
+                                    </div>
+                                  );
+                                })
+                              )}
+                            </div>
                           </>
                         );
                       })()

@@ -3339,3 +3339,133 @@
   box-shadow: 0 2px 6px rgba(220, 38, 38, 0.2);
 }
 
+/* Referee Filter Bar */
+.refereeFilterBar {
+  display: flex;
+  gap: 16px;
+  margin-bottom: 24px;
+  background: #ffffff;
+  padding: 16px 20px;
+  border-radius: 16px;
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.02);
+  align-items: center;
+}
+
+.refereeFilterItem {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex: 1;
+  max-width: 280px;
+}
+
+.refereeFilterLabel {
+  font-size: 11px;
+  font-weight: 800;
+  color: #64748b;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+.refereeFilterSelect {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: 1px solid #cbd5e1;
+  background: #f8fafc;
+  color: #1e293b;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.refereeFilterSelect:focus {
+  border-color: #d71920;
+  background: #ffffff;
+  box-shadow: 0 0 0 3px rgba(215, 25, 32, 0.1);
+}
+
+/* Enhanced live match item border and shadow in referee list */
+.adminMatchItemLive {
+  border: 1.5px solid #d71920 !important;
+  box-shadow: 0 8px 24px rgba(215, 25, 32, 0.08) !important;
+  position: relative;
+  overflow: hidden;
+}
+
+.adminMatchItemLive::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 4px;
+  height: 100%;
+  background: #d71920;
+}
+
+/* Bench List View Styles */
+.benchListView {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.benchListRow {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 14px;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  font-size: 13px;
+  font-weight: 700;
+  color: #64748b;
+  cursor: default;
+  transition: all 0.2s;
+}
+
+.benchListRow:hover {
+  background: #f1f5f9;
+  border-color: #cbd5e1;
+}
+
+.benchListNo {
+  font-weight: 900;
+  color: #1e293b;
+  background: #e2e8f0;
+  padding: 2px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+}
+
+.benchListName {
+  color: #1e293b;
+  flex: 1;
+  text-align: left;
+}
+
+.benchListBadges {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.benchListBadges span {
+  font-size: 11px;
+  background: #e2e8f0;
+  padding: 2px 6px;
+  border-radius: 6px;
+  color: #475569;
+  font-weight: 800;
+  display: flex;
+  align-items: center;
+  gap: 3px;
+}
+
+
+

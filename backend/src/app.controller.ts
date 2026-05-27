@@ -50,6 +50,11 @@ export class AppController {
     return this.appService.layChiTietTranDau(id);
   }
 
+  @Get('tran-dau/:id/cau-thu')
+  layDanhSachCauThuTrongTran(@Param('id') id: string) {
+    return this.appService.layDanhSachCauThuTrongTran(id);
+  }
+
   // ===== BẢNG XẾP HẠNG =====
   @Get('bang-xep-hang')
   layBangXepHang() {
