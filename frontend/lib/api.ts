@@ -343,6 +343,17 @@ export async function deleteMatch(id: string) {
 
 // --- THỐNG KÊ ---
 export async function layBangXepHang(giaiDauId?: string) {
+  let customEvents: any[] = [];
+  if (typeof window !== 'undefined' && giaiDauId) {
+    const configStr = localStorage.getItem(`giai_dau_config_${giaiDauId}`);
+    if (configStr) {
+      try {
+        const config = JSON.parse(configStr);
+        customEvents = config.customEvents || [];
+      } catch (e) {}
+    }
+  }
+
   const teams = await layDanhSachDoi(giaiDauId);
   const matches = await layDanhSachTranDau(giaiDauId);
   // Count only matches that are finished (strictly following FIFA regulations)
@@ -355,6 +366,9 @@ export async function layBangXepHang(giaiDauId?: string) {
 
     let thang = 0, hoa = 0, thua = 0, banThang = 0, banThua = 0;
     const phongDo: string[] = [];
+    const customStats: Record<string, number> = {};
+    customEvents.forEach(e => customStats[e.id] = 0);
+    let customPoints = 0;
 
     // Sort matches by date descending for form (phongDo)
     const sortedTeamMatches = [...teamMatches].sort((a, b) => new Date(b.batDauLuc || b.date).getTime() - new Date(a.batDauLuc || a.date).getTime());
@@ -377,6 +391,22 @@ export async function layBangXepHang(giaiDauId?: string) {
         else if (tKhach === tNha) { hoa++; phongDo.push('H'); }
         else { thua++; phongDo.push('B'); }
       }
+
+      // Process custom events
+      if (m.suKien) {
+        m.suKien.forEach((ev: any) => {
+          if (ev.doiId === team.id && ev.loai.startsWith('CUSTOM_')) {
+            const customId = ev.loai.replace('CUSTOM_', '').toLowerCase();
+            const evtConfig = customEvents.find(e => e.id.toLowerCase() === customId);
+            if (evtConfig) {
+              customStats[evtConfig.id] = (customStats[evtConfig.id] || 0) + 1;
+              if (!evtConfig.isIndividual) {
+                customPoints += (evtConfig.points || 0);
+              }
+            }
+          }
+        });
+      }
     });
 
     // Keep only last 5 matches for form, reverse to show chronological order (oldest to newest left to right)
@@ -393,8 +423,9 @@ export async function layBangXepHang(giaiDauId?: string) {
       banThang,
       banThua,
       hieuSo: banThang - banThua,
-      diem: thang * 3 + hoa,
-      phongDo: recentPhongDo
+      diem: (thang * 3 + hoa) + customPoints,
+      phongDo: recentPhongDo,
+      customStats
     };
   });
 
@@ -453,6 +484,64 @@ export async function layTopGhiBan(giaiDauId?: string) {
     ...ct,
     doi: ct.doi_bong
   }));
+}
+
+export async function layTopCustomEvents(giaiDauId?: string) {
+  let customEvents: any[] = [];
+  if (typeof window !== 'undefined' && giaiDauId) {
+    const configStr = localStorage.getItem(`giai_dau_config_${giaiDauId}`);
+    if (configStr) {
+      try {
+        const config = JSON.parse(configStr);
+        customEvents = config.customEvents || [];
+      } catch (e) {}
+    }
+  }
+
+  const individualEvents = customEvents.filter(e => e.isIndividual);
+  if (individualEvents.length === 0) return { eventsConfig: [], topPlayers: {} };
+
+  const matches = await layDanhSachTranDau(giaiDauId);
+  const matchIds = matches.map((m: any) => m.id);
+
+  if (matchIds.length === 0) return { eventsConfig: individualEvents, topPlayers: {} };
+
+  const { data: suKienData } = await supabase
+    .from('su_kien')
+    .select('*, cau_thu(*, doi_bong(*))')
+    .in('tran_dau_id', matchIds);
+
+  const playerStats: Record<string, any> = {};
+
+  if (suKienData) {
+    suKienData.forEach((ev: any) => {
+      if (ev.cau_thu_id && ev.loai.startsWith('CUSTOM_')) {
+        const customId = ev.loai.replace('CUSTOM_', '').toLowerCase();
+        const evtConfig = individualEvents.find(e => e.id.toLowerCase() === customId);
+        if (evtConfig) {
+          if (!playerStats[evtConfig.id]) playerStats[evtConfig.id] = {};
+          if (!playerStats[evtConfig.id][ev.cau_thu_id]) {
+            playerStats[evtConfig.id][ev.cau_thu_id] = {
+              cauThuId: ev.cau_thu_id,
+              ten: ev.cau_thu?.ten || 'Không xác định',
+              doi: ev.cau_thu?.doi_bong,
+              count: 0
+            };
+          }
+          playerStats[evtConfig.id][ev.cau_thu_id].count++;
+        }
+      }
+    });
+  }
+
+  const result: Record<string, any[]> = {};
+  Object.keys(playerStats).forEach(eventId => {
+    result[eventId] = Object.values(playerStats[eventId])
+      .sort((a: any, b: any) => b.count - a.count)
+      .slice(0, 3);
+  });
+
+  return { eventsConfig: individualEvents, topPlayers: result };
 }
 
 export async function layDuLieuKnockout(giaiDauId?: string) {

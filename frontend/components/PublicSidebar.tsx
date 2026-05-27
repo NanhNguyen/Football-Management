@@ -21,53 +21,12 @@ const menuItems = [
 
 export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
   const pathname = usePathname();
-  const { selectedTournament, tournaments, setSelectedTournamentId, selectedTournamentId } = usePublicTournament();
-  const [dropdownOpen, setDropdownOpen] = useState(false);
-  const dropdownRef = useRef<HTMLDivElement>(null);
-  const [isLeague, setIsLeague] = useState(false);
-
-  // Read configuration for selected tournament to check format
-  useEffect(() => {
-    if (selectedTournamentId) {
-      const isLeagueName = !!(selectedTournament?.ten?.toLowerCase().includes('epl') || 
-                            selectedTournament?.ten?.toLowerCase().includes('league'));
-      const configStr = localStorage.getItem(`giai_dau_config_${selectedTournamentId}`);
-      if (configStr) {
-        try {
-          const config = JSON.parse(configStr);
-          setIsLeague(config.theThuc === 'league' || (config.theThuc !== 'tournament' && isLeagueName));
-        } catch (e) {
-          setIsLeague(isLeagueName);
-        }
-      } else {
-        setIsLeague(isLeagueName);
-      }
-    }
-  }, [selectedTournamentId, selectedTournament]);
-
-  // Close dropdown on click outside
-  useEffect(() => {
-    function handleClickOutside(event: MouseEvent) {
-      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        setDropdownOpen(false);
-      }
-    }
-    document.addEventListener('mousedown', handleClickOutside);
-    return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  const { selectedTournament, tournaments, setSelectedTournamentId } = usePublicTournament();
 
   // Close sidebar on path change (useful for mobile navigation)
   useEffect(() => {
     onClose();
   }, [pathname, onClose]);
-
-  // Filter Knock-out tab if in League mode
-  const filteredMenuItems = menuItems.filter(item => {
-    if (item.href === '/knock-out') {
-      return !isLeague;
-    }
-    return true;
-  });
 
   return (
     <>
@@ -84,71 +43,63 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close sidebar">×</button>
         </div>
 
-        {/* Tournament Switcher */}
-        <div className={styles.switcherSection}>
-          <p className={styles.switcherLabel}>GIẢI ĐẤU ĐANG XEM</p>
-          <div className={styles.dropdownWrapper} ref={dropdownRef}>
-            <button 
-              className={styles.switcherBtn} 
-              onClick={() => setDropdownOpen(!dropdownOpen)}
-            >
-              <span className={styles.switcherIcon}>🏆</span>
-              <span className={styles.switcherText}>
-                {selectedTournament ? selectedTournament.ten : 'Đang tải...'}
-              </span>
-              <span className={`${styles.arrow} ${dropdownOpen ? styles.arrowUp : ''}`}>▼</span>
-            </button>
+        {/* Scroll Container for Sidebar Content */}
+        <div className={styles.scrollContainer}>
+          {/* ĐỘI BÓNG */}
+          <nav className={styles.navMenu}>
+            <div className={styles.navHeaderWithArrow}>
+              <p className={styles.navLabel}>ĐỘI BÓNG</p>
+              <span className={styles.navArrow}>›</span>
+            </div>
+            <div className={styles.menuItemsList}>
+              {[
+                { name: 'Manchester United', sub: 'Anh', logo: '🔴' },
+                { name: 'Liverpool', sub: 'Anh', logo: '🦅' },
+                { name: 'Arsenal', sub: 'Anh', logo: '🛡️' },
+                { name: 'Manchester City', sub: 'Anh', logo: '⛵' },
+                { name: 'Real Madrid', sub: 'Tây Ban Nha', logo: '👑' }
+              ].map(team => (
+                <Link key={team.name} href="#" className={styles.navEntityLink}>
+                  <span className={styles.entityLogo}>{team.logo}</span>
+                  <div className={styles.entityInfo}>
+                    <span className={styles.entityName}>{team.name}</span>
+                    <span className={styles.entitySub}>{team.sub}</span>
+                  </div>
+                </Link>
+              ))}
+            </div>
+          </nav>
 
-            {dropdownOpen && (
-              <div className={styles.dropdownMenu}>
-                {tournaments.length === 0 ? (
-                  <div className={styles.dropdownItemEmpty}>Không có giải đấu nào</div>
-                ) : (
-                  tournaments.map((t) => (
+          {/* GIẢI ĐẤU */}
+          <nav className={styles.navMenu}>
+            <div className={styles.navHeaderWithArrow}>
+              <p className={styles.navLabel}>GIẢI ĐẤU</p>
+              <span className={styles.navArrow}>›</span>
+            </div>
+            <div className={styles.menuItemsList}>
+              {tournaments.length === 0 ? (
+                <div className={styles.emptyText}>Không có giải đấu nào</div>
+              ) : (
+                tournaments.map(t => {
+                  const isActive = selectedTournament?.id === t.id;
+                  return (
                     <button
                       key={t.id}
-                      className={`${styles.dropdownItem} ${
-                        selectedTournament?.id === t.id ? styles.dropdownItemActive : ''
-                      }`}
-                      onClick={() => {
-                        setSelectedTournamentId(t.id);
-                        setDropdownOpen(false);
-                      }}
+                      onClick={() => setSelectedTournamentId(t.id)}
+                      className={`${styles.navEntityLink} ${isActive ? styles.navEntityLinkActive : ''}`}
                     >
-                      <span className={styles.itemIcon}>⚽</span>
-                      <div className={styles.itemDetails}>
-                        <p className={styles.itemName}>{t.ten}</p>
-                        <p className={styles.itemSub}>{t.mua_giai}</p>
+                      <span className={styles.entityLogo}>🏆</span>
+                      <div className={styles.entityInfo}>
+                        <span className={styles.entityName}>{t.ten}</span>
+                        <span className={styles.entitySub}>{t.mua_giai}</span>
                       </div>
-                      {selectedTournament?.id === t.id && (
-                        <span className={styles.checkmark}>✓</span>
-                      )}
                     </button>
-                  ))
-                )}
-              </div>
-            )}
-          </div>
+                  );
+                })
+              )}
+            </div>
+          </nav>
         </div>
-
-        {/* Main Navigation Menu */}
-        <nav className={styles.navMenu}>
-          <p className={styles.navLabel}>MENU ĐIỀU HƯỚNG</p>
-          <div className={styles.menuItemsList}>
-            {filteredMenuItems.map((item) => {
-              const isActive = pathname === item.href;
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  className={`${styles.navLink} ${isActive ? styles.navLinkActive : ''}`}
-                >
-                  <span className={styles.menuLabel}>{item.label}</span>
-                </Link>
-              );
-            })}
-          </div>
-        </nav>
 
         {/* Sidebar Footer */}
         <div className={styles.sidebarFooter}>

@@ -10,6 +10,22 @@ export default function BangXepHangPage() {
   const { selectedTournamentId, selectedTournament } = usePublicTournament();
   const [data, setData] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [customEvents, setCustomEvents] = useState<any[]>([]);
+  const [standingsConfig, setStandingsConfig] = useState({ phongDo: true, thePhat: false });
+
+  useEffect(() => {
+    if (selectedTournamentId) {
+      const configStr = localStorage.getItem(`giai_dau_config_${selectedTournamentId}`);
+      if (configStr) {
+        try {
+          const config = JSON.parse(configStr);
+          // Only show non-individual events on the team standings
+          setCustomEvents((config.customEvents || []).filter((e: any) => !e.isIndividual));
+          setStandingsConfig(config.standingsConfig || { phongDo: true, thePhat: false });
+        } catch (e) {}
+      }
+    }
+  }, [selectedTournamentId]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -72,7 +88,10 @@ export default function BangXepHangPage() {
                     <th className={styles.thCenter}>BT - BB</th>
                     <th className={styles.thCenter}>HS</th>
                     <th className={styles.thCenter}>ĐIỂM</th>
-                    <th className={styles.thCenter}>PĐ</th>
+                    {customEvents.map((evt) => (
+                      <th key={evt.id} className={styles.thCenter} title={evt.name}>{evt.icon}</th>
+                    ))}
+                    {standingsConfig.phongDo && <th className={styles.thCenter}>PĐ</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -112,17 +131,24 @@ export default function BangXepHangPage() {
                         <td className={styles.tdCenter}>
                           <span className={`${styles.points} ${i < 2 ? styles.pointsQualified : ''}`}>{row.diem}</span>
                         </td>
-                        <td className={styles.tdCenter}>
-                          <div className={styles.formRow}>
-                            {row.soTran > 0 ? (
-                              (row.phongDo || []).map((p: string, idx: number) => (
-                                <span key={idx} className={`${styles.formBadge} ${styles['form' + p]}`}>{p}</span>
-                              ))
-                            ) : (
-                              <span className={styles.formEmpty}>—</span>
-                            )}
-                          </div>
-                        </td>
+                        {customEvents.map((evt) => (
+                          <td key={evt.id} className={styles.tdCenter} style={{ fontWeight: 600, color: '#f59e0b' }}>
+                            {row.customStats?.[evt.id] || 0}
+                          </td>
+                        ))}
+                        {standingsConfig.phongDo && (
+                          <td className={styles.tdCenter}>
+                            <div className={styles.formRow}>
+                              {row.soTran > 0 ? (
+                                (row.phongDo || []).map((p: string, idx: number) => (
+                                  <span key={idx} className={`${styles.formBadge} ${styles['form' + p]}`}>{p}</span>
+                                ))
+                              ) : (
+                                <span className={styles.formEmpty}>—</span>
+                              )}
+                            </div>
+                          </td>
+                        )}
                       </tr>
                     ))}
                 </tbody>

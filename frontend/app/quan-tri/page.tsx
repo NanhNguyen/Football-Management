@@ -75,7 +75,7 @@ export default function QuanTriPage() {
   const [newPlayerNumber, setNewPlayerNumber] = useState('');
   const [newPlayerPosition, setNewPlayerPosition] = useState('Thủ môn');
   const [maxTeams, setMaxTeams] = useState(16);
-  const [standingsConfig, setStandingsConfig] = useState({ sChot: true, phongDo: true, thePhat: false });
+  const [standingsConfig, setStandingsConfig] = useState({ phongDo: true, thePhat: false });
   const [scheduleConfig, setScheduleConfig] = useState({ matchesPerWeek: 8 });
   const [blackoutDates, setBlackoutDates] = useState<string[]>([]);
   const [newBlackoutDate, setNewBlackoutDate] = useState('');
@@ -84,6 +84,25 @@ export default function QuanTriPage() {
   // Referee filtering states
   const [refereeFilterVong, setRefereeFilterVong] = useState<string>('all');
   const [refereeFilterBang, setRefereeFilterBang] = useState<string>('all');
+
+  // Custom Events
+  const [customEvents, setCustomEvents] = useState<any[]>([]);
+
+  const addCustomEvent = () => {
+    setCustomEvents([...customEvents, { id: `event_custom_${Date.now()}`, name: 'Sự kiện mới', icon: '⭐', points: 0, isIndividual: false }]);
+  };
+
+  const removeCustomEvent = (idx: number) => {
+    const newEvents = [...customEvents];
+    newEvents.splice(idx, 1);
+    setCustomEvents(newEvents);
+  };
+
+  const updateCustomEvent = (idx: number, field: string, value: any) => {
+    const newEvents = [...customEvents];
+    newEvents[idx][field] = value;
+    setCustomEvents(newEvents);
+  };
 
   // Dynamic tournament settings states
   const [tournamentName, setTournamentName] = useState('');
@@ -429,7 +448,8 @@ export default function QuanTriPage() {
             setTournamentType(config.theThuc || 'tournament');
             setTournamentGroupLegs(config.luotVongBang || 1);
             setTournamentLeagueRounds(config.soVongLeague || 5);
-            setStandingsConfig(config.standingsConfig || { sChot: true, phongDo: true, thePhat: false });
+            setStandingsConfig(config.standingsConfig || { phongDo: true, thePhat: false });
+            setCustomEvents(config.customEvents || []);
           } catch (e) {
             console.error('Error loading tournament config:', e);
           }
@@ -442,7 +462,8 @@ export default function QuanTriPage() {
           setTournamentType('tournament');
           setTournamentGroupLegs(1);
           setTournamentLeagueRounds(5);
-          setStandingsConfig({ sChot: true, phongDo: true, thePhat: false });
+          setStandingsConfig({ phongDo: true, thePhat: false });
+          setCustomEvents([]);
         }
       }
 
@@ -575,7 +596,8 @@ export default function QuanTriPage() {
         theThuc: tournamentType,
         luotVongBang: tournamentGroupLegs,
         soVongLeague: tournamentLeagueRounds || 5,
-        standingsConfig
+        standingsConfig,
+        customEvents
       };
       localStorage.setItem(`giai_dau_config_${selectedTournament.id}`, JSON.stringify(config));
 
@@ -1191,10 +1213,13 @@ export default function QuanTriPage() {
       typeLabel = subType === 'pen' ? 'Ghi bàn (Penalty)' : subType === 'og' ? 'Phản lưới nhà' : 'Ghi bàn';
       eventType = subType ? `GOAL_${subType.toUpperCase()}` : 'GOAL_NORMAL';
       increment = 1;
-    } else if (type === 'chot') {
-      typeLabel = 'SIÊU CHỐT (+2)';
-      eventType = 'CHOT';
-      increment = 2;
+    } else if (type === 'custom' && subType) {
+      const customEvt = customEvents.find(e => e.id === subType);
+      if (customEvt) {
+        typeLabel = `${customEvt.name}${customEvt.points ? ` (+${customEvt.points})` : ''}`;
+        eventType = `CUSTOM_${customEvt.id.toUpperCase()}`;
+        increment = customEvt.points || 0;
+      }
     } else if (type === 'card') {
       typeLabel = subType === 'yellow' ? 'Phạt thẻ vàng 🟨' : subType === 'red' ? 'Phạt thẻ đỏ 🟥' : 'Án phạt';
       eventType = subType === 'yellow' ? 'THE_VANG' : subType === 'red' ? 'THE_DO' : 'CARD';
@@ -1242,7 +1267,11 @@ export default function QuanTriPage() {
       async () => {
         let increment = 0;
         if (eventType.startsWith('GOAL')) increment = 1;
-        if (eventType === 'CHOT') increment = 2;
+        if (eventType.startsWith('CUSTOM_')) {
+          const customId = eventType.replace('CUSTOM_', '');
+          const customEvt = customEvents.find((e: any) => e.id.toUpperCase() === customId.toUpperCase() || e.id === customId);
+          if (customEvt) increment = customEvt.points || 0;
+        }
 
         await deleteEvent(eventId);
 
@@ -1750,10 +1779,6 @@ export default function QuanTriPage() {
                 <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>Cấu hình hiển thị Bảng xếp hạng</h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={standingsConfig.sChot} onChange={(e) => setStandingsConfig({ ...standingsConfig, sChot: e.target.checked })} style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)' }} />
-                    <span style={{ fontSize: '15px', fontWeight: 600 }}>Hiển thị cột Siêu Chốt</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
                     <input type="checkbox" checked={standingsConfig.phongDo} onChange={(e) => setStandingsConfig({ ...standingsConfig, phongDo: e.target.checked })} style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)' }} />
                     <span style={{ fontSize: '15px', fontWeight: 600 }}>Hiển thị cột Phong độ (5 trận gần nhất)</span>
                   </label>
@@ -1761,6 +1786,62 @@ export default function QuanTriPage() {
                     <input type="checkbox" checked={standingsConfig.thePhat} onChange={(e) => setStandingsConfig({ ...standingsConfig, thePhat: e.target.checked })} style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)' }} />
                     <span style={{ fontSize: '15px', fontWeight: 600 }}>Hiển thị cột Thẻ phạt (Fair-play)</span>
                   </label>
+                </div>
+
+                <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-light)', margin: '24px 0' }} />
+
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Sự kiện & Luật Bổ Sung (Custom Events)</h3>
+                  <button className={styles.editBtnCompact} style={{ padding: '6px 12px' }} onClick={addCustomEvent}>+ Thêm sự kiện</button>
+                </div>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+                  {customEvents.map((evt, idx) => (
+                    <div key={evt.id} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'var(--color-surface-hover)', padding: '12px', borderRadius: '8px' }}>
+                      <input 
+                        type="text" 
+                        value={evt.icon} 
+                        onChange={(e) => updateCustomEvent(idx, 'icon', e.target.value)}
+                        style={{ width: '40px', textAlign: 'center', fontSize: '20px', padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border-light)' }}
+                        placeholder="⚽"
+                      />
+                      <input 
+                        type="text" 
+                        value={evt.name} 
+                        onChange={(e) => updateCustomEvent(idx, 'name', e.target.value)}
+                        style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border-light)' }}
+                        placeholder="Tên sự kiện (VD: Siêu Chốt)"
+                      />
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Cộng:</span>
+                        <input 
+                          type="number" 
+                          value={evt.points} 
+                          onChange={(e) => updateCustomEvent(idx, 'points', Number(e.target.value))}
+                          style={{ width: '60px', padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border-light)' }}
+                        />
+                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Điểm BXH</span>
+                      </div>
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', marginLeft: '12px' }}>
+                        <input 
+                          type="checkbox" 
+                          checked={evt.isIndividual} 
+                          onChange={(e) => updateCustomEvent(idx, 'isIndividual', e.target.checked)}
+                          style={{ accentColor: 'var(--color-primary)' }}
+                        />
+                        <span style={{ fontSize: '13px' }}>Tính cá nhân</span>
+                      </label>
+                      <button 
+                        onClick={() => removeCustomEvent(idx)}
+                        style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', fontSize: '18px', padding: '4px 8px', marginLeft: 'auto' }}
+                        title="Xóa sự kiện"
+                      >×</button>
+                    </div>
+                  ))}
+                  {customEvents.length === 0 && (
+                    <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-muted)', fontSize: '13px', fontStyle: 'italic', border: '1px dashed var(--color-border-light)', borderRadius: '8px' }}>
+                      Giải đấu đang sử dụng các luật mặc định (Bàn thắng, Thẻ phạt).<br/>Bấm "+ Thêm sự kiện" để định nghĩa các luật đặc thù.
+                    </div>
+                  )}
                 </div>
               </div>
             </div>
@@ -2021,7 +2102,10 @@ export default function QuanTriPage() {
                           const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
                           const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
                           const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                          const chotCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'CHOT' && ev.cauThuId === player.id).length || 0;
+                          const customEventCounts = customEvents.map(evt => ({
+                            ...evt,
+                            count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
+                          }));
                           const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
                           const isClickable = !hasRedCard && selectedMatch.trangThai === 'DANG_DIEN_RA';
                           
@@ -2058,7 +2142,7 @@ export default function QuanTriPage() {
                               {/* Action Badges */}
                               <div className={styles.consolePlayerBadges}>
                                 {goalCount > 0 && <span>{goalCount > 1 ? goalCount : ''}&#x26BD;</span>}
-                                {chotCount > 0 && <span>{chotCount > 1 ? chotCount : ''}&#x26A1;</span>}
+                                {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.count > 1 ? cEvt.count : ''}{cEvt.icon}</span> : null)}
                                 {yellowCount > 0 && <span>Y{yellowCount > 1 ? yellowCount : ''}</span>}
                                 {hasRedCard && <span>R</span>}
                                 {isMotm && <span>MVP</span>}
@@ -2080,7 +2164,10 @@ export default function QuanTriPage() {
                                   const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
                                   const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
                                   const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                                  const chotCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'CHOT' && ev.cauThuId === player.id).length || 0;
+                                  const customEventCounts = customEvents.map(evt => ({
+                                    ...evt,
+                                    count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
+                                  }));
                                   const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
 
                                   return (
@@ -2090,7 +2177,7 @@ export default function QuanTriPage() {
                                       
                                       <div className={styles.benchListBadges}>
                                         {goalCount > 0 && <span title="Bàn thắng">⚽ {goalCount > 1 ? goalCount : ''}</span>}
-                                        {chotCount > 0 && <span title="Siêu chốt">⚡ {chotCount > 1 ? chotCount : ''}</span>}
+                                        {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.icon} {cEvt.count > 1 ? cEvt.count : ''}</span> : null)}
                                         {yellowCount > 0 && <span style={{ background: '#fef08a', color: '#a16207' }} title="Thẻ vàng">🟨 {yellowCount > 1 ? yellowCount : ''}</span>}
                                         {hasRedCard && <span style={{ background: '#fee2e2', color: '#b91c1c' }} title="Thẻ đỏ">🟥</span>}
                                         {isMotm && <span style={{ background: '#faf5ff', color: '#7e22ce' }}>🏅 MVP</span>}
@@ -2261,7 +2348,10 @@ export default function QuanTriPage() {
                           const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
                           const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
                           const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                          const chotCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'CHOT' && ev.cauThuId === player.id).length || 0;
+                          const customEventCounts = customEvents.map(evt => ({
+                            ...evt,
+                            count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
+                          }));
                           const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
                           const isClickable = !hasRedCard && selectedMatch.trangThai === 'DANG_DIEN_RA';
                           
@@ -2298,7 +2388,7 @@ export default function QuanTriPage() {
                               {/* Action Badges */}
                               <div className={styles.consolePlayerBadges}>
                                 {goalCount > 0 && <span>{goalCount > 1 ? goalCount : ''}&#x26BD;</span>}
-                                {chotCount > 0 && <span>{chotCount > 1 ? chotCount : ''}&#x26A1;</span>}
+                                {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.count > 1 ? cEvt.count : ''}{cEvt.icon}</span> : null)}
                                 {yellowCount > 0 && <span>Y{yellowCount > 1 ? yellowCount : ''}</span>}
                                 {hasRedCard && <span>R</span>}
                                 {isMotm && <span>MVP</span>}
@@ -2320,7 +2410,10 @@ export default function QuanTriPage() {
                                   const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
                                   const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
                                   const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                                  const chotCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'CHOT' && ev.cauThuId === player.id).length || 0;
+                                  const customEventCounts = customEvents.map(evt => ({
+                                    ...evt,
+                                    count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
+                                  }));
                                   const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
 
                                   return (
@@ -2330,7 +2423,7 @@ export default function QuanTriPage() {
                                       
                                       <div className={styles.benchListBadges}>
                                         {goalCount > 0 && <span title="Bàn thắng">⚽ {goalCount > 1 ? goalCount : ''}</span>}
-                                        {chotCount > 0 && <span title="Siêu chốt">⚡ {chotCount > 1 ? chotCount : ''}</span>}
+                                        {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.icon} {cEvt.count > 1 ? cEvt.count : ''}</span> : null)}
                                         {yellowCount > 0 && <span style={{ background: '#fef08a', color: '#a16207' }} title="Thẻ vàng">🟨 {yellowCount > 1 ? yellowCount : ''}</span>}
                                         {hasRedCard && <span style={{ background: '#fee2e2', color: '#b91c1c' }} title="Thẻ đỏ">🟥</span>}
                                         {isMotm && <span style={{ background: '#faf5ff', color: '#7e22ce' }}>🏅 MVP</span>}
@@ -2425,10 +2518,12 @@ export default function QuanTriPage() {
                   <span className={styles.bsActionText}>Phản lưới</span>
                 </button>
 
-                <button className={`${styles.bsActionCard} ${styles.bsChotDeal}`} onClick={() => handleActionSelect('chot')}>
-                  <span className={styles.bsActionIcon}>⚡</span>
-                  <span className={styles.bsActionText}>Siêu chốt (+2)</span>
-                </button>
+                {customEvents.map((evt) => (
+                  <button key={evt.id} className={`${styles.bsActionCard} ${styles.bsChotDeal}`} onClick={() => handleActionSelect('custom', evt.id)}>
+                    <span className={styles.bsActionIcon}>{evt.icon}</span>
+                    <span className={styles.bsActionText}>{evt.name} {evt.points ? `(+${evt.points})` : ''}</span>
+                  </button>
+                ))}
 
                 <button className={`${styles.bsActionCard} ${styles.bsYellow}`} onClick={() => handleActionSelect('card', 'yellow')}>
                   <span className={styles.bsActionIcon}>🟨</span>

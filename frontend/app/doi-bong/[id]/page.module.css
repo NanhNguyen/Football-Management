@@ -1,0 +1,271 @@
+.container {
+  max-width: 800px;
+  margin: 0 auto;
+  padding-bottom: 40px;
+}
+
+.headerSection {
+  background: linear-gradient(135deg, var(--color-primary-dark) 0%, var(--color-surface-dark) 100%);
+  padding: 40px 20px;
+  text-align: center;
+  color: #ffffff;
+}
+
+.logoWrapper {
+  width: 100px;
+  height: 100px;
+  margin: 0 auto 16px;
+  background: rgba(255, 255, 255, 0.1);
+  border-radius: 20px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 48px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+}
+
+.teamName {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 0 0 8px 0;
+  letter-spacing: -0.02em;
+}
+
+.teamSubtitle {
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.7);
+  font-weight: 500;
+}
+
+.tabsWrapper {
+  background: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-light);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.tabsList {
+  display: flex;
+  overflow-x: auto;
+  scrollbar-width: none;
+  padding: 0 20px;
+  gap: 24px;
+}
+
+.tabsList::-webkit-scrollbar {
+  display: none;
+}
+
+.tabBtn {
+  background: none;
+  border: none;
+  padding: 16px 0;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  position: relative;
+  white-space: nowrap;
+}
+
+.tabBtnActive {
+  color: var(--color-primary);
+}
+
+.tabBtnActive::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: var(--color-primary);
+  border-radius: 3px 3px 0 0;
+}
+
+.contentArea {
+  padding: 24px 20px;
+}
+
+/* SECTION HEADERS */
+.sectionTitle {
+  font-size: 18px;
+  font-weight: 700;
+  margin: 0 0 16px 0;
+  color: var(--color-text);
+}
+
+/* FORM GUIDE */
+.card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 20px;
+  margin-bottom: 24px;
+  border: 1px solid var(--color-border-light);
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.02);
+}
+
+.formWrapper {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+
+.formBadge {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.formW {
+  background-color: var(--color-success);
+}
+
+.formD {
+  background-color: var(--color-text-muted);
+}
+
+.formL {
+  background-color: var(--color-primary);
+}
+
+/* NEXT MATCH */
+.nextMatchInfo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.nextMatchTeam {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  width: 80px;
+}
+
+.teamLogoSm {
+  font-size: 32px;
+}
+
+.teamNameSm {
+  font-size: 12px;
+  font-weight: 600;
+  text-align: center;
+}
+
+.matchCenter {
+  text-align: center;
+}
+
+.vsText {
+  font-size: 14px;
+  color: var(--color-text-muted);
+  font-weight: 700;
+  margin-bottom: 8px;
+}
+
+.matchDate {
+  font-size: 12px;
+  color: var(--color-text);
+  font-weight: 600;
+}
+
+/* KEY STATS */
+.statsGrid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+  text-align: center;
+}
+
+.statItem {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.statLabel {
+  font-size: 11px;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  font-weight: 700;
+}
+
+.statValue {
+  font-size: 20px;
+  font-weight: 800;
+  color: var(--color-text);
+}
+
+/* SQUAD TAB */
+.squadGroup {
+  margin-bottom: 24px;
+}
+
+.squadGroupTitle {
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid var(--color-border-light);
+}
+
+.playerItem {
+  display: flex;
+  align-items: center;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--color-surface-hover);
+}
+
+.playerItem:last-child {
+  border-bottom: none;
+}
+
+.playerNumber {
+  width: 30px;
+  font-size: 14px;
+  color: var(--color-text-muted);
+  font-weight: 600;
+}
+
+.playerName {
+  flex: 1;
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+.playerStat {
+  font-size: 13px;
+  color: var(--color-text-muted);
+}
+
+/* STATES */
+.loadingWrapper, .errorWrapper {
+  padding: 40px;
+  text-align: center;
+  color: var(--color-text-muted);
+}
+
+.errorWrapper {
+  color: var(--color-primary);
+}
+
+.emptyState {
+  text-align: center;
+  padding: 40px 20px;
+  color: var(--color-text-muted);
+  font-size: 14px;
+}

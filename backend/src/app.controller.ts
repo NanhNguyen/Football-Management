@@ -61,4 +61,10 @@ export class AppController {
     return this.appService.layBangXepHang();
   }
 
+  // ===== PUBLIC API =====
+  @Get('public/teams/:id')
+  layChiTietDoiBongPublic(@Param('id') id: string) {
+    return this.appService.layChiTietDoiBongPublic(id);
+  }
+
 }

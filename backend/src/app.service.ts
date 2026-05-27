@@ -117,4 +117,46 @@ export class AppService {
     }));
   }
 
+  // ===== PUBLIC API =====
+  layChiTietDoiBongPublic(id: string) {
+    const doi = danhSachDoi.find((d) => d.id === id);
+    if (!doi) return { error: 'Không tìm thấy đội bóng' };
+
+    const cauThu = danhSachCauThu.filter((ct) => ct.doiId === id);
+    const thongKe = bangXepHang.find((bxh) => bxh.doiId === id);
+
+    // Lịch sử thi đấu của đội
+    const lichSuTranDau = danhSachTranDau.filter((t) => t.doiNhaId === id || t.doiKhachId === id);
+
+    // Phong độ: Lấy 5 trận gần nhất đã kết thúc
+    const cacTranDaKetThuc = lichSuTranDau
+      .filter((t) => t.trangThai === 'KET_THUC')
+      .sort((a, b) => new Date(b.ngay).getTime() - new Date(a.ngay).getTime())
+      .slice(0, 5);
+
+    const phongDo = cacTranDaKetThuc.map((t) => {
+      const isHome = t.doiNhaId === id;
+      const myScore = isHome ? t.tyDoiNha : t.tyDoiKhach;
+      const opponentScore = isHome ? t.tyDoiKhach : t.tyDoiNha;
+      
+      if (myScore > opponentScore) return 'W';
+      if (myScore < opponentScore) return 'L';
+      return 'D';
+    });
+
+    // Trận đấu tiếp theo
+    const tranDauSapToi = lichSuTranDau
+      .filter((t) => t.trangThai === 'SAP_DIEN_RA' || t.trangThai === 'DANG_DIEN_RA')
+      .sort((a, b) => new Date(a.ngay).getTime() - new Date(b.ngay).getTime())[0];
+
+    return {
+      doi,
+      thongKe,
+      phongDo: phongDo.reverse(), // Để trận cũ nhất trước, mới nhất sau
+      cauThu,
+      tranDauSapToi: tranDauSapToi ? this.enrichTranDau(tranDauSapToi) : null,
+      lichSuTranDau: lichSuTranDau.map(t => this.enrichTranDau(t)).sort((a, b) => new Date(b.ngay).getTime() - new Date(a.ngay).getTime()),
+    };
+  }
+
 }

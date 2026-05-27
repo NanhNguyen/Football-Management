@@ -3,29 +3,33 @@
 import { useState, useEffect } from 'react';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import styles from './page.module.css';
-import { layTongQuan, layTopGhiBan, layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
+import { layTongQuan, layTopGhiBan, layTopCustomEvents, layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
 import Link from 'next/link';
-import MatchCenterTabs from '@/components/MatchCenterTabs';
 import { usePublicTournament } from '@/components/PublicTournamentContext';
+import DateStrip from '@/components/DateStrip';
+import MatchListFeed from '@/components/MatchListFeed';
 
 export default function TongQuanPage() {
   const { selectedTournamentId } = usePublicTournament();
   const [data, setData] = useState<any>(null);
   const [topScorers, setTopScorers] = useState<any[]>([]);
+  const [topCustomEvents, setTopCustomEvents] = useState<any>({ eventsConfig: [], topPlayers: {} });
   const [loading, setLoading] = useState(true);
   const [selectedMatch, setSelectedMatch] = useState<any>(null);
   const [activeModalTab, setActiveModalTab] = useState<'timeline' | 'roster'>('timeline');
-  const [tick, setTick] = useState(0); // per-second tick for live timer
+  const [tick, setTick] = useState(0);
 
   useEffect(() => {
     const loadData = async () => {
       try {
-        const [tqData, tbData] = await Promise.all([
+        const [tqData, tbData, topCustom] = await Promise.all([
           layTongQuan(selectedTournamentId || undefined), 
-          layTopGhiBan(selectedTournamentId || undefined)
+          layTopGhiBan(selectedTournamentId || undefined),
+          layTopCustomEvents(selectedTournamentId || undefined)
         ]);
         setData(tqData);
         setTopScorers(tbData.slice(0, 3));
+        setTopCustomEvents(topCustom);
       } catch (error) {
         console.error("Lỗi lấy dữ liệu tổng quan:", error);
       } finally {
@@ -34,14 +38,12 @@ export default function TongQuanPage() {
     };
 
     loadData();
-    const interval = setInterval(loadData, 5000); // 5 seconds polling (timer done locally)
+    const interval = setInterval(loadData, 5000); // 5 seconds polling
     return () => clearInterval(interval);
   }, [selectedTournamentId]);
 
-  // Poll details of selected match in real-time if open
   useEffect(() => {
     if (!selectedMatch?.id) return;
-
     const fetchDetails = async () => {
       try {
         const freshDetails = await layChiTietTranDau(selectedMatch.id);
@@ -58,7 +60,6 @@ export default function TongQuanPage() {
     return () => clearInterval(interval);
   }, [selectedMatch?.id]);
 
-  // Per-second tick to keep live timers updated without polling DB
   useEffect(() => {
     const interval = setInterval(() => setTick(t => t + 1), 1000);
     return () => clearInterval(interval);
@@ -68,88 +69,27 @@ export default function TongQuanPage() {
     return <GlobalSkeletonLoader />;
   }
 
-  const spotlightMatch = data?.tranLive?.[0] || data?.tranSapDienRa?.[0];
-
-  // Mocking Top 3 Siêu Chốt
-  const topChot = [
-    { ten: 'Phạm Minh Toàn', donVi: 'Khối Hội Sở', chot: 8, logo: '🏢' },
-    { ten: 'Nguyễn Văn Đạt', donVi: 'Chi nhánh Cầu Giấy', chot: 6, logo: '🏙️' },
-    { ten: 'Trần Quyết Thắng', donVi: 'Chi nhánh Nam Từ Liêm', chot: 5, logo: '🏘️' },
-  ];
+  // Removed hardcoded topChot array
 
   return (
     <div className={styles.page}>
-      {/* 1. Hero Section: Spotlight Banner */}
-      <section className={`${styles.hero} animate-fade-up`}>
-        {spotlightMatch ? (
-          <div
-            onClick={() => setSelectedMatch(spotlightMatch)}
-            className={styles.spotlightCard}
-            style={{ cursor: 'pointer' }}
-          >
-            <div className={styles.spotlightBg}></div>
-            <div className={styles.spotlightHeader}>
-              <span className={styles.spotlightBadge}>TRẬN CẦU TÂM ĐIỂM</span>
-              {spotlightMatch.trangThai === 'DANG_DIEN_RA' && (
-                <span className={styles.spotlightLive}>
-                  <span className={styles.liveDot}></span>
-                  TRỰC TIẾP
-                </span>
-              )}
-            </div>
+      
+      {/* 1. Date Strip Navigation */}
+      <DateStrip onSelectDate={(date) => {
+        // Handle date filtering in future
+        console.log("Selected date:", date);
+      }} />
 
-            <div className={styles.spotlightContent}>
-              <div className={styles.spotTeam}>
-                <span className={styles.spotLogo}>{spotlightMatch.doiNha?.logo}</span>
-                <span className={styles.spotName}>{spotlightMatch.doiNha?.ten}</span>
-              </div>
-
-              <div className={styles.spotScore}>
-                {spotlightMatch.trangThai === 'SAP_DIEN_RA' ? (
-                  <div className={styles.spotTimeBox}>
-                    <div className={styles.spotTime}>{spotlightMatch.time || 'VS'}</div>
-                    <div className={styles.spotDate}>{spotlightMatch.date || spotlightMatch.vong}</div>
-                  </div>
-                ) : (
-                  <div className={styles.spotScoreBox}>
-                    <span className={styles.spotNum}>{spotlightMatch.tyNha ?? 0}</span>
-                    <span className={styles.spotDash}>-</span>
-                    <span className={styles.spotNum}>{spotlightMatch.tyKhach ?? 0}</span>
-                  </div>
-                )}
-                {spotlightMatch.trangThai === 'DANG_DIEN_RA' && <div className={styles.spotMinute}>{calculateMatchMinute(spotlightMatch)}&apos;</div>}
-              </div>
-
-              <div className={styles.spotTeam}>
-                <span className={styles.spotLogo}>{spotlightMatch.doiKhach?.logo}</span>
-                <span className={styles.spotName}>{spotlightMatch.doiKhach?.ten}</span>
-              </div>
-            </div>
-          </div>
-        ) : (
-          <div className={styles.heroContent}>
-            <h2 className={styles.heroTitle}>Tournament Command Center</h2>
-            <p className={styles.heroSubtitle}>Chưa có trận đấu tâm điểm nào.</p>
-          </div>
-        )}
-      </section>
-
-      {/* 3. Khu Vực Trận Đấu (Match Center) */}
-      <section className={`${styles.section} animate-fade-up stagger-2`}>
-        <div className={styles.sectionHeader}>
-          <h3 className={styles.sectionTitle}>Trung Tâm Trận Đấu</h3>
-          <Link href="/lich-dau" className={styles.viewAll}>Xem lịch đầy đủ →</Link>
-        </div>
-        <MatchCenterTabs
-          liveMatches={data?.tranLive || []}
-          upcomingMatches={data?.tranSapDienRa || []}
-          completedMatches={data?.tranKetThuc || []}
-          onCardClick={(match) => setSelectedMatch(match)}
+      {/* 2. Main Match Feed */}
+      <div className={styles.mainFeedWrapper}>
+        <MatchListFeed 
+          data={data} 
+          onMatchClick={(match) => setSelectedMatch(match)} 
         />
-      </section>
+      </div>
 
-      {/* 4. Khu Vực Bảng Vàng & Xếp Hạng */}
-      <section className={`${styles.section} animate-fade-up stagger-3`}>
+      {/* 3. Khu Vực Bảng Vàng & Xếp Hạng (Moved to bottom) */}
+      <section className={`${styles.section} animate-fade-up`}>
         <div className={styles.sectionHeader}>
           <h3 className={styles.sectionTitle}>Bảng Vàng Danh Dự</h3>
         </div>
@@ -200,34 +140,40 @@ export default function TongQuanPage() {
             </div>
           </div>
 
-          {/* Block 3: Vua Siêu Chốt */}
-          <div className={`${styles.lbCard} ${styles.lbCardVip}`}>
-            <div className={styles.lbVipGlow}></div>
-            <div className={styles.lbHeaderVip}>
-              <h4>VUA SIÊU CHỐT 🔥</h4>
+          {/* Block 3: Dynamic Custom Events */}
+          {topCustomEvents.eventsConfig.map((evt: any) => (
+            <div key={evt.id} className={`${styles.lbCard} ${styles.lbCardVip}`}>
+              <div className={styles.lbVipGlow}></div>
+              <div className={styles.lbHeaderVip}>
+                <h4>VUA {evt.name.toUpperCase()} {evt.icon}</h4>
+              </div>
+              <div className={styles.lbList}>
+                {(topCustomEvents.topPlayers[evt.id] || []).length > 0 ? (
+                  (topCustomEvents.topPlayers[evt.id] || []).map((c: any, i: number) => (
+                    <div key={i} className={styles.lbChotRow}>
+                      <div className={styles.lbChotAvatar}>
+                        <span className={styles.lbChotRank}>{i + 1}</span>
+                      </div>
+                      <div className={styles.lbChotInfo}>
+                        <p className={styles.lbChotName}>{c.ten}</p>
+                        <p className={styles.lbChotDonVi}>{c.doi?.logo} {c.doi?.ten}</p>
+                      </div>
+                      <div className={styles.lbChotScore}>
+                        <span className={styles.lbChotNum}>{c.count}</span> {evt.icon}
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <p style={{ textAlign: 'center', padding: '20px 0', color: '#94a3b8', fontSize: '13px' }}>Chưa có dữ liệu</p>
+                )}
+              </div>
             </div>
-            <div className={styles.lbList}>
-              {topChot.map((c, i) => (
-                <div key={i} className={styles.lbChotRow}>
-                  <div className={styles.lbChotAvatar}>
-                    <span className={styles.lbChotRank}>{i + 1}</span>
-                  </div>
-                  <div className={styles.lbChotInfo}>
-                    <p className={styles.lbChotName}>{c.ten}</p>
-                    <p className={styles.lbChotDonVi}>{c.logo} {c.donVi}</p>
-                  </div>
-                  <div className={styles.lbChotScore}>
-                    <span className={styles.lbChotNum}>{c.chot}</span> 🏠
-                  </div>
-                </div>
-              ))}
-            </div>
-          </div>
+          ))}
 
         </div>
       </section>
 
-      {/* 5. MATCH DETAILS MODAL */}
+      {/* 4. MATCH DETAILS MODAL */}
       {selectedMatch && (
         <div className={styles.modalOverlay} onClick={() => setSelectedMatch(null)}>
           <div className={styles.modalContent} onClick={(e) => e.stopPropagation()}>

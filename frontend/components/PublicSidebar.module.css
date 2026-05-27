@@ -214,11 +214,20 @@
   font-size: 14px;
 }
 
+/* Scroll Container for Sidebar Content */
+.scrollContainer {
+  flex: 1;
+  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  padding: 16px 20px;
+}
+
 /* Nav Menu Section */
 .navMenu {
-  flex: 1;
-  padding: 24px 20px;
-  overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
 .navLabel {
@@ -226,7 +235,7 @@
   font-weight: 800;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
-  margin-bottom: 16px;
+  margin-bottom: 12px;
 }
 
 .menuItemsList {
@@ -238,12 +247,12 @@
 .navLink {
   display: flex;
   align-items: center;
-  gap: 14px;
-  padding: 12px 16px;
+  gap: 10px;
+  padding: 8px 12px;
   border-radius: var(--radius-lg);
   color: var(--color-text-secondary);
   font-weight: 600;
-  font-size: 14px;
+  font-size: 13px;
   text-decoration: none;
   transition: all 0.2s ease;
 }
@@ -261,7 +270,7 @@
 }
 
 .menuIcon {
-  font-size: 18px;
+  font-size: 16px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -269,6 +278,89 @@
 
 .menuLabel {
   flex: 1;
+}
+
+/* Nav Entity Links (Teams / Competitions) */
+.navHeaderWithArrow {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+  cursor: pointer;
+}
+
+.navHeaderWithArrow:hover .navLabel {
+  color: var(--color-primary);
+}
+
+.navHeaderWithArrow .navLabel {
+  margin-bottom: 0;
+  transition: color 0.2s;
+}
+
+.navArrow {
+  font-size: 16px;
+  color: var(--color-text-muted);
+  line-height: 1;
+}
+
+.navEntityLink {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 10px;
+  border-radius: var(--radius-md);
+  text-decoration: none;
+  background: none;
+  border: none;
+  width: 100%;
+  text-align: left;
+  cursor: pointer;
+  font-family: inherit;
+  transition: all 0.2s ease;
+}
+
+.navEntityLink:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.navEntityLinkActive {
+  background-color: var(--color-surface-container) !important;
+  color: var(--color-primary) !important;
+}
+
+.navEntityLinkActive .entityName {
+  color: var(--color-primary) !important;
+}
+
+.entityLogo {
+  font-size: 16px;
+  width: 20px;
+  text-align: center;
+}
+
+.entityInfo {
+  display: flex;
+  flex-direction: column;
+}
+
+.entityName {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text);
+  transition: color 0.2s ease;
+}
+
+.entitySub {
+  font-size: 10px;
+  color: var(--color-text-muted);
+}
+
+.emptyText {
+  font-size: 12px;
+  color: var(--color-text-muted);
+  padding: 8px 10px;
+  font-style: italic;
 }
 
 /* Footer Section */
