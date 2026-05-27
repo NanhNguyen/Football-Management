@@ -51,8 +51,8 @@ export default function MatchListFeed({ data, onMatchClick }: MatchListFeedProps
                   {/* Cột trái (Tầm 15%): Trạng thái thời gian */}
                   <div className={styles.colTime}>
                     {isLive && (
-                      <span className={styles.timeLive}>
-                        {calculateMatchMinute(match)}&apos;
+                      <span className={`${styles.timeLive} ${match.dangTamDung ? styles.timeHalftime : ''}`}>
+                        {match.dangTamDung ? 'Nghỉ giữa hiệp' : `${calculateMatchMinute(match)}'`}
                       </span>
                     )}
                     {isFinished && <span className={styles.timeFinished}>FT</span>}

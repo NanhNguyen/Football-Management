@@ -117,6 +117,7 @@ export default function ChiTietTranDauPage() {
     'THE_VANG': '🟨',
     'THE_DO': '🟥',
     'THAY_NGUOI': '🔄',
+    'SUB': '🔄',
     'CHOT': '⚡',
     'MOTM': '🏅',
     'CARD': '🟨',
@@ -130,6 +131,7 @@ export default function ChiTietTranDauPage() {
     'THE_VANG': 'Thẻ vàng',
     'THE_DO': 'Thẻ đỏ',
     'THAY_NGUOI': 'Thay người',
+    'SUB': 'Thay người',
     'CHOT': 'Siêu Chốt (+2)',
     'MOTM': 'Xuất sắc nhất',
     'CARD': 'Án phạt',
@@ -160,7 +162,7 @@ export default function ChiTietTranDauPage() {
           {isLive && (
             <span className={styles.liveBadge}>
               <span className={styles.livePulse} />
-              {matchData.dangTamDung ? 'TẠM DỪNG' : 'LIVE'} · {matchData.phut}&apos;
+              {matchData.dangTamDung ? 'NGHỈ GIỮA HIỆP' : `LIVE · ${matchData.phut}'`}
             </span>
           )}
           {isSapDienRa && (
@@ -233,10 +235,25 @@ export default function ChiTietTranDauPage() {
                         </span>
                       )}
                     </div>
-                    <p className={styles.timelineDesc}>
-                      <strong>{sk.cauThu?.ten ?? 'Không rõ'}</strong>
-                      {sk.moTa && ` — ${sk.moTa}`}
-                    </p>
+                    {(sk.loai === 'SUB' || sk.loai === 'THAY_NGUOI') ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ color: '#10b981', fontWeight: 900, fontSize: '13px' }}>▲</span>
+                          <span style={{ fontWeight: 600, color: '#1e293b' }}>{sk.cauThu?.ten || 'Không rõ'} (Vào sân)</span>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span style={{ color: '#ef4444', fontWeight: 900, fontSize: '13px' }}>▼</span>
+                          <span style={{ color: '#64748b' }}>
+                            {sk.moTa ? sk.moTa.replace('Vào sân thay cho ', '') : 'Chưa rõ'} (Ra sân)
+                          </span>
+                        </div>
+                      </div>
+                    ) : (
+                      <p className={styles.timelineDesc}>
+                        <strong>{sk.cauThu?.ten ?? 'Không rõ'}</strong>
+                        {sk.moTa && ` — ${sk.moTa}`}
+                      </p>
+                    )}
                   </div>
                 </div>
               );

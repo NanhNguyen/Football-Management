@@ -108,7 +108,7 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
           {isLive && (
             <span className={styles.liveBadge}>
               <span className={styles.livePulse} />
-              {match.dangTamDung ? 'PAUSED' : 'LIVE'} · {match.phut}&apos;
+              {match.dangTamDung ? 'NGHỈ GIỮA HIỆP' : `LIVE · ${match.phut}'`}
             </span>
           )}
           {isSapDienRa && (

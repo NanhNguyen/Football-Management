@@ -59,6 +59,12 @@
   animation: pulse-live 1.5s infinite;
 }
 
+.timeHalftime {
+  font-size: 10px;
+  text-align: center;
+  line-height: 1.2;
+}
+
 @keyframes pulse-live {
   0% { opacity: 0.8; }
   50% { opacity: 1; text-shadow: 0 0 8px rgba(220, 20, 60, 0.4); }

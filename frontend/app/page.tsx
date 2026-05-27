@@ -189,7 +189,7 @@ export default function TongQuanPage() {
                 {selectedMatch.trangThai === 'DANG_DIEN_RA' ? (
                   <span className={styles.modalLiveBadge}>
                     <span className={styles.liveDot} />
-                    {selectedMatch.dangTamDung ? 'PAUSED' : 'LIVE'} · {calculateMatchMinute(selectedMatch)}&apos;
+                    {selectedMatch.dangTamDung ? 'NGHỈ GIỮA HIỆP' : `LIVE · ${calculateMatchMinute(selectedMatch)}'`}
                   </span>
                 ) : selectedMatch.trangThai === 'KET_THUC' ? (
                   <span className={styles.modalStatusText}>KẾT THÚC</span>
@@ -249,7 +249,7 @@ export default function TongQuanPage() {
                         const isGoal = sk.loai?.startsWith('GOAL_') || sk.loai === 'BAN_THANG';
                         const isRed = sk.loai === 'CARD_RED' || sk.loai === 'THE_DO';
                         const isYellow = sk.loai === 'CARD_YELLOW' || sk.loai === 'THE_VANG';
-                        const isSub = sk.loai === 'SUB';
+                        const isSub = sk.loai === 'SUB' || sk.loai === 'THAY_NGUOI';
 
                         let iconClass = styles.timelineIcon;
                         let iconContent = '';
@@ -271,7 +271,22 @@ export default function TongQuanPage() {
                             <div className={styles.timelineContent}>
                               <div className={styles.timelineTime}>{sk.phut}&apos;</div>
                               <div className={styles.timelineText}>
-                                {sk.moTa}
+                                {isSub ? (
+                                  <div style={{ display: 'flex', flexDirection: 'column', gap: '2px' }}>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <span style={{ color: '#10b981', fontWeight: 700, fontSize: '11px' }}>▲</span>
+                                      <span style={{ fontWeight: 600, color: 'var(--color-text)' }}>{sk.cauThu?.ten || 'Không rõ'}</span>
+                                    </div>
+                                    <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                                      <span style={{ color: '#ef4444', fontWeight: 700, fontSize: '11px' }}>▼</span>
+                                      <span style={{ color: '#64748b', fontSize: '13px' }}>
+                                        {sk.moTa ? sk.moTa.replace('Vào sân thay cho ', '') : 'Chưa rõ'}
+                                      </span>
+                                    </div>
+                                  </div>
+                                ) : (
+                                  sk.moTa
+                                )}
                               </div>
                             </div>
                           </div>
