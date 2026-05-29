@@ -13,6 +13,13 @@ export default function DateStrip({ selectedDate, onSelectDate }: DateStripProps
   const [startX, setStartX] = useState(0);
   const [scrollLeft, setScrollLeft] = useState(0);
 
+  // The central date of the strip, defaults to today
+  const [stripCenterDate, setStripCenterDate] = useState<Date>(() => {
+    const d = new Date();
+    d.setHours(0, 0, 0, 0);
+    return d;
+  });
+
   const handleMouseDown = (e: React.MouseEvent) => {
     const el = scrollRef.current;
     if (!el) return;
@@ -39,31 +46,36 @@ export default function DateStrip({ selectedDate, onSelectDate }: DateStripProps
     el.scrollLeft = scrollLeft - walk;
   };
 
-  // Generate dates around today
   const today = new Date();
+  today.setHours(0, 0, 0, 0);
   
-  const formatDateLabel = (date: Date) => {
-    const day = date.getDate().toString().padStart(2, '0');
-    const month = (date.getMonth() + 1).toString().padStart(2, '0');
-    return `${day}/${month}`;
+  const getDayOfWeek = (date: Date) => {
+    const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+    return days[date.getDay()];
   };
 
   const dates = [];
   for (let i = -2; i <= 4; i++) {
-    const d = new Date(today);
-    d.setDate(today.getDate() + i);
-    let label = formatDateLabel(d);
-    let displayLabel = label;
-
-    if (i === -1) { displayLabel = 'Hôm qua'; }
-    else if (i === 0) { displayLabel = `Hôm nay ${label}`; }
-    else if (i === 1) { displayLabel = `Ngày mai ${label}`; }
-
+    const d = new Date(stripCenterDate);
+    d.setDate(stripCenterDate.getDate() + i);
+    d.setHours(0, 0, 0, 0);
+    
+    const diffDays = Math.round((d.getTime() - today.getTime()) / (1000 * 60 * 60 * 24));
+    
+    const dayStr = d.getDate().toString().padStart(2, '0');
+    const monthStr = (d.getMonth() + 1).toString().padStart(2, '0');
+    const dateLabel = `${dayStr}/${monthStr}`;
+    
+    let displayLabel = '';
+    if (diffDays === 0) displayLabel = `HÔM NAY ${dateLabel}`;
+    else if (diffDays === -1) displayLabel = `HÔM QUA ${dateLabel}`;
+    else if (diffDays === 1) displayLabel = `NGÀY MAI ${dateLabel}`;
+    else displayLabel = `${getDayOfWeek(d)} ${dateLabel}`;
+  
     dates.push({
-      id: `DATE_${i}`,
+      id: `DATE_${d.getTime()}`,
       displayLabel,
       date: d,
-      isToday: i === 0,
     });
   }
 
@@ -74,6 +86,19 @@ export default function DateStrip({ selectedDate, onSelectDate }: DateStripProps
       d1.getMonth() === d2.getMonth() &&
       d1.getFullYear() === d2.getFullYear()
     );
+  };
+
+  const handleCalendarChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.value) {
+      const parts = e.target.value.split('-');
+      if (parts.length === 3) {
+        // Parse local date
+        const newDate = new Date(Number(parts[0]), Number(parts[1]) - 1, Number(parts[2]));
+        newDate.setHours(0, 0, 0, 0);
+        setStripCenterDate(newDate);
+        onSelectDate(newDate);
+      }
+    }
   };
 
   return (
@@ -123,10 +148,18 @@ export default function DateStrip({ selectedDate, onSelectDate }: DateStripProps
           })}
         </div>
 
-        {/* Calendar Picker button */}
-        <button className={styles.calendarBtn} aria-label="Select date from calendar">
-          📅
-        </button>
+        {/* Calendar Picker button with native date input */}
+        <div className={styles.calendarWrapper}>
+          <input 
+            type="date" 
+            className={styles.calendarInput}
+            onChange={handleCalendarChange}
+            title="Chọn ngày"
+          />
+          <button className={styles.calendarBtn} aria-label="Select date from calendar">
+            📅
+          </button>
+        </div>
 
       </div>
     </div>

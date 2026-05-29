@@ -1,3 +1,4 @@
+import TeamLogo from '@/components/TeamLogo';
 'use client';
 
 import { useState, useEffect } from 'react';
@@ -107,7 +108,7 @@ export default function BangXepHangPage() {
                         </td>
                         <td>
                           <div className={styles.teamCell}>
-                            <span className={styles.teamLogo}>{row.doi?.logo}</span>
+                            <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={row.doi?.logo} fallback="⚽" /></span>
                             <span className={styles.teamName}>{row.doi?.ten}</span>
                           </div>
                         </td>

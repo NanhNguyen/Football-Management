@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import Link from 'next/link';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
+import TeamLogo from '@/components/TeamLogo';
 import styles from './page.module.css';
 import { supabase } from '@/lib/supabase';
 import { layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
@@ -178,10 +179,10 @@ export default function ChiTietTranDauPage() {
         </div>
 
         <div className={styles.scoreboard}>
-          <div className={styles.team}>
-            <span className={styles.teamLogo}>{matchData.doiNha?.logo || '⚽'}</span>
+          <Link href={matchData.doiNha?.id ? `/doi-bong/${matchData.doiNha.id}` : '#'} className={styles.team} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={matchData.doiNha?.logo} /></span>
             <h3 className={styles.teamName}>{matchData.doiNha?.ten}</h3>
-          </div>
+          </Link>
 
           <div className={styles.scoreCenter}>
             <div className={styles.score}>
@@ -201,10 +202,10 @@ export default function ChiTietTranDauPage() {
             )}
           </div>
 
-          <div className={styles.team}>
-            <span className={styles.teamLogo}>{matchData.doiKhach?.logo || '⚽'}</span>
+          <Link href={matchData.doiKhach?.id ? `/doi-bong/${matchData.doiKhach.id}` : '#'} className={styles.team} style={{ textDecoration: 'none', color: 'inherit' }}>
+            <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={matchData.doiKhach?.logo} /></span>
             <h3 className={styles.teamName}>{matchData.doiKhach?.ten}</h3>
-          </div>
+          </Link>
         </div>
       </div>
 

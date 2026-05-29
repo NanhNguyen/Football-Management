@@ -111,8 +111,8 @@
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: none;
-  padding: 8px 16px;
+  border: 1px solid transparent; /* Added to prevent layout shift */
+  padding: 7px 15px; /* adjusted for border */
   cursor: pointer;
   white-space: nowrap;
   border-radius: var(--radius-md);
@@ -129,10 +129,19 @@
 }
 
 .dateBtnActive {
-  background-color: var(--color-primary) !important; /* Solid red brand background */
-  color: white !important; /* White text */
+  background-color: rgba(215, 25, 32, 0.05) !important; 
+  color: var(--color-primary) !important; /* Red text */
+  border: 1px solid var(--color-primary) !important; /* Red border */
   font-weight: 700;
-  box-shadow: 0 4px 10px rgba(215, 25, 32, 0.2);
+}
+
+.calendarWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  margin-left: 4px;
 }
 
 .calendarBtn {
@@ -146,8 +155,25 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  flex-shrink: 0;
-  margin-left: 4px;
+}
+
+.calendarInput {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.calendarInput::-webkit-calendar-picker-indicator {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  cursor: pointer;
 }
 
 .calendarBtn:hover {

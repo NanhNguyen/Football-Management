@@ -186,3 +186,20 @@ button {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--color-text-muted);
 }
+
+/* ===== EMOJI RED TINT ===== 
+   Turns all emoji icons into brand red to match the red/white premium theme.
+   Ignores elements that contain actual <img> tags (like real team logos).
+*/
+[class*="teamLogo"]:not(:has(img)),
+[class*="entityLogo"]:not(:has(img)),
+[class*="sectionTitleIcon"],
+[class*="cardIcon"],
+[class*="statIcon"],
+[class*="consoleTeamEmoji"]:not(:has(img)),
+[class*="consoleCentralLogo"]:not(:has(img)),
+[class*="bsActionIcon"],
+[class*="timelineIcon"],
+[class*="calendarBtn"] {
+  filter: brightness(0) saturate(100%) invert(16%) sepia(87%) saturate(5838%) hue-rotate(348deg) brightness(87%) contrast(96%);
+}

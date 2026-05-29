@@ -117,8 +117,8 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
     onClose();
   }, [pathname, onClose]);
 
-  // Filter tournaments that have at least one team associated (hiding empty/placeholder ones)
-  const activeTournaments = tournaments.filter(t => teams.some((team: any) => team.giai_dau_id === t.id));
+  // Show all tournaments regardless of whether they have teams yet
+  const activeTournaments = tournaments;
 
   // Filter out followed objects to render from the active list
   const followedTourneysList = activeTournaments.filter(t => followedTournaments.includes(t.id));
@@ -148,7 +148,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
           {/* Section 1: ⭐ ĐANG THEO DÕI (Consumes Global State `favoriteTeams`) */}
           <section className={styles.sectionWrapper}>
             <div className={styles.sectionHeader}>
-              <span className={styles.sectionTitleIcon}>⭐</span>
+              <span className={styles.sectionTitleIcon} style={{color: '#d71920'}}>★</span>
               <span className={styles.sectionTitleText}>ĐANG THEO DÕI</span>
             </div>
             
@@ -184,7 +184,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                           onClick={(e) => toggleFollowTournament(t.id, e)}
                           title="Bỏ theo dõi"
                         >
-                          ⭐
+                          <span style={{color: '#d71920'}}>★</span>
                         </button>
                       </div>
                     );
@@ -214,7 +214,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                           onClick={(e) => handleToggleFollowTeam(team.id, e)}
                           title="Bỏ theo dõi"
                         >
-                          ⭐
+                          <span style={{color: '#d71920'}}>★</span>
                         </button>
                       </Link>
                     );
@@ -261,7 +261,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                           onClick={(e) => toggleFollowTournament(t.id, e)}
                           title={isFollowed ? "Bỏ theo dõi" : "Theo dõi"}
                         >
-                          {isFollowed ? '★' : '☆'}
+                          {isFollowed ? <span style={{color: '#d71920'}}>★</span> : '☆'}
                         </button>
                       </div>
                     );

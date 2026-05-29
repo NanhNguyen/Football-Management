@@ -7,6 +7,9 @@ import MatchListFeed from '@/components/MatchListFeed';
 import { usePublicTournament } from '@/components/PublicTournamentContext';
 import { layDanhSachDoi, layDanhSachTranDau, layBangXepHang } from '@/lib/api';
 
+import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
+import TeamLogo from '@/components/TeamLogo';
+
 export default function TeamDetailsPage() {
   const params = useParams();
   const router = useRouter();
@@ -88,14 +91,7 @@ export default function TeamDetailsPage() {
   }, [params.id]);
 
   if (loading) {
-    return (
-      <div className={styles.container}>
-        <div className={`${styles.skeleton} ${styles.skeletonHeader}`}></div>
-        <div className={`${styles.skeleton} ${styles.skeletonTabs}`}></div>
-        <div className={`${styles.skeleton} ${styles.skeletonCard}`}></div>
-        <div className={`${styles.skeleton} ${styles.skeletonCard}`}></div>
-      </div>
-    );
+    return <GlobalSkeletonLoader />;
   }
 
   if (error || !data || !data.doi) {
@@ -142,9 +138,9 @@ export default function TeamDetailsPage() {
         <>
           <h3 className={styles.sectionTitle}>Trận tiếp theo</h3>
           <div className={styles.card}>
-            <div className={styles.nextMatchInfo}>
+            <div className={styles.nextMatchTeams}>
               <div className={styles.nextMatchTeam}>
-                <span className={styles.teamLogoSm}>{tranDauSapToi.doiNha?.logo || '🛡️'}</span>
+                <span className={styles.teamLogoSm} style={{ display: 'flex' }}><TeamLogo logo={tranDauSapToi.doiNha?.logo} fallback="🛡️" /></span>
                 <span className={styles.teamNameSm}>{tranDauSapToi.doiNha?.ten || 'Home'}</span>
               </div>
               <div className={styles.matchCenter}>
@@ -154,7 +150,7 @@ export default function TeamDetailsPage() {
                 </div>
               </div>
               <div className={styles.nextMatchTeam}>
-                <span className={styles.teamLogoSm}>{tranDauSapToi.doiKhach?.logo || '🛡️'}</span>
+                <span className={styles.teamLogoSm} style={{ display: 'flex' }}><TeamLogo logo={tranDauSapToi.doiKhach?.logo} fallback="🛡️" /></span>
                 <span className={styles.teamNameSm}>{tranDauSapToi.doiKhach?.ten || 'Away'}</span>
               </div>
             </div>
@@ -254,12 +250,21 @@ export default function TeamDetailsPage() {
 
   return (
     <div className={styles.container}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
+        <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, fontWeight: 600, color: '#334155' }}>
+          ← Quay lại
+        </button>
+        <Link href="/" style={{ color: '#64748b', textDecoration: 'none', fontSize: '14px' }}>
+          Về Trang chủ
+        </Link>
+      </div>
+
       {/* Header Section */}
       <div className={styles.headerSection}>
         <div className={styles.logoWrapper}>
-          {doi.logo || '🛡️'}
+          <TeamLogo logo={data.doi.logo} fallback="🛡️" />
         </div>
-        <div className={styles.headerTextWrapper}>
+        <div className={styles.headerInfo}>
           <div className={styles.teamNameRow}>
             <h1 className={styles.teamName}>{doi.ten}</h1>
             <button 

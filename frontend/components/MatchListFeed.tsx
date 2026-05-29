@@ -1,7 +1,9 @@
-import React from 'react';
 import { useRouter } from 'next/navigation';
+import React from 'react';
 import styles from './MatchListFeed.module.css';
 import { calculateMatchMinute } from '@/lib/api';
+import { usePublicTournament } from './PublicTournamentContext';
+import TeamLogo from './TeamLogo';
 
 interface MatchListFeedProps {
   data: any;
@@ -10,6 +12,7 @@ interface MatchListFeedProps {
 
 export default function MatchListFeed({ data, onMatchClick }: MatchListFeedProps) {
   const router = useRouter();
+  const { favoriteTeams } = usePublicTournament();
 
   if (!data) return null;
 
@@ -45,6 +48,9 @@ export default function MatchListFeed({ data, onMatchClick }: MatchListFeedProps
               const isLive = match.trangThai === 'DANG_DIEN_RA';
               const isUpcoming = match.trangThai === 'SAP_DIEN_RA';
               const isFinished = match.trangThai === 'KET_THUC';
+              
+              const isFavorite = (match.doiNha?.id && favoriteTeams.includes(match.doiNha.id)) || 
+                                 (match.doiKhach?.id && favoriteTeams.includes(match.doiKhach.id));
 
               return (
                 <div 
@@ -76,7 +82,7 @@ export default function MatchListFeed({ data, onMatchClick }: MatchListFeedProps
                           }
                         }}
                       >
-                        <span className={styles.teamLogo}>{match.doiNha?.logo || '🛡️'}</span>
+                        <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={match.doiNha?.logo} fallback="🛡️" /></span>
                         <span className={styles.teamName}>{match.doiNha?.ten || 'Đang cập nhật'}</span>
                       </div>
                       <div className={styles.scoreBox}>
@@ -101,7 +107,7 @@ export default function MatchListFeed({ data, onMatchClick }: MatchListFeedProps
                           }
                         }}
                       >
-                        <span className={styles.teamLogo}>{match.doiKhach?.logo || '🛡️'}</span>
+                        <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={match.doiKhach?.logo} fallback="🛡️" /></span>
                         <span className={styles.teamName}>{match.doiKhach?.ten || 'Đang cập nhật'}</span>
                       </div>
                       <div className={styles.scoreBox}>
@@ -120,8 +126,8 @@ export default function MatchListFeed({ data, onMatchClick }: MatchListFeedProps
                   <div className={styles.colAction}>
                     <button className={styles.starBtn} onClick={(e) => {
                       e.stopPropagation();
-                    }}>
-                      ☆
+                    }} style={isFavorite ? { color: '#d71920' } : {}}>
+                      {isFavorite ? '★' : '☆'}
                     </button>
                   </div>
                 </div>

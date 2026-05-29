@@ -5,6 +5,7 @@ import Link from 'next/link';
 import styles from './LiveMatchCard.module.css';
 import { supabase } from '@/lib/supabase';
 import { calculateMatchMinute } from '@/lib/api';
+import TeamLogo from './TeamLogo';
 
 interface Props {
   tran: any;
@@ -123,9 +124,9 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
       {/* Scoreboard */}
       <div className={styles.scoreboard}>
         {/* Home Team */}
-        <div className={styles.team}>
-          <span className={styles.teamLogo}>{match.doiNha?.logo ?? '⚽'}</span>
-          <span className={styles.teamName}>{match.doiNha?.ten ?? 'Chờ xác định'}</span>
+        <div className={styles.teamInfo}>
+          <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={match.doiNha?.logo} /></span>
+          <span className={styles.teamName}>{match.doiNha?.ten || 'Đội nhà'}</span>
         </div>
 
         {/* Score */}
@@ -148,9 +149,9 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
         </div>
 
         {/* Away Team */}
-        <div className={styles.team}>
-          <span className={styles.teamLogo}>{match.doiKhach?.logo ?? '⚽'}</span>
-          <span className={styles.teamName}>{match.doiKhach?.ten ?? 'Chờ xác định'}</span>
+        <div className={styles.teamInfo}>
+          <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={match.doiKhach?.logo} /></span>
+          <span className={styles.teamName}>{match.doiKhach?.ten || 'Đội khách'}</span>
         </div>
       </div>
 

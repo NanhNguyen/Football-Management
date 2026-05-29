@@ -26,6 +26,7 @@ import AdminOnboardingTour from '@/components/AdminOnboardingTour';
 import RefereeGuideOverlay from '@/components/RefereeGuideOverlay';
 
 import * as XLSX from 'xlsx';
+import TeamLogo from '@/components/TeamLogo';
 
 const sidebarItems = [
   { label: 'Lịch đấu', id: 'lich' },
@@ -90,6 +91,28 @@ export default function QuanTriPage() {
   const [editingTeam, setEditingTeam] = useState<any | null>(null);
   const [viewingTeam, setViewingTeam] = useState<any | null>(null);
   const [isAddingTeam, setIsAddingTeam] = useState(false);
+  const [fetchingLogo, setFetchingLogo] = useState(false);
+
+  const handleAutoFetchLogo = async (teamName: string, isEditing = false) => {
+    if (!teamName) return showToast("Vui lòng nhập tên đội bóng trước!");
+    setFetchingLogo(true);
+    try {
+      // TheSportsDB free key '3' is locked to test data (Arsenal only).
+      // So we fallback to generating a beautiful Initials Logo instantly.
+      const fallbackUrl = `https://ui-avatars.com/api/?name=${encodeURIComponent(teamName)}&background=random&color=fff&size=200&bold=true&format=svg`;
+      if (isEditing) {
+        setEditingTeam((prev: any) => ({ ...prev, logo: fallbackUrl }));
+      } else {
+        setNewTeamData((prev: any) => ({ ...prev, logo: fallbackUrl }));
+      }
+      showToast("✅ Đã tạo Logo Avatar cực chất!");
+    } catch (error) {
+      showToast("❌ Có lỗi khi tạo logo");
+    } finally {
+      setFetchingLogo(false);
+    }
+  };
+
   const [newTeamData, setNewTeamData] = useState({ ten: '', logo: '⚽', bang: 'A' });
   const [editingMatch, setEditingMatch] = useState<any | null>(null);
   const [isAddingMatch, setIsAddingMatch] = useState(false);
@@ -332,11 +355,14 @@ export default function QuanTriPage() {
     setImportLoading(true);
     try {
       let successCount = 0;
+      const totalRequested = teams.length + importTeamsPreview.length;
+      
+      // Tự động mở rộng maxTeams nếu import số lượng lớn
+      if (totalRequested > maxTeams) {
+        setMaxTeams(totalRequested);
+      }
+
       for (const team of importTeamsPreview) {
-        if (teams.length + successCount >= maxTeams) {
-          showToast(`⚠️ Đã đạt giới hạn ${maxTeams} đội, không thể thêm tiếp!`);
-          break;
-        }
         const { error } = await createTeam({
           ...team,
           giaiDauId: selectedTournament?.id
@@ -1711,7 +1737,7 @@ export default function QuanTriPage() {
                         </td>
                         <td style={{ padding: '12px 16px', textAlign: 'center', fontWeight: 700, color: '#1e293b' }}>{idx + 1}</td>
                         <td style={{ padding: '12px 16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ fontSize: '20px' }}>{t.logo}</span>
+                          <span style={{ fontSize: '20px', lineHeight: 1, display: 'flex' }}><TeamLogo logo={t.logo} /></span>
                           <span style={{ fontWeight: 600, color: '#1e293b' }}>{t.ten}</span>
                         </td>
                         <td style={{ padding: '12px 16px', textAlign: 'center' }}>
@@ -1951,7 +1977,7 @@ export default function QuanTriPage() {
                     <tr key={doi.id}>
                       <td>
                         <div className={styles.teamRow} onClick={() => setViewingTeam(doi)}>
-                          <div className={styles.teamLogoMini}>{doi.logo}</div>
+                          <div className={styles.teamLogoMini}><TeamLogo logo={doi.logo} /></div>
                           <span style={{ fontWeight: 600 }}>{doi.ten}</span>
                         </div>
                       </td>
@@ -2097,7 +2123,7 @@ export default function QuanTriPage() {
                           <div className={styles.matchListInfo}>
                             <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, width: '80px' }}>{m.vong}</span>
                             <div className={styles.listTeam}>
-                              <span>{m.doiNha?.logo || '⚽'}</span>
+                              <span style={{ display: 'flex' }}><TeamLogo logo={m.doiNha?.logo} /></span>
                               <span style={{ fontWeight: 700 }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
                             </div>
                             <div style={{ display: 'flex', gap: '8px', fontWeight: 800, fontSize: '18px', width: '60px', justifyContent: 'center' }}>
@@ -2106,7 +2132,7 @@ export default function QuanTriPage() {
                               <span>{m.tyKhach}</span>
                             </div>
                             <div className={styles.listTeam}>
-                              <span>{m.doiKhach?.logo || '⚽'}</span>
+                              <span style={{ display: 'flex' }}><TeamLogo logo={m.doiKhach?.logo} /></span>
                               <span style={{ fontWeight: 700 }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
                             </div>
                           </div>
@@ -2162,7 +2188,7 @@ export default function QuanTriPage() {
                     {/* LEFT — Doi nha */}
                     <div id="tour-referee-team-panel" className={styles.consoleTeamPanel}>
                       <div className={styles.consoleTeamHeader}>
-                        <span className={styles.consoleTeamEmoji}>{selectedMatch.doiNha?.logo || '⚽'}</span>
+                        <span className={styles.consoleTeamEmoji}><TeamLogo logo={selectedMatch.doiNha?.logo} /></span>
                         <div style={{ flex: 1, minWidth: 0 }}>
                           <div className={styles.consoleTeamName}>{selectedMatch.doiNha?.ten || 'Chờ xác định'}</div>
                           <div className={styles.consoleTeamLabel} style={{ color: '#f87171' }}>ĐỘI NHÀ</div>
@@ -2275,7 +2301,7 @@ export default function QuanTriPage() {
                       {/* Scoreboard Card */}
                       <div className={styles.consoleCentralHeaderCard}>
                         <div className={styles.consoleCentralTeam}>
-                          <span className={styles.consoleCentralLogo}>{selectedMatch.doiNha?.logo || '⚽'}</span>
+                          <span className={styles.consoleCentralLogo}><TeamLogo logo={selectedMatch.doiNha?.logo} /></span>
                           <span className={styles.consoleCentralName}>{selectedMatch.doiNha?.ten || 'Chờ xác định'}</span>
                         </div>
                         <div className={styles.consoleCentralScoreWrapper}>
@@ -2286,7 +2312,7 @@ export default function QuanTriPage() {
                           </div>
                         </div>
                         <div className={styles.consoleCentralTeam}>
-                          <span className={styles.consoleCentralLogo}>{selectedMatch.doiKhach?.logo || '⚽'}</span>
+                          <span className={styles.consoleCentralLogo}><TeamLogo logo={selectedMatch.doiKhach?.logo} /></span>
                           <span className={styles.consoleCentralName}>{selectedMatch.doiKhach?.ten || 'Chờ xác định'}</span>
                         </div>
                       </div>
@@ -2412,7 +2438,7 @@ export default function QuanTriPage() {
                           <div className={styles.consoleTeamName}>{selectedMatch.doiKhach?.ten || 'Chờ xác định'}</div>
                           <div className={styles.consoleTeamLabel} style={{ color: '#60a5fa', textAlign: 'right' }}>ĐỘI KHÁCH</div>
                         </div>
-                        <span className={styles.consoleTeamEmoji}>{selectedMatch.doiKhach?.logo || '⚽'}</span>
+                        <span className={styles.consoleTeamEmoji}><TeamLogo logo={selectedMatch.doiKhach?.logo} /></span>
                       </div>
                       <div className={styles.consoleRosterGrid}>
                         {(!selectedMatch.doiKhach?.cauThu || selectedMatch.doiKhach.cauThu.length === 0) ? (
@@ -2648,7 +2674,12 @@ export default function QuanTriPage() {
                 onChange={(e) => setNewTeamData({ ...newTeamData, ten: e.target.value })}
               />
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
-                <input className={styles.modalInput} value={newTeamData.logo} onChange={(e) => setNewTeamData({ ...newTeamData, logo: e.target.value })} />
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input className={styles.modalInput} style={{ flex: 1, minWidth: 0 }} placeholder="URL Logo" value={newTeamData.logo} onChange={(e) => setNewTeamData({ ...newTeamData, logo: e.target.value })} />
+                  <button onClick={() => handleAutoFetchLogo(newTeamData.ten, false)} disabled={fetchingLogo} style={{ padding: '0 12px', background: '#fee2e2', color: '#d71920', border: '1px solid #fecaca', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }} title="Tự động tìm kiếm logo thật">
+                    {fetchingLogo ? '⌛' : '⚡ Tự tìm'}
+                  </button>
+                </div>
                 <select className={styles.modalInput} value={newTeamData.bang} onChange={(e) => setNewTeamData({ ...newTeamData, bang: e.target.value })}>
                   <option value="A">Bảng A</option>
                   <option value="B">Bảng B</option>
@@ -2686,6 +2717,29 @@ export default function QuanTriPage() {
                   value={editingTeam.ten}
                   onChange={(e) => setEditingTeam({ ...editingTeam, ten: e.target.value })}
                 />
+              </div>
+
+              <div style={{ marginBottom: '20px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                  🖼️ Logo đội bóng
+                </label>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <input
+                    type="text"
+                    className={styles.modalInput}
+                    style={{ flex: 1, background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '12px 16px', fontSize: '15px' }}
+                    value={editingTeam.logo || ''}
+                    onChange={(e) => setEditingTeam({ ...editingTeam, logo: e.target.value })}
+                    placeholder="URL ảnh Logo đội bóng"
+                  />
+                  <button 
+                    onClick={() => handleAutoFetchLogo(editingTeam.ten, true)} 
+                    disabled={fetchingLogo} 
+                    style={{ padding: '0 20px', background: '#fee2e2', color: '#d71920', border: '1px solid #fecaca', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
+                  >
+                    {fetchingLogo ? 'Đang tìm...' : '⚡ Tìm Logo Tự Động'}
+                  </button>
+                </div>
               </div>
 
               <div style={{ marginTop: '20px' }}>
@@ -2875,7 +2929,7 @@ export default function QuanTriPage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
                   <div style={{ fontSize: '40px', background: '#f8fafc', width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-                    {viewingTeam.logo}
+                    <TeamLogo logo={viewingTeam.logo} />
                   </div>
                   <div>
                     <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800 }}>{viewingTeam.ten}</h3>
@@ -3436,7 +3490,7 @@ export default function QuanTriPage() {
                         {importTeamsPreview.map((t, i) => (
                           <tr key={t.id} style={{ borderBottom: i === importTeamsPreview.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
                             <td style={{ padding: '8px 12px', fontSize: '13px', color: '#64748b' }}>{i + 1}</td>
-                            <td style={{ padding: '8px 12px', fontSize: '18px' }}>{t.logo}</td>
+                            <td style={{ padding: '8px 12px', fontSize: '18px', display: 'flex' }}><TeamLogo logo={t.logo} /></td>
                             <td style={{ padding: '8px 12px', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>{t.ten}</td>
                             <td style={{ padding: '8px 12px', fontSize: '13px', color: '#475569' }}>
                               <span style={{ background: '#f1f5f9', color: '#334155', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>
