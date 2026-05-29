@@ -6,42 +6,44 @@
 }
 
 .matchGroup {
-  background-color: var(--color-surface);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-md);
-  overflow: hidden;
+  background-color: transparent;
+  overflow: visible;
+  margin-bottom: var(--space-md);
 }
 
 .groupHeader {
-  background-color: var(--color-surface-hover);
-  padding: 8px 16px;
-  border-bottom: 1px solid var(--color-border-light);
+  background-color: transparent;
+  padding: 8px 4px;
   font-size: 13px;
   font-weight: 700;
-  color: var(--color-text);
+  color: var(--color-text-secondary);
   text-transform: uppercase;
+  margin-bottom: 8px;
 }
 
 .groupContent {
   display: flex;
   flex-direction: column;
+  gap: 10px; /* Separates the cards nicely */
 }
 
 .matchRow {
   display: flex;
   align-items: center;
-  padding: 12px 16px;
-  border-bottom: 1px solid var(--color-border-light);
+  padding: 10px 16px;
+  background-color: var(--color-surface); /* White card background */
+  border-radius: 12px; /* Smooth rounded corners */
+  border: 1px solid var(--color-border-light); /* Subtle light gray card border */
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02); /* Soft shadow to lift card */
   cursor: pointer;
-  transition: background-color 0.2s ease;
-}
-
-.matchRow:last-child {
-  border-bottom: none;
+  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .matchRow:hover {
-  background-color: var(--color-surface-hover);
+  background-color: var(--color-surface);
+  transform: translateY(-2px); /* Modern floating micro-lift */
+  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05); /* Deeper shadow on lift */
+  border-color: rgba(215, 25, 32, 0.18); /* Soft brand color glow */
 }
 
 .colTime {
@@ -54,7 +56,7 @@
 }
 
 .timeLive {
-  color: var(--color-primary);
+  color: var(--color-primary); /* Red */
   font-weight: 700;
   animation: pulse-live 1.5s infinite;
 }
@@ -96,7 +98,20 @@
 .teamInfo {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 8px;
+}
+
+.teamInfoClickable {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.teamInfoClickable:hover .teamName {
+  text-decoration: underline;
+  color: var(--color-primary);
 }
 
 .teamName {
@@ -130,7 +145,7 @@
 }
 
 .scoreLive {
-  color: var(--color-primary);
+  color: var(--color-primary); /* Red */
 }
 
 .scoreDash {
@@ -167,8 +182,7 @@
   color: var(--color-text-muted);
   font-size: 14px;
   background-color: var(--color-surface);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-md);
+  border-top: 1px solid #f1f5f9;
 }
 
 @media (max-width: 768px) {
@@ -182,8 +196,8 @@
   .colAction {
     width: 10%;
   }
-  .teamNameLeft, .teamNameRight {
-    font-size: 13px;
+  .teamName {
+    font-size: 14px;
   }
   .scoreText {
     font-size: 16px;
@@ -192,3 +206,31 @@
     padding: 12px 8px;
   }
 }
+
+@media (max-width: 480px) {
+  .colTime {
+    width: 20%;
+    font-size: 11px;
+  }
+  .colMain {
+    width: 70%;
+  }
+  .colAction {
+    width: 10%;
+  }
+  .teamName {
+    font-size: 13px;
+    max-width: 110px; /* prevent text overflow on very narrow screens */
+  }
+  .teamLogo {
+    font-size: 16px;
+    width: 18px;
+  }
+  .scoreText {
+    font-size: 14px;
+  }
+  .matchRow {
+    padding: 10px 6px;
+  }
+}
+

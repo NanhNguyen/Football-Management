@@ -4,7 +4,8 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import styles from './page.module.css';
 import MatchListFeed from '@/components/MatchListFeed';
-import PublicLayoutWrapper from '@/components/PublicLayoutWrapper';
+import { usePublicTournament } from '@/components/PublicTournamentContext';
+import { layDanhSachDoi, layDanhSachTranDau, layBangXepHang } from '@/lib/api';
 
 export default function TeamDetailsPage() {
   const params = useParams();
@@ -14,16 +15,69 @@ export default function TeamDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
+  const { favoriteTeams, toggleFollowTeam } = usePublicTournament();
+  const isFollowed = params.id ? favoriteTeams.includes(params.id as string) : false;
+
+  const handleFollowToggle = () => {
+    if (params.id) {
+      toggleFollowTeam(params.id as string);
+    }
+  };
+
   useEffect(() => {
     async function fetchTeam() {
       try {
-        const res = await fetch(`http://localhost:3001/public/teams/${params.id}`);
-        if (!res.ok) throw new Error('Không thể tải dữ liệu đội bóng');
-        const json = await res.json();
-        if (json.error) throw new Error(json.error);
-        setData(json);
+        if (!params.id) return;
+        
+        // 1. Fetch all teams to extract basic details and players
+        const allTeams = await layDanhSachDoi();
+        const doi = allTeams.find((t: any) => t.id === params.id);
+        if (!doi) throw new Error('Không tìm thấy đội bóng trong hệ thống giải đấu');
+
+        // 2. Fetch standings to get statistics & form (phongDo)
+        const standings = await layBangXepHang();
+        const teamStandings = standings.find((s: any) => s.id === params.id);
+        
+        const thongKe = teamStandings ? {
+          soTran: teamStandings.soTran || 0,
+          banThang: teamStandings.banThang || 0,
+          diem: teamStandings.diem || 0
+        } : { soTran: 0, banThang: 0, diem: 0 };
+
+        // Convert T, H, B (Thắng, Hòa, Bại) from backend to W, D, L for consistency in UI display
+        const rawPhongDo = teamStandings?.phongDo || [];
+        const phongDo = rawPhongDo.map((p: string) => {
+          if (p === 'T') return 'W';
+          if (p === 'H') return 'D';
+          return 'L';
+        });
+
+        // 3. Fetch matches list to get upcoming and past matches
+        const allMatches = await layDanhSachTranDau();
+        const myMatches = allMatches.filter((m: any) => 
+          m.doiNha?.id === params.id || m.doiKhach?.id === params.id
+        );
+
+        // Filter past matches (KET_THUC) sorted by date descending
+        const lichSuTranDau = myMatches
+          .filter((m: any) => m.trangThai === 'KET_THUC')
+          .sort((a: any, b: any) => new Date(b.date).getTime() - new Date(a.date).getTime());
+
+        // Extract upcoming match (SAP_DIEN_RA or DANG_DIEN_RA) sorted by date ascending (nearest first)
+        const tranDauSapToi = myMatches
+          .filter((m: any) => m.trangThai === 'SAP_DIEN_RA' || m.trangThai === 'DANG_DIEN_RA')
+          .sort((a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime())[0] || null;
+
+        setData({
+          doi,
+          thongKe,
+          phongDo,
+          cauThu: doi.cauThu || [],
+          tranDauSapToi,
+          lichSuTranDau
+        });
       } catch (err: any) {
-        setError(err.message || 'Có lỗi xảy ra');
+        setError(err.message || 'Có lỗi xảy ra khi tải thông tin đội bóng');
       } finally {
         setLoading(false);
       }
@@ -35,21 +89,27 @@ export default function TeamDetailsPage() {
 
   if (loading) {
     return (
-      <PublicLayoutWrapper>
-        <div className={styles.container}>
-          <div className={styles.loadingWrapper}>Đang tải dữ liệu đội bóng...</div>
-        </div>
-      </PublicLayoutWrapper>
+      <div className={styles.container}>
+        <div className={`${styles.skeleton} ${styles.skeletonHeader}`}></div>
+        <div className={`${styles.skeleton} ${styles.skeletonTabs}`}></div>
+        <div className={`${styles.skeleton} ${styles.skeletonCard}`}></div>
+        <div className={`${styles.skeleton} ${styles.skeletonCard}`}></div>
+      </div>
     );
   }
 
   if (error || !data || !data.doi) {
     return (
-      <PublicLayoutWrapper>
-        <div className={styles.container}>
-          <div className={styles.errorWrapper}>{error || 'Không tìm thấy đội bóng'}</div>
+      <div className={styles.container} style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
+        <div className={styles.errorCard}>
+          <div className={styles.errorIcon}>⚠️</div>
+          <h2 className={styles.errorTitle}>Đã xảy ra lỗi</h2>
+          <p className={styles.errorMsg}>{error || 'Không tìm thấy đội bóng trong hệ thống giải đấu'}</p>
+          <button className={styles.errorBtn} onClick={() => router.push('/')}>
+            Quay lại Trang chủ
+          </button>
         </div>
-      </PublicLayoutWrapper>
+      </div>
     );
   }
 
@@ -66,6 +126,7 @@ export default function TeamDetailsPage() {
               <div
                 key={i}
                 className={`${styles.formBadge} ${f === 'W' ? styles.formW : f === 'D' ? styles.formD : styles.formL}`}
+                title={`Trận ${i + 1}`}
               >
                 {f}
               </div>
@@ -89,7 +150,7 @@ export default function TeamDetailsPage() {
               <div className={styles.matchCenter}>
                 <div className={styles.vsText}>VS</div>
                 <div className={styles.matchDate}>
-                  {tranDauSapToi.ngay} {tranDauSapToi.gio}
+                  {tranDauSapToi.date} {tranDauSapToi.time}
                 </div>
               </div>
               <div className={styles.nextMatchTeam}>
@@ -128,13 +189,17 @@ export default function TeamDetailsPage() {
 
   const renderMatches = () => {
     if (!lichSuTranDau || lichSuTranDau.length === 0) {
-      return <div className={styles.emptyState}>Chưa có trận đấu nào</div>;
+      return (
+        <div className={styles.contentArea}>
+          <div className={styles.emptyState}>Chưa có trận đấu nào</div>
+        </div>
+      );
     }
     const matchDataFormat = {
       tranKetThuc: lichSuTranDau
     };
     return (
-      <div style={{ padding: '0 20px' }}>
+      <div className={styles.contentArea}>
         <MatchListFeed 
           data={matchDataFormat} 
           onMatchClick={(match) => router.push(`/tran-dau/${match.id}`)} 
@@ -145,7 +210,11 @@ export default function TeamDetailsPage() {
 
   const renderSquad = () => {
     if (!cauThu || cauThu.length === 0) {
-      return <div className={styles.emptyState}>Chưa có thông tin đội hình</div>;
+      return (
+        <div className={styles.contentArea}>
+          <div className={styles.emptyState}>Chưa có thông tin đội hình</div>
+        </div>
+      );
     }
     
     // Group by position
@@ -161,12 +230,14 @@ export default function TeamDetailsPage() {
         {Object.keys(grouped).map((pos) => (
           <div key={pos} className={styles.squadGroup}>
             <h4 className={styles.squadGroupTitle}>{pos}</h4>
-            <div className={styles.card} style={{ padding: 0 }}>
+            <div className={styles.playersGrid}>
               {grouped[pos].map((ct: any) => (
-                <div key={ct.id} className={styles.playerItem}>
-                  <div style={{ padding: '0 16px' }} className={styles.playerNumber}>{ct.soAo || '-'}</div>
-                  <div className={styles.playerName}>{ct.ten}</div>
-                  <div style={{ padding: '0 16px' }} className={styles.playerStat}>⚽ {ct.banThang || 0}</div>
+                <div key={ct.id} className={styles.playerCard}>
+                  <div className={styles.playerNumberBadge}>{ct.soAo || '-'}</div>
+                  <div className={styles.playerInfo}>
+                    <div className={playerNameClass(ct.ten)}>{ct.ten}</div>
+                    <div className={styles.playerStat}>⚽ {ct.banThang || 0} Bàn thắng</div>
+                  </div>
                 </div>
               ))}
             </div>
@@ -176,49 +247,63 @@ export default function TeamDetailsPage() {
     );
   };
 
+  // Helper helper to handle position styling or simple text
+  const playerNameClass = (name: string) => {
+    return styles.playerName;
+  };
+
   return (
-    <PublicLayoutWrapper>
-      <div className={styles.container}>
-        {/* Header Section */}
-        <div className={styles.headerSection}>
-          <div className={styles.logoWrapper}>
-            {doi.logo || '🛡️'}
+    <div className={styles.container}>
+      {/* Header Section */}
+      <div className={styles.headerSection}>
+        <div className={styles.logoWrapper}>
+          {doi.logo || '🛡️'}
+        </div>
+        <div className={styles.headerTextWrapper}>
+          <div className={styles.teamNameRow}>
+            <h1 className={styles.teamName}>{doi.ten}</h1>
+            <button 
+              className={`${styles.followBtn} ${isFollowed ? styles.followBtnActive : ''}`} 
+              onClick={handleFollowToggle}
+              title={isFollowed ? "Bỏ theo dõi" : "Theo dõi đội bóng"}
+            >
+              {isFollowed ? '⭐' : '☆'}
+            </button>
           </div>
-          <h1 className={styles.teamName}>{doi.ten}</h1>
           <div className={styles.teamSubtitle}>
             Bảng {doi.bang || '-'}
           </div>
         </div>
-
-        {/* Tab Navigation */}
-        <div className={styles.tabsWrapper}>
-          <div className={styles.tabsList}>
-            <button 
-              className={`${styles.tabBtn} ${activeTab === 'overview' ? styles.tabBtnActive : ''}`}
-              onClick={() => setActiveTab('overview')}
-            >
-              Tổng quan
-            </button>
-            <button 
-              className={`${styles.tabBtn} ${activeTab === 'matches' ? styles.tabBtnActive : ''}`}
-              onClick={() => setActiveTab('matches')}
-            >
-              Lịch thi đấu
-            </button>
-            <button 
-              className={`${styles.tabBtn} ${activeTab === 'squad' ? styles.tabBtnActive : ''}`}
-              onClick={() => setActiveTab('squad')}
-            >
-              Đội hình
-            </button>
-          </div>
-        </div>
-
-        {/* Tab Content Area */}
-        {activeTab === 'overview' && renderOverview()}
-        {activeTab === 'matches' && renderMatches()}
-        {activeTab === 'squad' && renderSquad()}
       </div>
-    </PublicLayoutWrapper>
+
+      {/* Tab Navigation */}
+      <div className={styles.tabsWrapper}>
+        <div className={styles.tabsList}>
+          <button 
+            className={`${styles.tabBtn} ${activeTab === 'overview' ? styles.tabBtnActive : ''}`}
+            onClick={() => setActiveTab('overview')}
+          >
+            Tổng quan
+          </button>
+          <button 
+            className={`${styles.tabBtn} ${activeTab === 'matches' ? styles.tabBtnActive : ''}`}
+            onClick={() => setActiveTab('matches')}
+          >
+            Lịch thi đấu
+          </button>
+          <button 
+            className={`${styles.tabBtn} ${activeTab === 'squad' ? styles.tabBtnActive : ''}`}
+            onClick={() => setActiveTab('squad')}
+          >
+            Đội hình
+          </button>
+        </div>
+      </div>
+
+      {/* Tab Content Area */}
+      {activeTab === 'overview' && renderOverview()}
+      {activeTab === 'matches' && renderMatches()}
+      {activeTab === 'squad' && renderSquad()}
+    </div>
   );
 }

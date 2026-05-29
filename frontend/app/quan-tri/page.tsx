@@ -22,6 +22,8 @@ import {
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
+import AdminOnboardingTour from '@/components/AdminOnboardingTour';
+import RefereeGuideOverlay from '@/components/RefereeGuideOverlay';
 
 import * as XLSX from 'xlsx';
 
@@ -35,16 +37,37 @@ const sidebarItems = [
 export default function QuanTriPage() {
   const router = useRouter();
   const [activeTab, setActiveTab] = useState('lich');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [runTour, setRunTour] = useState(false);
+  const [runRefereeTour, setRunRefereeTour] = useState(false);
+
   useEffect(() => {
     const savedTab = localStorage.getItem('adminActiveTab');
     if (savedTab) {
       setActiveTab(savedTab);
+    }
+
+    const hasSeenTour = localStorage.getItem('hasSeenAdminTour');
+    if (!hasSeenTour) {
+      setRunTour(true);
     }
   }, []);
   const [liveMatches, setLiveMatches] = useState<any[]>([]);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (selectedMatchId) {
+      const hasSeenRefereeTour = localStorage.getItem('hasSeenRefereeTour');
+      if (!hasSeenRefereeTour) {
+        setRunRefereeTour(true);
+      }
+    } else {
+      setRunRefereeTour(false);
+    }
+  }, [selectedMatchId]);
+
   const [activePlayerParams, setActivePlayerParams] = useState<{ matchId: string, teamId: string, player: any, isBench?: boolean } | null>(null);
   const [pendingSubOut, setPendingSubOut] = useState<{ player: any, teamId: string } | null>(null);
   const [toast, setToast] = useState<{ message: string; visible: boolean }>({ message: '', visible: false });
@@ -1404,16 +1427,44 @@ export default function QuanTriPage() {
 
   return (
     <div className={styles.layout}>
+      <AdminOnboardingTour run={runTour} setRun={setRunTour} />
+      <RefereeGuideOverlay 
+        isVisible={runRefereeTour} 
+        onClose={() => {
+          setRunRefereeTour(false);
+          localStorage.setItem('hasSeenRefereeTour', 'true');
+        }} 
+      />
       {/* GLOBAL TOPBAR */}
       <header className={styles.globalTopbar}>
         <div className={styles.topbarLeft}>
+          <button
+            className={styles.mobileMenuBtn}
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            aria-label="Toggle Navigation Menu"
+          >
+            <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              {mobileMenuOpen ? (
+                <>
+                  <line x1="18" y1="6" x2="6" y2="18"></line>
+                  <line x1="6" y1="6" x2="18" y2="18"></line>
+                </>
+              ) : (
+                <>
+                  <line x1="3" y1="12" x2="21" y2="12"></line>
+                  <line x1="3" y1="6" x2="21" y2="6"></line>
+                  <line x1="3" y1="18" x2="21" y2="18"></line>
+                </>
+              )}
+            </svg>
+          </button>
           <a href="/" className={styles.topbarLogo}>
             <img src="/logo-premium-transparent.png" alt="Logo" className={styles.topbarLogoImg} />
             <span className={styles.topbarLogoText}>TKScore</span>
           </a>
           <div className={styles.switcherContainer}>
-            <div className={styles.tournamentSwitcher} onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}>
-              🏆 {selectedTournament?.ten || 'Chọn giải đấu...'}
+            <div id="tour-tournament-switcher" className={styles.tournamentSwitcher} onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}>
+              🏆 <span className={styles.tournamentSwitcherText}>{selectedTournament?.ten || 'Chọn giải đấu...'}</span>
               <svg className={`${styles.switcherArrow} ${isSwitcherOpen ? styles.switcherArrowOpen : ''}`} xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
             {isSwitcherOpen && (
@@ -1448,24 +1499,49 @@ export default function QuanTriPage() {
         </div>
         <div className={styles.topbarRight}>
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px', color: 'var(--color-text-muted)' }}>
+            <button 
+              id="tour-topbar-guide-btn" 
+              onClick={() => {
+                if (activeTab === 'referee' && selectedMatchId) {
+                  setRunRefereeTour(true);
+                } else {
+                  setRunTour(true);
+                }
+              }}
+              style={{ display: 'flex', alignItems: 'center', gap: '6px', background: 'none', border: 'none', color: 'var(--color-primary)', fontWeight: '600', cursor: 'pointer' }}
+              title="Xem hướng dẫn"
+            >
+              <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="10"></circle><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"></path><line x1="12" y1="17" x2="12.01" y2="17"></line></svg>
+              <span>Hướng dẫn</span>
+            </button>
             <svg style={{ cursor: 'pointer' }} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={handleLogout}>
               <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--color-primary-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>AD</div>
-              <span style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text)' }}>Admin</span>
+              <span className={styles.adminNameText} style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text)' }}>Admin</span>
             </div>
           </div>
         </div>
       </header>
 
       <div className={styles.bodyWrapper}>
+        {/* Sidebar Overlay */}
+        {mobileMenuOpen && (
+          <div className={styles.sidebarOverlay} onClick={() => setMobileMenuOpen(false)} />
+        )}
+
         {/* Sidebar */}
-        <aside className={styles.sidebar}>
+        <aside className={`${styles.sidebar} ${mobileMenuOpen ? styles.sidebarOpen : ''}`}>
           <nav className={styles.sidebarNav}>
             {sidebarItems.map((item) => (
               <button
                 key={item.id}
+                id={`tour-sidebar-${item.id}`}
                 className={`${styles.sidebarItem} ${activeTab === item.id ? styles.sidebarItemActive : ''}`}
-                onClick={() => { setActiveTab(item.id); localStorage.setItem('adminActiveTab', item.id); }}
+                onClick={() => {
+                  setActiveTab(item.id);
+                  localStorage.setItem('adminActiveTab', item.id);
+                  setMobileMenuOpen(false);
+                }}
               >
                 <span>{item.label}</span>
               </button>
@@ -1473,7 +1549,7 @@ export default function QuanTriPage() {
           </nav>
 
           <div className={styles.sidebarFooter}>
-            <a href="/" className={styles.secondaryMenuItem}>
+            <a href="/" className={styles.secondaryMenuItem} onClick={() => setMobileMenuOpen(false)}>
               <span className={styles.secondaryMenuItemIcon}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"></path>
@@ -1483,7 +1559,7 @@ export default function QuanTriPage() {
               <span>Về Home</span>
             </a>
 
-            <button onClick={handleLogout} className={`${styles.secondaryMenuItem} ${styles.logoutSecondaryItem}`}>
+            <button onClick={() => { handleLogout(); setMobileMenuOpen(false); }} className={`${styles.secondaryMenuItem} ${styles.logoutSecondaryItem}`}>
               <span className={styles.secondaryMenuItemIcon}>
                 <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
@@ -2073,7 +2149,7 @@ export default function QuanTriPage() {
                       {selectedMatch.trangThai === 'SAP_DIEN_RA' && <span className={styles.consolePendingBadge}>CHUA BAT DAU</span>}
                       {selectedMatch.trangThai === 'KET_THUC' && <span className={styles.consoleFinishedBadge}>KET THUC</span>}
                     </div>
-                    <div className={styles.consoleTopActions}>
+                    <div id="tour-referee-top-actions" className={styles.consoleTopActions}>
                       {(selectedMatch.trangThai === 'KET_THUC' || selectedMatch.trangThai === 'DANG_DIEN_RA') && (
                         <button className={styles.consoleResetBtn} onClick={() => handleResetMatch(selectedMatch.id)}>Reset</button>
                       )}
@@ -2084,7 +2160,7 @@ export default function QuanTriPage() {
                   <div className={styles.consoleGrid}>
 
                     {/* LEFT — Doi nha */}
-                    <div className={styles.consoleTeamPanel}>
+                    <div id="tour-referee-team-panel" className={styles.consoleTeamPanel}>
                       <div className={styles.consoleTeamHeader}>
                         <span className={styles.consoleTeamEmoji}>{selectedMatch.doiNha?.logo || '⚽'}</span>
                         <div style={{ flex: 1, minWidth: 0 }}>
@@ -2107,7 +2183,7 @@ export default function QuanTriPage() {
                             count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
                           }));
                           const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
-                          const isClickable = !hasRedCard && selectedMatch.trangThai === 'DANG_DIEN_RA';
+                          const isClickable = !hasRedCard && (selectedMatch.trangThai === 'DANG_DIEN_RA' || selectedMatch.trangThai === 'KET_THUC');
                           
                           const isPendingSub = pendingSubOut?.player?.id === player.id;
                           const isOtherPending = pendingSubOut && pendingSubOut.teamId === selectedMatch.doiNha.id && !isPendingSub;
@@ -2195,7 +2271,7 @@ export default function QuanTriPage() {
                     </div>
 
                     {/* CENTER — Scoreboard + Event Log */}
-                    <div className={styles.consoleCenterPanel}>
+                    <div id="tour-referee-center-panel" className={styles.consoleCenterPanel}>
                       {/* Scoreboard Card */}
                       <div className={styles.consoleCentralHeaderCard}>
                         <div className={styles.consoleCentralTeam}>
@@ -2353,7 +2429,7 @@ export default function QuanTriPage() {
                             count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
                           }));
                           const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
-                          const isClickable = !hasRedCard && selectedMatch.trangThai === 'DANG_DIEN_RA';
+                          const isClickable = !hasRedCard && (selectedMatch.trangThai === 'DANG_DIEN_RA' || selectedMatch.trangThai === 'KET_THUC');
                           
                           const isPendingSub = pendingSubOut?.player?.id === player.id;
                           const isOtherPending = pendingSubOut && pendingSubOut.teamId === selectedMatch.doiKhach.id && !isPendingSub;
@@ -2499,47 +2575,55 @@ export default function QuanTriPage() {
                 </div>
               ) : (
                 <div className={styles.bottomSheetActionsGrid}>
-                  <button className={`${styles.bsActionCard} ${styles.bsSub}`} onClick={() => setIsSelectingSubstitute(true)}>
-                    <span className={styles.bsActionIcon}>🔄</span>
-                    <span className={styles.bsActionText}>{activePlayerParams.isBench ? 'Vào sân' : 'Thay ra'}</span>
-                  </button>
-                  <button className={`${styles.bsActionCard} ${styles.bsGoalNormal}`} onClick={() => handleActionSelect('goal', 'normal')}>
-                  <span className={styles.bsActionIcon}>⚽</span>
-                  <span className={styles.bsActionText}>Bàn thắng</span>
-                </button>
+                  {selectedMatch.trangThai === 'KET_THUC' ? (
+                    <button 
+                      className={`${styles.bsActionCard} ${styles.bsMotm}`} 
+                      onClick={() => handleActionSelect('motm')}
+                      style={{ gridColumn: 'span 2', background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)', border: '1px solid #c084fc' }}
+                    >
+                      <span className={styles.bsActionIcon}>🏅</span>
+                      <span className={styles.bsActionText} style={{ color: '#7e22ce', fontWeight: 700 }}>Chọn làm cầu thủ xuất sắc nhất (MOTM)</span>
+                    </button>
+                  ) : (
+                    <>
+                      <button className={`${styles.bsActionCard} ${styles.bsSub}`} onClick={() => setIsSelectingSubstitute(true)}>
+                        <span className={styles.bsActionIcon}>🔄</span>
+                        <span className={styles.bsActionText}>{activePlayerParams.isBench ? 'Vào sân' : 'Thay ra'}</span>
+                      </button>
+                      <button className={`${styles.bsActionCard} ${styles.bsGoalNormal}`} onClick={() => handleActionSelect('goal', 'normal')}>
+                        <span className={styles.bsActionIcon}>⚽</span>
+                        <span className={styles.bsActionText}>Bàn thắng</span>
+                      </button>
 
-                <button className={`${styles.bsActionCard} ${styles.bsGoalPen}`} onClick={() => handleActionSelect('goal', 'pen')}>
-                  <span className={styles.bsActionIcon}>🥅</span>
-                  <span className={styles.bsActionText}>Penalty</span>
-                </button>
+                      <button className={`${styles.bsActionCard} ${styles.bsGoalPen}`} onClick={() => handleActionSelect('goal', 'pen')}>
+                        <span className={styles.bsActionIcon}>🥅</span>
+                        <span className={styles.bsActionText}>Penalty</span>
+                      </button>
 
-                <button className={`${styles.bsActionCard} ${styles.bsGoalOg}`} onClick={() => handleActionSelect('goal', 'og')}>
-                  <span className={styles.bsActionIcon}>😈</span>
-                  <span className={styles.bsActionText}>Phản lưới</span>
-                </button>
+                      <button className={`${styles.bsActionCard} ${styles.bsGoalOg}`} onClick={() => handleActionSelect('goal', 'og')}>
+                        <span className={styles.bsActionIcon}>😈</span>
+                        <span className={styles.bsActionText}>Phản lưới</span>
+                      </button>
 
-                {customEvents.map((evt) => (
-                  <button key={evt.id} className={`${styles.bsActionCard} ${styles.bsChotDeal}`} onClick={() => handleActionSelect('custom', evt.id)}>
-                    <span className={styles.bsActionIcon}>{evt.icon}</span>
-                    <span className={styles.bsActionText}>{evt.name} {evt.points ? `(+${evt.points})` : ''}</span>
-                  </button>
-                ))}
+                      {customEvents.map((evt) => (
+                        <button key={evt.id} className={`${styles.bsActionCard} ${styles.bsChotDeal}`} onClick={() => handleActionSelect('custom', evt.id)}>
+                          <span className={styles.bsActionIcon}>{evt.icon}</span>
+                          <span className={styles.bsActionText}>{evt.name} {evt.points ? `(+${evt.points})` : ''}</span>
+                        </button>
+                      ))}
 
-                <button className={`${styles.bsActionCard} ${styles.bsYellow}`} onClick={() => handleActionSelect('card', 'yellow')}>
-                  <span className={styles.bsActionIcon}>🟨</span>
-                  <span className={styles.bsActionText}>Thẻ vàng</span>
-                </button>
+                      <button className={`${styles.bsActionCard} ${styles.bsYellow}`} onClick={() => handleActionSelect('card', 'yellow')}>
+                        <span className={styles.bsActionIcon}>🟨</span>
+                        <span className={styles.bsActionText}>Thẻ vàng</span>
+                      </button>
 
-                <button className={`${styles.bsActionCard} ${styles.bsRed}`} onClick={() => handleActionSelect('card', 'red')}>
-                  <span className={styles.bsActionIcon}>🟥</span>
-                  <span className={styles.bsActionText}>Thẻ đỏ</span>
-                </button>
-
-                <button className={`${styles.bsActionCard} ${styles.bsMotm}`} onClick={() => handleActionSelect('motm')}>
-                  <span className={styles.bsActionIcon}>🏅</span>
-                  <span className={styles.bsActionText}>Cầu thủ MOTM</span>
-                </button>
-              </div>
+                      <button className={`${styles.bsActionCard} ${styles.bsRed}`} onClick={() => handleActionSelect('card', 'red')}>
+                        <span className={styles.bsActionIcon}>🟥</span>
+                        <span className={styles.bsActionText}>Thẻ đỏ</span>
+                      </button>
+                    </>
+                  )}
+                </div>
               )}
 
               <div style={{ padding: '16px 0 8px 0', marginTop: '12px' }}>

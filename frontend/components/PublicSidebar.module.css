@@ -220,140 +220,169 @@
   overflow-y: auto;
   display: flex;
   flex-direction: column;
-  gap: 20px;
-  padding: 16px 20px;
+  gap: 24px;
+  padding: 20px;
 }
 
-/* Nav Menu Section */
-.navMenu {
+/* Sections Structure */
+.sectionWrapper {
   display: flex;
   flex-direction: column;
 }
 
-.navLabel {
-  font-size: 10px;
-  font-weight: 800;
-  letter-spacing: 0.08em;
-  color: var(--color-text-muted);
-  margin-bottom: 12px;
-}
-
-.menuItemsList {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-
-.navLink {
+.sectionHeader {
   display: flex;
   align-items: center;
-  gap: 10px;
-  padding: 8px 12px;
-  border-radius: var(--radius-lg);
-  color: var(--color-text-secondary);
-  font-weight: 600;
-  font-size: 13px;
-  text-decoration: none;
-  transition: all 0.2s ease;
+  gap: 6px;
+  margin-bottom: 12px;
+  border-bottom: 1px solid var(--color-border-light);
+  padding-bottom: 8px;
 }
 
-.navLink:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-primary);
-  transform: translateX(4px);
-}
-
-.navLinkActive {
-  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%) !important;
-  color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(215, 25, 32, 0.2);
-}
-
-.menuIcon {
-  font-size: 16px;
+.sectionTitleIcon {
+  font-size: 14px;
   display: flex;
   align-items: center;
   justify-content: center;
 }
 
-.menuLabel {
-  flex: 1;
-}
-
-/* Nav Entity Links (Teams / Competitions) */
-.navHeaderWithArrow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  margin-bottom: 12px;
-  cursor: pointer;
-}
-
-.navHeaderWithArrow:hover .navLabel {
-  color: var(--color-primary);
-}
-
-.navHeaderWithArrow .navLabel {
-  margin-bottom: 0;
-  transition: color 0.2s;
-}
-
-.navArrow {
-  font-size: 16px;
+.sectionTitleText {
+  font-size: 10px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
   color: var(--color-text-muted);
-  line-height: 1;
 }
 
+.sectionContent {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.followedList, 
+.tournamentsList {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+/* Entities Styles with Hover and Active states */
 .navEntityLink {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 6px 10px;
-  border-radius: var(--radius-md);
+  padding: 8px 12px;
+  border-radius: 8px;
   text-decoration: none;
-  background: none;
+  background: transparent;
   border: none;
   width: 100%;
   text-align: left;
   cursor: pointer;
   font-family: inherit;
-  transition: all 0.2s ease;
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+  color: var(--color-text-secondary);
 }
 
 .navEntityLink:hover {
-  background-color: var(--color-surface-hover);
+  background-color: var(--color-surface-hover); /* Light red brand background highlight */
+  color: var(--color-primary);
+  transform: translateX(3px);
 }
 
 .navEntityLinkActive {
-  background-color: var(--color-surface-container) !important;
+  background-color: var(--color-surface-container) !important; /* Soft solid red background highlight */
   color: var(--color-primary) !important;
 }
 
 .navEntityLinkActive .entityName {
   color: var(--color-primary) !important;
+  font-weight: 700;
 }
 
 .entityLogo {
   font-size: 16px;
   width: 20px;
   text-align: center;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.teamLogoImgMini {
+  width: 18px;
+  height: 18px;
+  object-fit: contain;
+  border-radius: 50%;
 }
 
 .entityInfo {
   display: flex;
   flex-direction: column;
+  min-width: 0;
+  flex: 1;
 }
 
 .entityName {
-  font-size: 12px;
+  font-size: 12.5px;
   font-weight: 600;
   color: var(--color-text);
   transition: color 0.2s ease;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .entitySub {
   font-size: 10px;
   color: var(--color-text-muted);
+  margin-top: 1px;
+}
+
+/* Star Follow/Unfollow Buttons */
+.starBtnActive, 
+.starBtnInactive {
+  margin-left: auto;
+  background: none;
+  border: none;
+  cursor: pointer;
+  font-size: 16px;
+  padding: 4px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.15s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.starBtnActive {
+  color: #F59E0B; /* Vivid Gold */
+}
+
+.starBtnInactive {
+  color: var(--color-text-muted);
+  opacity: 0.35;
+}
+
+.starBtnInactive:hover {
+  opacity: 1;
+  color: #F59E0B;
+  transform: scale(1.2);
+}
+
+.starBtnActive:hover {
+  transform: scale(1.2);
+}
+
+/* Empty Placeholders */
+.emptyFollowPlaceholder {
+  padding: 14px;
+  background-color: var(--color-bg);
+  border-radius: 8px;
+  font-size: 11px;
+  color: var(--color-text-muted);
+  line-height: 1.4;
+  text-align: center;
+  border: 1px dashed var(--color-border);
 }
 
 .emptyText {
@@ -362,6 +391,7 @@
   padding: 8px 10px;
   font-style: italic;
 }
+
 
 /* Footer Section */
 .sidebarFooter {

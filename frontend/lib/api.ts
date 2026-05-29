@@ -126,6 +126,7 @@ export async function layDanhSachTranDau(giaiDauId?: string) {
       *,
       doi_nha:doi_nha_id(*, cau_thu(*)),
       doi_khach:doi_khach_id(*, cau_thu(*)),
+      giai_dau:giai_dau_id(ten),
       su_kien(
         *,
         cau_thu:cau_thu_id(id, ten, so_ao),
@@ -166,6 +167,7 @@ export async function layDanhSachTranDau(giaiDauId?: string) {
     tyKhach: m.ty_doi_khach,
     phut: m.phut,
     vong: m.vong,
+    giaiDauTen: m.giai_dau?.ten,
     trangThai: m.trang_thai,
     time: m.gio,
     date: m.ngay,
@@ -460,6 +462,7 @@ export async function layTongQuan(giaiDauId?: string) {
     tranLive: currentLive,
     tranSapDienRa: allMatches.filter(m => m.trangThai === 'SAP_DIEN_RA').slice(0, 4),
     tranKetThuc: allMatches.filter(m => m.trangThai === 'KET_THUC').slice(0, 4),
+    allMatches: allMatches,
     top3Doi: standings.slice(0, 4),
     doiDanDau: leader?.doi?.ten || 'Chưa có',
     tongBanThang: allMatches.reduce((acc, m) => acc + (m.tyNha || 0) + (m.tyKhach || 0), 0)

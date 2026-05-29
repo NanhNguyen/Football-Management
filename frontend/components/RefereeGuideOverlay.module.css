@@ -1,0 +1,127 @@
+.overlayBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(0, 0, 0, 0.75);
+  z-index: 99999;
+  display: flex;
+  flex-direction: column;
+  color: white;
+  font-family: sans-serif;
+}
+
+.contentWrapper {
+  position: absolute;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  /* Match the sidebar width on desktop */
+  left: 280px;
+  pointer-events: none; /* Let clicks pass through to background */
+}
+
+@media (max-width: 1024px) {
+  .contentWrapper {
+    left: 0;
+  }
+}
+
+.pointerCenter {
+  position: absolute;
+  top: 40%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.pointerLeft {
+  position: absolute;
+  top: 52%;
+  left: 25%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.pointerRight {
+  position: absolute;
+  top: 52%;
+  left: 75%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+}
+
+.footerActions {
+  position: absolute;
+  bottom: 10%;
+  left: 50%;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+  pointer-events: auto; /* Allow clicks on the button */
+}
+
+.titleText {
+  font-family: "Comic Sans MS", "Chalkboard SE", cursive;
+  font-size: 26px;
+  font-weight: bold;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
+}
+
+.titleYellow {
+  color: #fde047;
+}
+
+.titleCyan {
+  color: #67e8f9;
+}
+
+.subtitleText {
+  font-size: 15px;
+  margin-top: 5px;
+  color: #e2e8f0;
+  max-width: 250px;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.emojiArrow {
+  font-size: 44px;
+  line-height: 1;
+}
+
+.arrowDown {
+  margin-bottom: 8px;
+}
+
+.arrowLeft {
+  margin-top: 12px;
+  transform: rotate(-45deg);
+  display: inline-block;
+}
+
+.arrowRight {
+  margin-top: 12px;
+  transform: rotate(45deg);
+  display: inline-block;
+}
+
+.continueBtn {
+  padding: 12px 32px;
+  font-size: 16px;
+  font-weight: bold;
+  background-color: #d71920;
+  color: white;
+  border: none;
+  border-radius: 24px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(215, 25, 32, 0.4);
+  transition: transform 0.2s;
+}
+
+.continueBtn:hover {
+  transform: scale(1.05);
+}

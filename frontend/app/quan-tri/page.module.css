@@ -3467,5 +3467,250 @@
   gap: 3px;
 }
 
+/* ==========================================================================
+   RESPONSIVE DESIGN SYSTEM OVERRIDES (MOBILE FIRST PRIORITY)
+   ========================================================================== */
+
+/* Show Hamburger Menu button only on Mobile & Tablet */
+.mobileMenuBtn {
+  display: none;
+  background: none;
+  border: none;
+  color: var(--color-text);
+  cursor: pointer;
+  padding: 8px;
+  margin-right: 8px;
+  align-items: center;
+  justify-content: center;
+  border-radius: 8px;
+  transition: background-color 0.2s;
+}
+
+.mobileMenuBtn:hover {
+  background-color: var(--color-bg-hover);
+}
+
+/* Sidebar Overlay */
+.sidebarOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background-color: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 999;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+/* Desktop & General defaults are preserved above. Below are responsive overrides: */
+
+@media (max-width: 1023px) {
+  .mobileMenuBtn {
+    display: flex;
+  }
+
+  /* Main Layout Adjustment */
+  .layout {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+  }
+
+  .bodyWrapper {
+    position: relative;
+    flex: 1;
+    display: block;
+    margin-top: 0;
+  }
+
+  /* Convert Sidebar into a Drawer on Mobile/Tablet */
+  .sidebar {
+    position: fixed;
+    top: 70px; /* height of topbar */
+    left: -280px;
+    width: 280px;
+    height: calc(100vh - 70px);
+    z-index: 1000;
+    background: var(--color-card-bg);
+    border-right: 1px solid var(--color-border);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    box-shadow: 10px 0 30px rgba(0, 0, 0, 0.1);
+  }
+
+  .sidebarOpen {
+    transform: translateX(280px);
+  }
+
+  /* Make Main section take full screen width */
+  .main {
+    width: 100%;
+    min-height: calc(100vh - 70px);
+    padding: 24px;
+  }
+
+  /* Roster/Console grids stacking */
+  .consoleGrid {
+    grid-template-columns: 1fr !important;
+    gap: 20px !important;
+  }
+
+  /* Form grids */
+  .formGrid {
+    grid-template-columns: 1fr !important;
+    gap: 16px !important;
+  }
+
+  /* Stat cards */
+  .adminStatsGrid {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 16px !important;
+  }
+
+  .adminStatCard {
+    padding: 20px !important;
+  }
+}
+
+@media (max-width: 767px) {
+  /* Global Topbar Adjustments */
+  .globalTopbar {
+    padding: 0 16px;
+    height: 60px;
+  }
+
+  .sidebar {
+    top: 60px;
+    height: calc(100vh - 60px);
+  }
+
+  .topbarLogoText {
+    font-size: 16px;
+  }
+
+  .topbarLogoImg {
+    height: 28px;
+    width: 28px;
+  }
+
+  /* Hide long switcher text or user names to save space */
+  .tournamentSwitcherText {
+    max-width: 120px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: inline-block;
+    vertical-align: middle;
+  }
+
+  .adminNameText {
+    display: none; /* Hide 'Admin' text, keep icon */
+  }
+
+  /* Content area spacing for Mobile First */
+  .main {
+    padding: 16px;
+  }
+
+  /* Admin Match List compact style */
+  .adminMatchItem {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    padding: 16px !important;
+    gap: 16px !important;
+  }
+
+  .matchListInfo {
+    width: 100% !important;
+    border-bottom: 1px solid var(--color-border);
+    padding-bottom: 12px;
+  }
+
+  .listTeam {
+    min-width: 0 !important;
+    flex: 1;
+  }
+
+  /* Live Match Console & Scoring Elements */
+  .scoreControlWrapper {
+    gap: 12px !important;
+  }
+
+  .bigScore {
+    font-size: 48px !important;
+  }
+
+  .scoreButton {
+    width: 44px !important;
+    height: 44px !important;
+    font-size: 20px !important;
+  }
+
+  /* Action Buttons below score control */
+  .actionStrip {
+    display: grid !important;
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 10px !important;
+  }
+
+  .actionBtn {
+    width: 100% !important;
+    justify-content: center;
+    padding: 10px 14px !important;
+    font-size: 12px !important;
+  }
+
+  /* Player Grids Roster view - stack both teams */
+  .playerGridsContainer {
+    flex-direction: column !important;
+    gap: 24px !important;
+  }
+
+  .playerGrid {
+    grid-template-columns: repeat(3, 1fr) !important;
+    gap: 8px !important;
+  }
+
+  /* Responsive Modals */
+  .modal {
+    width: 95% !important;
+    margin: 10px !important;
+    max-height: 90vh !important;
+    display: flex;
+    flex-direction: column;
+  }
+
+  .modalBody {
+    overflow-y: auto !important;
+    max-height: 70vh !important;
+    padding: 16px !important;
+  }
+
+  /* Stat cards stack fully on mobile */
+  .adminStatsGrid {
+    grid-template-columns: 1fr !important;
+  }
+
+  /* Tables wrapper for overflow scroll */
+  .adminTable {
+    display: block;
+    width: 100%;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .adminTable th, 
+  .adminTable td {
+    padding: 12px 14px !important;
+    font-size: 12px !important;
+  }
+}
+
+
 
 
