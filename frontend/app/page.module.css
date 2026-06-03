@@ -11,8 +11,79 @@
   margin-top: var(--space-md);
 }
 
+.roundFilterContainer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-md);
+  padding: var(--space-sm) var(--space-md);
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-light);
+  margin: var(--space-md) var(--space-md) 0 var(--space-md);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.filterLabel {
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  font-size: 13px;
+  white-space: nowrap;
+}
+
+.roundSelectWrapper {
+  position: relative;
+  display: inline-block;
+  min-width: 180px;
+}
+
+.roundSelect {
+  width: 100%;
+  padding: 8px 36px 8px 16px;
+  border-radius: var(--radius-md);
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  background-color: var(--color-bg);
+  border: 1px solid var(--color-border);
+  cursor: pointer;
+  outline: none;
+  transition: all 0.2s ease;
+  appearance: none;
+  -webkit-appearance: none;
+  -moz-appearance: none;
+}
+
+.roundSelect:hover {
+  border-color: var(--color-primary);
+  background-color: var(--color-surface-hover);
+  color: var(--color-primary);
+}
+
+.roundSelect:focus {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.selectChevron {
+  position: absolute;
+  right: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--color-text-muted);
+  transition: color 0.2s ease;
+}
+
+.roundSelectWrapper:hover .selectChevron {
+  color: var(--color-primary);
+}
+
 @media (max-width: 768px) {
   .mainFeedWrapper {
     padding: 0;
+  }
+  .roundFilterContainer {
+    margin: var(--space-sm) 0 0 0;
+    border-radius: 0;
   }
 }

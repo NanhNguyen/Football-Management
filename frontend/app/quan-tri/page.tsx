@@ -24,6 +24,12 @@ import { supabase } from '@/lib/supabase';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import AdminOnboardingTour from '@/components/AdminOnboardingTour';
 import RefereeGuideOverlay from '@/components/RefereeGuideOverlay';
+import { runAutoSchedule } from '@/lib/auto_schedule';
+
+import SettingsTab from './components/SettingsTab';
+import TeamsTab from './components/TeamsTab';
+import SchedulerTab from './components/SchedulerTab';
+import RefereeTab from './components/RefereeTab';
 
 import * as XLSX from 'xlsx';
 import TeamLogo from '@/components/TeamLogo';
@@ -83,7 +89,8 @@ export default function QuanTriPage() {
   const [newTournamentData, setNewTournamentData] = useState({
     ten: '',
     muaGiai: '2024',
-    ngayBatDau: '2024-05-01'
+    ngayBatDau: '2024-05-01',
+    venue_type: 'CENTRALIZED'
   });
 
 
@@ -124,8 +131,50 @@ export default function QuanTriPage() {
   const [standingsConfig, setStandingsConfig] = useState({ phongDo: true, thePhat: false });
   const [scheduleConfig, setScheduleConfig] = useState({ matchesPerWeek: 8 });
   const [blackoutDates, setBlackoutDates] = useState<string[]>([]);
+  const saveBlackoutDates = (dates: string[]) => {
+    setBlackoutDates(dates);
+    if (selectedTournament?.id) {
+      localStorage.setItem(`blackout_dates_${selectedTournament.id}`, JSON.stringify(dates));
+    }
+  };
   const [newBlackoutDate, setNewBlackoutDate] = useState('');
   const [isSchedulerConfigOpen, setIsSchedulerConfigOpen] = useState(false);
+  const [schedulerConfig, setSchedulerConfig] = useState({
+    startDate: '',
+    endDate: '',
+    matchDurationMinutes: 90,
+    breakTimeMinutes: 15,
+    playDays: [
+      { dayOfWeek: 1, enabled: true },
+      { dayOfWeek: 2, enabled: false },
+      { dayOfWeek: 3, enabled: false },
+      { dayOfWeek: 4, enabled: false },
+      { dayOfWeek: 5, enabled: false },
+      { dayOfWeek: 6, enabled: true },
+      { dayOfWeek: 0, enabled: true },
+    ],
+    timeSlots: [
+      { id: '1', startTime: '17:00', endTime: '18:30' },
+      { id: '2', startTime: '19:00', endTime: '20:30' },
+    ],
+    pitchesAvailable: 2,
+    minRestHours: 48,
+    matchesPerWeek: 8
+  });
+
+  const updateSchedulerConfig = (updates: Partial<typeof schedulerConfig>) => {
+    setSchedulerConfig(prev => {
+      const next = { ...prev, ...updates };
+      if (selectedTournament?.id) {
+        localStorage.setItem(`scheduler_config_${selectedTournament.id}`, JSON.stringify(next));
+      }
+      return next;
+    });
+  };
+
+  // Scheduler states
+  const [scheduleFilterVong, setScheduleFilterVong] = useState<string>('all');
+  const [selectedDraftMatches, setSelectedDraftMatches] = useState<string[]>([]);
 
   // Referee filtering states
   const [refereeFilterVong, setRefereeFilterVong] = useState<string>('all');
@@ -154,6 +203,7 @@ export default function QuanTriPage() {
   const [tournamentName, setTournamentName] = useState('');
   const [tournamentSeason, setTournamentSeason] = useState('');
   const [tournamentStartDate, setTournamentStartDate] = useState('');
+  const [tournamentVenueType, setTournamentVenueType] = useState<'CENTRALIZED' | 'HOME_AWAY'>('CENTRALIZED');
   const [tournamentEndDate, setTournamentEndDate] = useState('2024-06-30');
   const [tournamentMaxPlayers, setTournamentMaxPlayers] = useState(20);
   const [starterCount, setStarterCount] = useState<number>(7);
@@ -484,6 +534,7 @@ export default function QuanTriPage() {
         setTournamentName(currentTourney.ten || '');
         setTournamentSeason(currentTourney.mua_giai || '');
         setTournamentStartDate(currentTourney.ngay_bat_dau || '');
+        setTournamentVenueType(currentTourney.venue_type || 'CENTRALIZED');
 
         const localConfigStr = localStorage.getItem(`giai_dau_config_${currentTourney.id}`);
         if (localConfigStr) {
@@ -513,6 +564,59 @@ export default function QuanTriPage() {
           setTournamentLeagueRounds(5);
           setStandingsConfig({ phongDo: true, thePhat: false });
           setCustomEvents([]);
+        }
+
+        const defaultSchedulerConfig = {
+          startDate: currentTourney.ngay_bat_dau || '',
+          endDate: '',
+          matchDurationMinutes: 90,
+          breakTimeMinutes: 15,
+          playDays: [
+            { dayOfWeek: 1, enabled: true },
+            { dayOfWeek: 2, enabled: false },
+            { dayOfWeek: 3, enabled: false },
+            { dayOfWeek: 4, enabled: false },
+            { dayOfWeek: 5, enabled: false },
+            { dayOfWeek: 6, enabled: true },
+            { dayOfWeek: 0, enabled: true },
+          ],
+          timeSlots: [
+            { id: '1', startTime: '17:00', endTime: '18:30' },
+            { id: '2', startTime: '19:00', endTime: '20:30' },
+          ],
+          pitchesAvailable: 2,
+          minRestHours: 48,
+          matchesPerWeek: 8
+        };
+
+        // Load scheduler config from localStorage if it exists
+        const localSchedulerConfigStr = localStorage.getItem(`scheduler_config_${currentTourney.id}`);
+        if (localSchedulerConfigStr) {
+          try {
+            const parsed = JSON.parse(localSchedulerConfigStr);
+            setSchedulerConfig({
+              ...defaultSchedulerConfig,
+              ...parsed
+            });
+          } catch (e) {
+            console.error('Error loading scheduler config:', e);
+            setSchedulerConfig(defaultSchedulerConfig);
+          }
+        } else {
+          setSchedulerConfig(defaultSchedulerConfig);
+        }
+
+        // Load blackout dates from localStorage if they exist
+        const localBlackoutDatesStr = localStorage.getItem(`blackout_dates_${currentTourney.id}`);
+        if (localBlackoutDatesStr) {
+          try {
+            setBlackoutDates(JSON.parse(localBlackoutDatesStr));
+          } catch (e) {
+            console.error('Error loading blackout dates:', e);
+            setBlackoutDates([]);
+          }
+        } else {
+          setBlackoutDates([]);
         }
       }
 
@@ -629,7 +733,8 @@ export default function QuanTriPage() {
         .update({
           ten: tournamentName,
           mua_giai: tournamentSeason,
-          ngay_bat_dau: tournamentStartDate
+          ngay_bat_dau: tournamentStartDate,
+          venue_type: tournamentVenueType
         })
         .eq('id', selectedTournament.id);
 
@@ -670,284 +775,44 @@ export default function QuanTriPage() {
       "🔄 Xếp lịch tự động sẽ XÓA TOÀN BỘ lịch thi đấu nháp của giải đấu hiện tại và ghi đè lịch mới. Bạn có chắc chắn muốn tiếp tục?",
       async () => {
         try {
-          showToast("⏳ Đang chuẩn bị cơ sở dữ liệu lịch đấu...");
+          showToast("⏳ Đang xếp lịch thi đấu tự động (CSP)...");
 
-          // 1. Delete draft matches of the active tournament from Supabase to "start fresh"
-          const { data: allCurrentMatches, error: fetchErr } = await supabase
-            .from('tran_dau')
-            .select('id')
-            .eq('giai_dau_id', selectedTournament?.id)
-            .eq('trang_thai', 'SAP_DIEN_RA');
-          if (fetchErr) throw fetchErr;
+          // Auto detect base start date if empty
+          const baseStartDate = schedulerConfig.startDate || selectedTournament?.ngay_bat_dau || '2025-05-01';
+          
+          // Dynamically compute end times for each slot based on start time + match duration + break buffer
+          const timeSlotsWithEnd = schedulerConfig.timeSlots.map(slot => {
+            const [hours, minutes] = slot.startTime.split(':').map(Number);
+            const totalMinutes = hours * 60 + minutes + schedulerConfig.matchDurationMinutes + schedulerConfig.breakTimeMinutes;
+            const endHours = Math.floor(totalMinutes / 60) % 24;
+            const endMinutes = totalMinutes % 60;
+            const endTime = `${String(endHours).padStart(2, '0')}:${String(endMinutes).padStart(2, '0')}`;
+            return {
+              ...slot,
+              endTime
+            };
+          });
 
-          if (allCurrentMatches && allCurrentMatches.length > 0) {
-            for (const m of allCurrentMatches) {
-              await supabase.from('su_kien').delete().eq('tran_dau_id', m.id);
-              await supabase.from('tran_dau').delete().eq('id', m.id);
-            }
-          }
-
-          showToast("⚡ Đang sinh lịch đấu tự động...");
-
-          // Helper function: Circle Method Round-Robin
-          const generateRoundRobin = (groupTeams: any[], legs: number, maxRoundsOverride?: number) => {
-            const list = [...groupTeams];
-            const N = list.length;
-            if (N < 2) return [];
-
-            const hasBye = N % 2 !== 0;
-            if (hasBye) {
-              list.push({ id: 'BYE', ten: 'Nghỉ' });
-            }
-
-            const numTeams = list.length;
-            const singleRoundsCount = numTeams - 1;
-            const matchesPerRound = numTeams / 2;
-
-            const singleLegRounds: { home: any; away: any }[][] = [];
-
-            for (let r = 0; r < singleRoundsCount; r++) {
-              const roundMatches: { home: any; away: any }[] = [];
-              for (let i = 0; i < matchesPerRound; i++) {
-                const homeIdx = (r + i) % (numTeams - 1);
-                let awayIdx = (numTeams - 1 - i + r) % (numTeams - 1);
-
-                if (i === 0) {
-                  awayIdx = numTeams - 1;
-                }
-
-                const home = list[homeIdx];
-                const away = list[awayIdx];
-
-                if (home.id !== 'BYE' && away.id !== 'BYE') {
-                  if (r % 2 === 0) {
-                    roundMatches.push({ home, away });
-                  } else {
-                    roundMatches.push({ home: away, away: home });
-                  }
-                }
-              }
-              singleLegRounds.push(roundMatches);
-            }
-
-            let allRounds: { home: any; away: any; isReturnLeg: boolean }[][] = [];
-
-            for (let leg = 0; leg < legs; leg++) {
-              for (let r = 0; r < singleRoundsCount; r++) {
-                const roundMatches = singleLegRounds[r].map(m => {
-                  if (leg % 2 === 1) {
-                    return { home: m.away, away: m.home, isReturnLeg: true };
-                  }
-                  return { home: m.home, away: m.away, isReturnLeg: false };
-                });
-                allRounds.push(roundMatches);
-              }
-            }
-
-            if (maxRoundsOverride && maxRoundsOverride > 0) {
-              allRounds = allRounds.slice(0, maxRoundsOverride);
-            }
-
-            return allRounds;
+          const payloadConfig = {
+            ...schedulerConfig,
+            startDate: baseStartDate,
+            endDate: schedulerConfig.endDate || '2025-12-31',
+            timeSlots: timeSlotsWithEnd,
+            blackoutDates: blackoutDates
           };
 
-          const formatDateString = (dateObj: Date) => {
-            const y = dateObj.getFullYear();
-            const m = String(dateObj.getMonth() + 1).padStart(2, '0');
-            const d = String(dateObj.getDate()).padStart(2, '0');
-            return `${y}-${m}-${d}`;
-          };
-
-          const startBaseStr = tournamentStartDate || selectedTournament?.ngay_bat_dau || '2024-05-01';
-          let baseDate = new Date(startBaseStr);
-          let accumulatedDelayDays = 0;
-          const blackoutSet = new Set(blackoutDates);
-          const matchesToCreate: any[] = [];
-          let totalRounds = 0;
-
-          if (tournamentType === 'tournament') {
-            // 2A. Tournament Format: Group-based scheduling
-            const groups: { [key: string]: any[] } = {};
-            teams.forEach(t => {
-              const gName = t.bang || 'A';
-              if (!groups[gName]) groups[gName] = [];
-              groups[gName].push(t);
-            });
-
-            const groupRounds: { [gName: string]: any[][] } = {};
-            let maxRounds = 0;
-            Object.keys(groups).forEach(gName => {
-              const rounds = generateRoundRobin(groups[gName], tournamentGroupLegs || 1);
-              groupRounds[gName] = rounds;
-              if (rounds.length > maxRounds) {
-                maxRounds = rounds.length;
-              }
-            });
-
-            totalRounds = maxRounds;
-
-            // Distribute round matches week-by-week (round-by-round) across all groups
-            for (let r = 0; r < maxRounds; r++) {
-              const roundMatches: any[] = [];
-              Object.keys(groupRounds).forEach(gName => {
-                const rounds = groupRounds[gName];
-                if (rounds[r]) {
-                  rounds[r].forEach(m => {
-                    roundMatches.push({ ...m, bang: gName });
-                  });
-                }
-              });
-
-              if (roundMatches.length === 0) continue;
-
-              const roundBaseDate = new Date(baseDate.getTime() + r * 7 * 24 * 60 * 60 * 1000);
-              let roundDate = new Date(roundBaseDate.getTime() + accumulatedDelayDays * 24 * 60 * 60 * 1000);
-
-              while (blackoutSet.has(formatDateString(roundDate))) {
-                roundDate = new Date(roundDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-                accumulatedDelayDays += 7;
-              }
-
-              const limitPerWeek = Math.max(1, scheduleConfig.matchesPerWeek || 8);
-              roundMatches.forEach((m, idx) => {
-                const offsetDays = Math.floor(idx / limitPerWeek);
-                const matchDateObj = new Date(roundDate.getTime() + offsetDays * 24 * 60 * 60 * 1000);
-                const dateStr = formatDateString(matchDateObj);
-
-                const timeSlots = ["15:00", "17:00", "19:00"];
-                const timeStr = timeSlots[idx % timeSlots.length];
-                const sanStr = `Sân TK ${(idx % 2) + 1}`;
-
-                matchesToCreate.push({
-                  doiNhaId: m.home.id,
-                  doiKhachId: m.away.id,
-                  vong: `Bảng ${m.bang} - Vòng ${r + 1}`,
-                  date: dateStr,
-                  time: timeStr,
-                  san: sanStr,
-                  giaiDauId: selectedTournament?.id
-                });
-              });
-            }
-
-            // 2C. Automatically append Knockout Stages for Tournament Type
-            let lastGroupMatchDate = new Date(baseDate);
-            matchesToCreate.forEach(m => {
-              const d = new Date(m.date);
-              if (d > lastGroupMatchDate) {
-                lastGroupMatchDate = d;
-              }
-            });
-
-            // Start knockout stages 7 days after the last group match
-            let knockoutBaseDate = new Date(lastGroupMatchDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-
-            const stagesToProcess = [
-              { key: 'Vòng 1/8', matchKeys: Array.from({ length: 8 }, (_, idx) => `Trận ${idx + 1}`), condition: teams.length >= 16 },
-              { key: 'Tứ kết', matchKeys: Array.from({ length: 4 }, (_, idx) => `Trận ${idx + 1}`), condition: teams.length >= 8 },
-              { key: 'Bán kết', matchKeys: Array.from({ length: 2 }, (_, idx) => `Trận ${idx + 1}`), condition: teams.length >= 4 },
-              { key: 'Chung kết & Tranh hạng ba', matchKeys: ['Tranh hạng ba', 'Chung kết'], condition: teams.length >= 2 }
-            ];
-
-            let stageIndex = 0;
-            stagesToProcess.forEach(stage => {
-              if (!stage.condition) return;
-
-              // Calculate date for this stage (one stage per week)
-              let currentStageDate = new Date(knockoutBaseDate.getTime() + stageIndex * 7 * 24 * 60 * 60 * 1000);
-
-              // Skip blackout dates
-              while (blackoutSet.has(formatDateString(currentStageDate))) {
-                knockoutBaseDate = new Date(knockoutBaseDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-                currentStageDate = new Date(knockoutBaseDate.getTime() + stageIndex * 7 * 24 * 60 * 60 * 1000);
-              }
-
-              const dateStr = formatDateString(currentStageDate);
-              const limitPerWeek = Math.max(1, scheduleConfig.matchesPerWeek || 8);
-
-              stage.matchKeys.forEach((label, idx) => {
-                const offsetDays = Math.floor(idx / limitPerWeek);
-                const matchDateObj = new Date(currentStageDate.getTime() + offsetDays * 24 * 60 * 60 * 1000);
-                const matchDateStr = formatDateString(matchDateObj);
-
-                const timeSlots = ["15:00", "17:00", "19:00"];
-                const timeStr = timeSlots[idx % timeSlots.length];
-                const sanStr = `Sân TK ${(idx % 2) + 1}`;
-
-                let roundLabel = '';
-                if (stage.key === 'Chung kết & Tranh hạng ba') {
-                  roundLabel = label;
-                } else {
-                  roundLabel = `${stage.key} - ${label}`;
-                }
-
-                matchesToCreate.push({
-                  doiNhaId: null,
-                  doiKhachId: null,
-                  vong: roundLabel,
-                  date: matchDateStr,
-                  time: timeStr,
-                  san: sanStr,
-                  giaiDauId: selectedTournament?.id
-                });
-              });
-
-              stageIndex++;
-            });
-
-            totalRounds += stageIndex;
-          } else {
-            // 2B. League Format: Single large round-robin table capped by round count
-            const roundsRequired = Math.max(1, tournamentLeagueRounds || 5);
-            const singleLegRoundsCount = teams.length % 2 === 0 ? teams.length - 1 : teams.length;
-            const legsToGenerate = Math.ceil(roundsRequired / (singleLegRoundsCount || 1)) || 1;
-
-            const leagueRounds = generateRoundRobin(teams, legsToGenerate, roundsRequired);
-            totalRounds = leagueRounds.length;
-
-            for (let r = 0; r < leagueRounds.length; r++) {
-              const roundMatches = leagueRounds[r] || [];
-              if (roundMatches.length === 0) continue;
-
-              const roundBaseDate = new Date(baseDate.getTime() + r * 7 * 24 * 60 * 60 * 1000);
-              let roundDate = new Date(roundBaseDate.getTime() + accumulatedDelayDays * 24 * 60 * 60 * 1000);
-
-              while (blackoutSet.has(formatDateString(roundDate))) {
-                roundDate = new Date(roundDate.getTime() + 7 * 24 * 60 * 60 * 1000);
-                accumulatedDelayDays += 7;
-              }
-
-              const limitPerWeek = Math.max(1, scheduleConfig.matchesPerWeek || 8);
-              roundMatches.forEach((m, idx) => {
-                const offsetDays = Math.floor(idx / limitPerWeek);
-                const matchDateObj = new Date(roundDate.getTime() + offsetDays * 24 * 60 * 60 * 1000);
-                const dateStr = formatDateString(matchDateObj);
-
-                const timeSlots = ["15:00", "17:00", "19:00"];
-                const timeStr = timeSlots[idx % timeSlots.length];
-                const sanStr = `Sân TK ${(idx % 2) + 1}`;
-
-                matchesToCreate.push({
-                  doiNhaId: m.home.id,
-                  doiKhachId: m.away.id,
-                  vong: `Vòng ${r + 1}`,
-                  date: dateStr,
-                  time: timeStr,
-                  san: sanStr,
-                  giaiDauId: selectedTournament?.id
-                });
-              });
-            }
-          }
-
-          // 3. Batch Create matches in database
-          for (const m of matchesToCreate) {
-            const { error: createErr } = await createMatch(m);
-            if (createErr) throw createErr;
-          }
+          const count = await runAutoSchedule(
+            teams,
+            selectedTournament,
+            tournamentType,
+            tournamentGroupLegs,
+            tournamentLeagueRounds,
+            payloadConfig,
+            showToast
+          );
 
           await fetchData(selectedTournament?.id);
-          showToast(`✨ Đã tự động xếp ${matchesToCreate.length} trận đấu cho ${totalRounds} vòng đấu thành công!`);
+          showToast(`✨ Đã tự động xếp ${count} trận đấu thành công!`);
         } catch (err: any) {
           console.error(err);
           showToast(`❌ Lỗi khi sinh lịch: ${err.message}`);
@@ -1343,6 +1208,12 @@ export default function QuanTriPage() {
       }
     );
   };
+  const handleDeleteEvent = async (evtId: string, type: string, points?: number, isIndividual?: boolean, playerId?: string) => {
+    const ev = selectedMatch?.suKien?.find((e: any) => e.id === evtId);
+    const teamId = ev?.doiId || ev?.teamId || '';
+    const pId = playerId || ev?.cauThuId || ev?.playerId || '';
+    await handleUndoEvent(evtId, type, teamId, pId);
+  };
 
   // Helper to extract round and group from vong string
   const parseVongDetails = (vongStr: string = '') => {
@@ -1446,6 +1317,106 @@ export default function QuanTriPage() {
       return a.id.localeCompare(b.id);
     });
   })();
+
+  // Scheduler selectors and actions
+  const scheduleUniqueRounds = (() => {
+    const roundsSet = new Set<string>();
+    liveMatches.forEach(m => {
+      const { vong } = parseVongDetails(m.vong);
+      if (vong) roundsSet.add(vong);
+    });
+    return Array.from(roundsSet).sort((a, b) => getRoundPriority(a) - getRoundPriority(b));
+  })();
+
+  const filteredAndSortedScheduleMatches = (() => {
+    let list = liveMatches.filter(m => {
+      const { vong } = parseVongDetails(m.vong);
+      if (scheduleFilterVong !== 'all' && vong !== scheduleFilterVong) {
+        return false;
+      }
+      return true;
+    });
+
+    return list.sort((a, b) => {
+      const pA = getRoundPriority(parseVongDetails(a.vong).vong);
+      const pB = getRoundPriority(parseVongDetails(b.vong).vong);
+      if (pA !== pB) return pA - pB;
+      return a.id.localeCompare(b.id);
+    });
+  })();
+
+  const handleSelectDraft = (id: string, checked: boolean) => {
+    if (checked) {
+      setSelectedDraftMatches(prev => [...prev, id]);
+    } else {
+      setSelectedDraftMatches(prev => prev.filter(mid => mid !== id));
+    }
+  };
+
+  const handleSelectAllDrafts = (e: any) => {
+    if (e.target.checked) {
+      const draftIds = filteredAndSortedScheduleMatches
+        .filter((m: any) => m.trangThai === 'DRAFT')
+        .map((m: any) => m.id);
+      setSelectedDraftMatches(draftIds);
+    } else {
+      setSelectedDraftMatches([]);
+    }
+  };
+
+  const handlePublishSelectedMatches = async () => {
+    if (selectedDraftMatches.length === 0) return;
+    try {
+      setLoading(true);
+      const { error } = await supabase
+        .from('tran_dau')
+        .update({ trang_thai: 'SAP_DIEN_RA' })
+        .in('id', selectedDraftMatches);
+        
+      if (!error) {
+        showToast(`🎉 Đã phát hành chính thức ${selectedDraftMatches.length} trận đấu!`);
+        setSelectedDraftMatches([]);
+        await fetchData(selectedTournament?.id);
+      } else {
+        showToast(`❌ Lỗi phát hành: ${error.message}`);
+      }
+    } catch (err: any) {
+      showToast(`❌ Lỗi: ${err.message}`);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleInlineUpdateMatch = async (id: string, field: string, value: string) => {
+    try {
+      const matchToUpdate = liveMatches.find(m => m.id === id);
+      if (!matchToUpdate) return;
+
+      let updatePayload: any = {};
+      if (field === 'ngay') {
+        updatePayload.date = value;
+      } else if (field === 'gio') {
+        updatePayload.time = value;
+      } else if (field === 'san') {
+        updatePayload.san = value;
+      }
+
+      const updatedMatch = {
+        ...matchToUpdate,
+        ...updatePayload,
+      };
+
+      const { error } = await updateMatch(updatedMatch);
+      if (!error) {
+        setLiveMatches(prev => prev.map(m => m.id === id ? { ...m, ...updatePayload } : m));
+        showToast("⚡ Đã cập nhật trực tiếp trận đấu!");
+      } else {
+        showToast(`❌ Lỗi cập nhật: ${error.message}`);
+      }
+    } catch (err: any) {
+      showToast(`❌ Lỗi: ${err.message}`);
+    }
+  };
 
   if (loading) {
     return <GlobalSkeletonLoader />;
@@ -1757,312 +1728,68 @@ export default function QuanTriPage() {
           )}
 
           {activeTab === 'cai-dat' && (
-            <div className={`${styles.content} animate-fade-in`}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div>
-                  <h2 className={styles.pageTitle}>Cài đặt giải đấu</h2>
-                  <p className={styles.pageDesc}>Cấu hình thông tin cơ bản và giới hạn của giải đấu</p>
-                </div>
-                <button className={styles.addBtn} onClick={handleSaveTournamentConfig}>Lưu cấu hình</button>
-              </div>
-
-              <div className={styles.formCard}>
-                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>Thông tin cơ bản</h3>
-                <div className={styles.formGrid}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Tên giải đấu</label>
-                    <input
-                      type="text"
-                      className={styles.input}
-                      value={tournamentName}
-                      onChange={(e) => setTournamentName(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Mùa giải</label>
-                    <input
-                      type="text"
-                      className={styles.input}
-                      value={tournamentSeason}
-                      onChange={(e) => setTournamentSeason(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Ngày khai mạc</label>
-                    <input
-                      type="date"
-                      className={styles.input}
-                      value={tournamentStartDate}
-                      onChange={(e) => setTournamentStartDate(e.target.value)}
-                    />
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Ngày bế mạc</label>
-                    <input
-                      type="date"
-                      className={styles.input}
-                      value={tournamentEndDate}
-                      onChange={(e) => setTournamentEndDate(e.target.value)}
-                    />
-                  </div>
-                </div>
-
-                <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-light)', margin: '24px 0' }} />
-
-                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>Giới hạn đội bóng & Đăng ký</h3>
-                <div className={styles.formGrid}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Số đội tối đa</label>
-                    <input
-                      type="number"
-                      className={styles.input}
-                      value={maxTeams === 0 ? '' : maxTeams}
-                      onChange={(e) => setMaxTeams(e.target.value === '' ? 0 : Number(e.target.value))}
-                    />
-                    <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginTop: '4px' }}>Nếu thêm vượt quá số này trong Quản lý Đội, hệ thống sẽ chặn lại.</p>
-                  </div>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Số cầu thủ tối đa / đội</label>
-                    <input
-                      type="number"
-                      className={styles.input}
-                      value={tournamentMaxPlayers === 0 ? '' : tournamentMaxPlayers}
-                      onChange={(e) => setTournamentMaxPlayers(e.target.value === '' ? 0 : Number(e.target.value))}
-                    />
-                  </div>
-                </div>
-
-                <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-light)', margin: '24px 0' }} />
-
-                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>Thể thức & Sắp lịch thi đấu</h3>
-                <div className={styles.formGrid}>
-                  <div className={styles.formGroup}>
-                    <label className={styles.label}>Thể thức thi đấu</label>
-                    <select
-                      className={styles.input}
-                      value={tournamentType}
-                      onChange={(e) => setTournamentType(e.target.value as 'tournament' | 'league')}
-                      style={{ width: '100%', height: '42px', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                    >
-                      <option value="tournament">Đấu cúp chia bảng (Tournament)</option>
-                      <option value="league">Đấu vòng tròn toàn giải (League)</option>
-                    </select>
-                  </div>
-
-                  {tournamentType === 'tournament' ? (
-                    <div className={styles.formGroup}>
-                      <label className={styles.label}>Số lượt đá vòng bảng</label>
-                      <select
-                        className={styles.input}
-                        value={tournamentGroupLegs}
-                        onChange={(e) => setTournamentGroupLegs(Number(e.target.value) as 1 | 2)}
-                        style={{ width: '100%', height: '42px', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
-                      >
-                        <option value={1}>1 lượt (Đá vòng tròn 1 lượt)</option>
-                        <option value={2}>2 lượt (Lượt đi - Lượt về)</option>
-                      </select>
-                    </div>
-                  ) : (
-                    <div className={styles.formGroup}>
-                      <label className={styles.label}>Số vòng đấu thi đấu</label>
-                      <input
-                        type="number"
-                        className={styles.input}
-                        value={tournamentLeagueRounds === 0 ? '' : tournamentLeagueRounds}
-                        onChange={(e) => setTournamentLeagueRounds(e.target.value === '' ? 0 : Number(e.target.value))}
-                        min={1}
-                      />
-                    </div>
-                  )}
-                </div>
-
-                <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-light)', margin: '24px 0' }} />
-
-                <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>Cấu hình hiển thị Bảng xếp hạng</h3>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={standingsConfig.phongDo} onChange={(e) => setStandingsConfig({ ...standingsConfig, phongDo: e.target.checked })} style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)' }} />
-                    <span style={{ fontSize: '15px', fontWeight: 600 }}>Hiển thị cột Phong độ (5 trận gần nhất)</span>
-                  </label>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '12px', cursor: 'pointer' }}>
-                    <input type="checkbox" checked={standingsConfig.thePhat} onChange={(e) => setStandingsConfig({ ...standingsConfig, thePhat: e.target.checked })} style={{ width: '18px', height: '18px', accentColor: 'var(--color-primary)' }} />
-                    <span style={{ fontSize: '15px', fontWeight: 600 }}>Hiển thị cột Thẻ phạt (Fair-play)</span>
-                  </label>
-                </div>
-
-                <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-light)', margin: '24px 0' }} />
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                  <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Sự kiện & Luật Bổ Sung (Custom Events)</h3>
-                  <button className={styles.editBtnCompact} style={{ padding: '6px 12px' }} onClick={addCustomEvent}>+ Thêm sự kiện</button>
-                </div>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                  {customEvents.map((evt, idx) => (
-                    <div key={evt.id} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'var(--color-surface-hover)', padding: '12px', borderRadius: '8px' }}>
-                      <input 
-                        type="text" 
-                        value={evt.icon} 
-                        onChange={(e) => updateCustomEvent(idx, 'icon', e.target.value)}
-                        style={{ width: '40px', textAlign: 'center', fontSize: '20px', padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border-light)' }}
-                        placeholder="⚽"
-                      />
-                      <input 
-                        type="text" 
-                        value={evt.name} 
-                        onChange={(e) => updateCustomEvent(idx, 'name', e.target.value)}
-                        style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border-light)' }}
-                        placeholder="Tên sự kiện (VD: Siêu Chốt)"
-                      />
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Cộng:</span>
-                        <input 
-                          type="number" 
-                          value={evt.points} 
-                          onChange={(e) => updateCustomEvent(idx, 'points', Number(e.target.value))}
-                          style={{ width: '60px', padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border-light)' }}
-                        />
-                        <span style={{ fontSize: '13px', fontWeight: 600 }}>Điểm BXH</span>
-                      </div>
-                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', marginLeft: '12px' }}>
-                        <input 
-                          type="checkbox" 
-                          checked={evt.isIndividual} 
-                          onChange={(e) => updateCustomEvent(idx, 'isIndividual', e.target.checked)}
-                          style={{ accentColor: 'var(--color-primary)' }}
-                        />
-                        <span style={{ fontSize: '13px' }}>Tính cá nhân</span>
-                      </label>
-                      <button 
-                        onClick={() => removeCustomEvent(idx)}
-                        style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', fontSize: '18px', padding: '4px 8px', marginLeft: 'auto' }}
-                        title="Xóa sự kiện"
-                      >×</button>
-                    </div>
-                  ))}
-                  {customEvents.length === 0 && (
-                    <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-muted)', fontSize: '13px', fontStyle: 'italic', border: '1px dashed var(--color-border-light)', borderRadius: '8px' }}>
-                      Giải đấu đang sử dụng các luật mặc định (Bàn thắng, Thẻ phạt).<br/>Bấm "+ Thêm sự kiện" để định nghĩa các luật đặc thù.
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
+            <SettingsTab
+              styles={styles}
+              tournamentName={tournamentName}
+              setTournamentName={setTournamentName}
+              tournamentSeason={tournamentSeason}
+              setTournamentSeason={setTournamentSeason}
+              tournamentStartDate={tournamentStartDate}
+              setTournamentStartDate={setTournamentStartDate}
+              tournamentEndDate={tournamentEndDate}
+              setTournamentEndDate={setTournamentEndDate}
+              maxTeams={maxTeams}
+              setMaxTeams={setMaxTeams}
+              tournamentMaxPlayers={tournamentMaxPlayers}
+              setTournamentMaxPlayers={setTournamentMaxPlayers}
+              tournamentType={tournamentType}
+              setTournamentType={setTournamentType}
+              tournamentVenueType={tournamentVenueType}
+              setTournamentVenueType={setTournamentVenueType}
+              tournamentGroupLegs={tournamentGroupLegs}
+              setTournamentGroupLegs={setTournamentGroupLegs}
+              tournamentLeagueRounds={tournamentLeagueRounds}
+              setTournamentLeagueRounds={setTournamentLeagueRounds}
+              standingsConfig={standingsConfig}
+              setStandingsConfig={setStandingsConfig}
+              customEvents={customEvents}
+              addCustomEvent={addCustomEvent}
+              updateCustomEvent={updateCustomEvent}
+              removeCustomEvent={removeCustomEvent}
+              handleSaveTournamentConfig={handleSaveTournamentConfig}
+            />
           )}
 
           {activeTab === 'doi' && (
-            <div className={`${styles.content} animate-fade-in`}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <div>
-                  <h2 className={styles.pageTitle}>Quản lý đội bóng</h2>
-                  <p className={styles.pageDesc}>Danh sách các đội tham gia Thiên Khôi Cúp Siêu Chốt</p>
-                </div>
-                <div style={{ display: 'flex', gap: '10px' }}>
-                  <button className={styles.editBtnCompact} style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => { setImportTeamsPreview([]); setIsImportTeamsOpen(true); }}>Thêm đội từ file Excel</button>
-                  <button className={styles.addBtn} onClick={handleAddTeam}>+ Thêm đội mới</button>
-                </div>
-              </div>
-
-              <table className={styles.adminTable}>
-                <thead>
-                  <tr>
-                    <th>Đội bóng</th>
-                    <th>Bảng</th>
-                    <th>Số cầu thủ</th>
-                    <th>Trạng thái</th>
-                    <th>Thao tác</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {teams.map(doi => (
-                    <tr key={doi.id}>
-                      <td>
-                        <div className={styles.teamRow} onClick={() => setViewingTeam(doi)}>
-                          <div className={styles.teamLogoMini}><TeamLogo logo={doi.logo} /></div>
-                          <span style={{ fontWeight: 600 }}>{doi.ten}</span>
-                        </div>
-                      </td>
-                      <td><span className={styles.statusBadge} style={{ background: '#f1f5f9' }}>Bảng {doi.bang}</span></td>
-                      <td>{doi.cauThu?.length || 0} cầu thủ</td>
-                      <td><span className={`${styles.statusBadge} ${styles.badgeSuccess}`}>Đã đăng ký</span></td>
-                      <td>
-                        <div className={styles.actionBtnGroup}>
-                          <button className={styles.editBtnCompact} onClick={() => handleEditTeam(doi)}>Sửa</button>
-                          <button className={styles.deleteBtnCompact} onClick={() => handleDeleteTeam(doi.id)}>Xóa</button>
-                        </div>
-                      </td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
+            <TeamsTab
+              styles={styles}
+              setImportTeamsPreview={setImportTeamsPreview}
+              setIsImportTeamsOpen={setIsImportTeamsOpen}
+              handleAddTeam={handleAddTeam}
+              teams={teams}
+              setViewingTeam={setViewingTeam}
+              handleEditTeam={handleEditTeam}
+              handleDeleteTeam={handleDeleteTeam}
+            />
           )}
 
           {activeTab === 'lich' && (
-            <div className={`${styles.content} animate-fade-in`}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
-                <div>
-                  <h2 className={styles.pageTitle}>Smart Scheduler</h2>
-                  <p className={styles.pageDesc}>Trung tâm điều khiển lịch thông minh tự động</p>
-                </div>
-                <div style={{ display: 'flex', gap: '12px' }}>
-                  <button className={styles.editBtnCompact} style={{ padding: '8px 16px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }} onClick={() => setIsSchedulerConfigOpen(true)}>⚙️ Cấu hình & Sinh lịch</button>
-                  <button className={styles.addBtn} onClick={() => showToast("Đã phê duyệt toàn bộ Lịch!")}>Phê duyệt toàn bộ Lịch</button>
-                </div>
-              </div>
-
-              <div style={{ width: '100%' }}>
-                {/* Khu vực Danh sách Lịch */}
-                <div>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                    <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Danh sách Lịch đề xuất</h3>
-                    <button className={styles.editBtnCompact} onClick={() => setIsAddingMatch(true)}>+ Thêm trận thủ công</button>
-                  </div>
-
-                  <table className={styles.adminTable}>
-                    <thead>
-                      <tr>
-                        <th>Thời gian</th>
-                        <th>Vòng</th>
-                        <th>Trận đấu</th>
-                        <th>Sân</th>
-                        <th>Trạng thái</th>
-                        <th>Thao tác</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {liveMatches.length === 0 ? (
-                        <tr><td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-muted)' }}>Chưa có lịch thi đấu. Hãy cấu hình và bấm Sinh lịch đề xuất.</td></tr>
-                      ) : liveMatches.map(m => (
-                        <tr key={m.id}>
-                          <td>
-                            <div style={{ fontWeight: 600 }}>{m.time}</div>
-                            <div style={{ fontSize: '11px', color: '#94a3b8' }}>{m.date}</div>
-                          </td>
-                          <td>{m.vong}</td>
-                          <td>
-                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                              <span>{m.doiNha?.ten || '???'}</span>
-                              <span style={{ color: '#cbd5e1' }}>vs</span>
-                              <span>{m.doiKhach?.ten || '???'}</span>
-                            </div>
-                          </td>
-                          <td>{m.san}</td>
-                          <td>
-                            <span className={`${styles.statusBadge}`} style={{ background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }}>Draft</span>
-                          </td>
-                          <td>
-                            <div style={{ display: 'flex', gap: '8px' }}>
-                              <button className={styles.editBtnCompact} style={{ padding: '6px' }} onClick={() => handleEditMatch(m)}>✏️</button>
-                              <button className={styles.deleteBtnCompact} style={{ padding: '6px' }} onClick={() => handleDeleteMatch(m.id)}>❌</button>
-                            </div>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-            </div>
+            <SchedulerTab
+              styles={styles}
+              setIsSchedulerConfigOpen={setIsSchedulerConfigOpen}
+              selectedDraftMatches={selectedDraftMatches}
+              handlePublishSelectedMatches={handlePublishSelectedMatches}
+              scheduleUniqueRounds={scheduleUniqueRounds}
+              scheduleFilterVong={scheduleFilterVong}
+              setScheduleFilterVong={setScheduleFilterVong}
+              setIsAddingMatch={setIsAddingMatch}
+              handleSelectAllDrafts={handleSelectAllDrafts}
+              filteredAndSortedScheduleMatches={filteredAndSortedScheduleMatches}
+              handleSelectDraft={handleSelectDraft}
+              handleInlineUpdateMatch={handleInlineUpdateMatch}
+              handleDeleteMatch={handleDeleteMatch}
+              liveMatches={liveMatches}
+            />
           )}
 
           {/* Modals are simplified versions for brevity in this response, but keep full logic from previous version */}
@@ -2070,596 +1797,46 @@ export default function QuanTriPage() {
           {/* I will keep the modals logic consistent with the previous version but using the new save handlers */}
 
           {activeTab === 'referee' && (
-            <div className={`${styles.refereeConsoleWrapper} animate-fade-in`}>
-              {!selectedMatchId ? (
-                <div className={styles.content}>
-                  <h2 className={styles.pageTitle}>Trung tâm Điều khiển</h2>
-                  <p className={styles.pageDesc}>Chọn một trận đấu để bắt đầu điều khiển và cập nhật tỉ số</p>
-
-                  {/* Referee Filter Bar */}
-                  <div className={styles.refereeFilterBar}>
-                    <div className={styles.refereeFilterItem}>
-                      <label className={styles.refereeFilterLabel}>Vòng đấu</label>
-                      <select 
-                        className={styles.refereeFilterSelect}
-                        value={refereeFilterVong}
-                        onChange={(e) => {
-                          setRefereeFilterVong(e.target.value);
-                          setRefereeFilterBang('all'); // Reset group filter when round changes
-                        }}
-                      >
-                        <option value="all">Tất cả các vòng</option>
-                        {uniqueRounds.map(r => (
-                          <option key={r} value={r}>{r}</option>
-                        ))}
-                      </select>
-                    </div>
-
-                    {!isKnockoutActive && uniqueGroups.length > 0 && (
-                      <div className={styles.refereeFilterItem}>
-                        <label className={styles.refereeFilterLabel}>Bảng đấu</label>
-                        <select 
-                          className={styles.refereeFilterSelect}
-                          value={refereeFilterBang}
-                          onChange={(e) => setRefereeFilterBang(e.target.value)}
-                        >
-                          <option value="all">Tất cả các bảng</option>
-                          {uniqueGroups.map(g => (
-                            <option key={g} value={g}>{g}</option>
-                          ))}
-                        </select>
-                      </div>
-                    )}
-                  </div>
-
-                  <div className={styles.adminMatchList}>
-                    {filteredAndSortedRefereeMatches.length > 0 ? (
-                      filteredAndSortedRefereeMatches.map(m => (
-                        <div 
-                          key={m.id} 
-                          className={`${styles.adminMatchItem} ${m.trangThai === 'DANG_DIEN_RA' ? styles.adminMatchItemLive : ''}`} 
-                          onClick={() => setSelectedMatchId(m.id)}
-                        >
-                          <div className={styles.matchListInfo}>
-                            <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, width: '80px' }}>{m.vong}</span>
-                            <div className={styles.listTeam}>
-                              <span style={{ display: 'flex' }}><TeamLogo logo={m.doiNha?.logo} /></span>
-                              <span style={{ fontWeight: 700 }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px', fontWeight: 800, fontSize: '18px', width: '60px', justifyContent: 'center' }}>
-                              <span>{m.tyNha}</span>
-                              <span>-</span>
-                              <span>{m.tyKhach}</span>
-                            </div>
-                            <div className={styles.listTeam}>
-                              <span style={{ display: 'flex' }}><TeamLogo logo={m.doiKhach?.logo} /></span>
-                              <span style={{ fontWeight: 700 }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
-                            </div>
-                          </div>
-
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                            <span className={`
-                            ${styles.listStatus} 
-                            ${m.trangThai === 'DANG_DIEN_RA' ? styles.statusLive : ''}
-                            ${m.trangThai === 'KET_THUC' ? styles.statusFinished : ''}
-                          `}>
-                              {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - ${calculateMatchMinute(m)}'` : `LIVE - ${calculateMatchMinute(m)}'`) :
-                                m.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ'}
-                            </span>
-                            <span style={{ color: '#cbd5e1' }}>➜</span>
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className={styles.consoleEmptyRoster} style={{ padding: '40px', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
-                        Không tìm thấy trận đấu nào thỏa mãn bộ lọc.
-                      </div>
-                    )}
-                  </div>
-                </div>
-              ) : selectedMatch && (
-                <div className={styles.liveConsole}>
-                  {/* TOP BAR */}
-                  <div className={styles.consoleTopBar}>
-                    <button className={styles.consoleBackBtn} onClick={() => setSelectedMatchId(null)}>
-                      ← Danh sách
-                    </button>
-                    <div className={styles.consoleMatchMeta}>
-                      <span className={styles.consoleVong}>{selectedMatch.vong}</span>
-                      {selectedMatch.trangThai === 'DANG_DIEN_RA' && (
-                        <div className={styles.consoleLiveBadge}>
-                          <span className={selectedMatch.dangTamDung ? '' : styles.consolePulseDot} />
-                          {selectedMatch.dangTamDung ? 'TM DUNG' : 'LIVE'} {calculateMatchMinute(selectedMatch)}&apos;
-                        </div>
-                      )}
-                      {selectedMatch.trangThai === 'SAP_DIEN_RA' && <span className={styles.consolePendingBadge}>CHUA BAT DAU</span>}
-                      {selectedMatch.trangThai === 'KET_THUC' && <span className={styles.consoleFinishedBadge}>KET THUC</span>}
-                    </div>
-                    <div id="tour-referee-top-actions" className={styles.consoleTopActions}>
-                      {(selectedMatch.trangThai === 'KET_THUC' || selectedMatch.trangThai === 'DANG_DIEN_RA') && (
-                        <button className={styles.consoleResetBtn} onClick={() => handleResetMatch(selectedMatch.id)}>Reset</button>
-                      )}
-                    </div>
-                  </div>
-
-                  {/* 3-PANEL GRID */}
-                  <div className={styles.consoleGrid}>
-
-                    {/* LEFT — Doi nha */}
-                    <div id="tour-referee-team-panel" className={styles.consoleTeamPanel}>
-                      <div className={styles.consoleTeamHeader}>
-                        <span className={styles.consoleTeamEmoji}><TeamLogo logo={selectedMatch.doiNha?.logo} /></span>
-                        <div style={{ flex: 1, minWidth: 0 }}>
-                          <div className={styles.consoleTeamName}>{selectedMatch.doiNha?.ten || 'Chờ xác định'}</div>
-                          <div className={styles.consoleTeamLabel} style={{ color: '#f87171' }}>ĐỘI NHÀ</div>
-                        </div>
-                      </div>
-                      <div className={styles.consoleRosterGrid}>
-                        {(!selectedMatch.doiNha?.cauThu || selectedMatch.doiNha.cauThu.length === 0) ? (
-                          <p className={styles.consoleEmptyRoster}>Chua co cau thu nao</p>
-                        ) : (
-                          (() => {
-                            const { starters, bench } = calculateCurrentRoster(selectedMatch.doiNha, selectedMatch.suKien, starterCount);
-                            const renderPlayer = (player: any, isBench: boolean) => {
-                          const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
-                          const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
-                          const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                          const customEventCounts = customEvents.map(evt => ({
-                            ...evt,
-                            count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
-                          }));
-                          const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
-                          const isClickable = !hasRedCard && (selectedMatch.trangThai === 'DANG_DIEN_RA' || selectedMatch.trangThai === 'KET_THUC');
-                          
-                          const isPendingSub = pendingSubOut?.player?.id === player.id;
-                          const isOtherPending = pendingSubOut && pendingSubOut.teamId === selectedMatch.doiNha.id && !isPendingSub;
-                          const dimClass = isOtherPending && !isBench ? styles.consolePlayerDimmed : '';
-                          const highlightClass = pendingSubOut && isBench && pendingSubOut.teamId === selectedMatch.doiNha.id ? styles.consolePlayerHighlighted : '';
-                          const benchClass = isBench ? styles.consolePlayerBench : '';
-                          
-                          const handleClick = () => {
-                            if (!isClickable) return;
-                            if (pendingSubOut) {
-                              if (pendingSubOut.teamId !== selectedMatch.doiNha.id) return;
-                              if (isPendingSub) {
-                                setPendingSubOut(null); // Cancel
-                              } else if (isBench) {
-                                handleExecuteSubstitution(player, pendingSubOut.player, pendingSubOut.teamId);
-                              }
-                            } else {
-                              setActivePlayerParams({ matchId: selectedMatch.id, teamId: selectedMatch.doiNha.id, player, isBench });
-                            }
-                          };
-
-                          return (
-                            <button
-                              key={player.id}
-                              className={`${styles.consolePlayerBtn} ${benchClass} ${hasRedCard ? styles.consolePlayerRedCarded : ''} ${isClickable ? styles.consolePlayerActive : ''} ${dimClass} ${highlightClass}`}
-                              onClick={handleClick}
-                              disabled={!isClickable && !isPendingSub}
-                            >
-                              <div className={styles.consolePlayerNo}>{player.soAo}</div>
-                              <div className={styles.consolePlayerName}>{player.ten || 'Chưa đặt tên'}</div>
-                              
-                              {/* Action Badges */}
-                              <div className={styles.consolePlayerBadges}>
-                                {goalCount > 0 && <span>{goalCount > 1 ? goalCount : ''}&#x26BD;</span>}
-                                {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.count > 1 ? cEvt.count : ''}{cEvt.icon}</span> : null)}
-                                {yellowCount > 0 && <span>Y{yellowCount > 1 ? yellowCount : ''}</span>}
-                                {hasRedCard && <span>R</span>}
-                                {isMotm && <span>MVP</span>}
-                              </div>
-                            </button>
-                          );
-                        };
-                        return (
-                          <>
-                            <div className={styles.rosterHeader}>🏟️ ĐỘI HÌNH CHÍNH</div>
-                            {starters.map(p => renderPlayer(p, false))}
-                            
-                            <div className={styles.rosterHeader} style={{marginTop: '20px', color: '#64748b', borderColor: '#cbd5e1'}}>🔄 CẦU THỦ DỰ BỊ</div>
-                            <div className={styles.benchListView}>
-                              {bench.length === 0 ? (
-                                <p style={{ fontSize: '12px', color: '#94a3b8', padding: '8px 12px', margin: 0, gridColumn: '1 / -1' }}>Không có cầu thủ dự bị</p>
-                              ) : (
-                                bench.map((player: any) => {
-                                  const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
-                                  const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
-                                  const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                                  const customEventCounts = customEvents.map(evt => ({
-                                    ...evt,
-                                    count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
-                                  }));
-                                  const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
-
-                                  return (
-                                    <div key={player.id} className={styles.benchListRow}>
-                                      <span className={styles.benchListNo}>#{player.soAo}</span>
-                                      <span className={styles.benchListName}>{player.ten}</span>
-                                      
-                                      <div className={styles.benchListBadges}>
-                                        {goalCount > 0 && <span title="Bàn thắng">⚽ {goalCount > 1 ? goalCount : ''}</span>}
-                                        {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.icon} {cEvt.count > 1 ? cEvt.count : ''}</span> : null)}
-                                        {yellowCount > 0 && <span style={{ background: '#fef08a', color: '#a16207' }} title="Thẻ vàng">🟨 {yellowCount > 1 ? yellowCount : ''}</span>}
-                                        {hasRedCard && <span style={{ background: '#fee2e2', color: '#b91c1c' }} title="Thẻ đỏ">🟥</span>}
-                                        {isMotm && <span style={{ background: '#faf5ff', color: '#7e22ce' }}>🏅 MVP</span>}
-                                      </div>
-                                    </div>
-                                  );
-                                })
-                              )}
-                            </div>
-                          </>
-                        );
-                      })()
-                    )}
-                  </div>
-                    </div>
-
-                    {/* CENTER — Scoreboard + Event Log */}
-                    <div id="tour-referee-center-panel" className={styles.consoleCenterPanel}>
-                      {/* Scoreboard Card */}
-                      <div className={styles.consoleCentralHeaderCard}>
-                        <div className={styles.consoleCentralTeam}>
-                          <span className={styles.consoleCentralLogo}><TeamLogo logo={selectedMatch.doiNha?.logo} /></span>
-                          <span className={styles.consoleCentralName}>{selectedMatch.doiNha?.ten || 'Chờ xác định'}</span>
-                        </div>
-                        <div className={styles.consoleCentralScoreWrapper}>
-                          <div className={styles.consoleCentralScore}>
-                            <span className={styles.consoleCentralBigScore}>{selectedMatch.tyNha || 0}</span>
-                            <span className={styles.consoleCentralScoreSep}>-</span>
-                            <span className={styles.consoleCentralBigScore}>{selectedMatch.tyKhach || 0}</span>
-                          </div>
-                        </div>
-                        <div className={styles.consoleCentralTeam}>
-                          <span className={styles.consoleCentralLogo}><TeamLogo logo={selectedMatch.doiKhach?.logo} /></span>
-                          <span className={styles.consoleCentralName}>{selectedMatch.doiKhach?.ten || 'Chờ xác định'}</span>
-                        </div>
-                      </div>
-
-                      {/* Timer */}
-                      <div className={styles.consoleCentralTimerWrapper}>
-                        <span className={styles.consoleCentralTimer}>{formatMatchTime(selectedMatch)}</span>
-                        {selectedMatch.trangThai === 'DANG_DIEN_RA' && (
-                          <span className={styles.consoleCentralHalfLabel}>
-                            {getMatchHalfState(selectedMatch) === '2_active' ? 'Hiệp 2' : 'Hiệp 1'}
-                          </span>
-                        )}
-                        {selectedMatch.trangThai === 'KET_THUC' && (
-                          <span className={styles.consoleCentralHalfLabel}>Hết giờ</span>
-                        )}
-                        {selectedMatch.trangThai === 'SAP_DIEN_RA' && (
-                          <span className={styles.consoleCentralHalfLabel}>Chưa bắt đầu</span>
-                        )}
-                      </div>
-
-                      {/* Sequential Match State Machine Main CTA */}
-                      <div className={styles.consoleMainCtaWrapper}>
-                        {getMatchHalfState(selectedMatch) === '1_not_started' && (
-                          <button 
-                            className={`${styles.consoleMainCta} ${styles.ctaStartH1}`}
-                            onClick={() => handleStartMatch(selectedMatch.id)}
-                          >
-                            ▶ BẮT ĐẦU HIỆP 1
-                          </button>
-                        )}
-
-                        {getMatchHalfState(selectedMatch) === '1_active' && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-                            <button 
-                              className={styles.consoleMainCta}
-                              style={{ 
-                                background: selectedMatch.dangTamDung ? '#10b981' : '#2563eb',
-                                boxShadow: selectedMatch.dangTamDung ? '0 4px 14px rgba(16, 185, 129, 0.3)' : '0 4px 14px rgba(37, 99, 235, 0.3)'
-                              }}
-                              onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}
-                            >
-                              {selectedMatch.dangTamDung ? '▶ TIẾP TỤC TRẬN ĐẤU' : '⏸ TẠM DỪNG TRẬN ĐẤU'}
-                            </button>
-                            <button 
-                              className={`${styles.consoleMainCta} ${styles.ctaEndH1}`}
-                              onClick={() => handlePauseMatch(selectedMatch.id)}
-                            >
-                              ⏸ KẾT THÚC HIỆP 1
-                            </button>
-                          </div>
-                        )}
-
-                        {getMatchHalfState(selectedMatch) === 'half_time' && (
-                          <>
-                            <span className={styles.halfTimeOverlayText}>Đang nghỉ giữa hiệp</span>
-                            <button 
-                              className={`${styles.consoleMainCta} ${styles.ctaStartH2}`}
-                              onClick={() => handleResumeMatch(selectedMatch.id)}
-                            >
-                              ▶ BẮT ĐẦU HIỆP 2
-                            </button>
-                          </>
-                        )}
-
-                        {getMatchHalfState(selectedMatch) === '2_active' && (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-                            <button 
-                              className={styles.consoleMainCta}
-                              style={{ 
-                                background: selectedMatch.dangTamDung ? '#10b981' : '#2563eb',
-                                boxShadow: selectedMatch.dangTamDung ? '0 4px 14px rgba(16, 185, 129, 0.3)' : '0 4px 14px rgba(37, 99, 235, 0.3)'
-                              }}
-                              onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}
-                            >
-                              {selectedMatch.dangTamDung ? '▶ TIẾP TỤC TRẬN ĐẤU' : '⏸ TẠM DỪNG TRẬN ĐẤU'}
-                            </button>
-                            <button 
-                              className={`${styles.consoleMainCta} ${styles.ctaEndMatch}`}
-                              onClick={() => handleFinishMatch(selectedMatch.id)}
-                            >
-                              ⏹ KẾT THÚC TRẬN ĐẤU
-                            </button>
-                          </div>
-                        )}
-
-                        {getMatchHalfState(selectedMatch) === 'finished' && (
-                          <button 
-                            className={`${styles.consoleMainCta} ${styles.ctaReset}`}
-                            onClick={() => handleResetMatch(selectedMatch.id)}
-                          >
-                            🔄 RESET TRẬN ĐẤU
-                          </button>
-                        )}
-                      </div>
-
-                      {/* Event Log */}
-                      <div className={styles.consoleEventLog}>
-                        <div className={styles.consoleEventLogTitle}>Nhat ky su kien</div>
-                        <div className={styles.consoleEventLogList}>
-                          {selectedMatch.suKien && selectedMatch.suKien.length > 0 ? (
-                            [...selectedMatch.suKien].sort((a: any, b: any) => b.phut - a.phut).slice(0, 8).map((ev: any) => (
-                              <div key={ev.id} className={styles.consoleEventRow}>
-                                <span className={styles.consoleEventMin}>{ev.phut}&apos;</span>
-                                <span className={styles.consoleEventDesc}>{ev.moTa}</span>
-                                <button
-                                  className={styles.consoleUndoBtn}
-                                  onClick={() => handleUndoEvent(ev.id, ev.loai, ev.doiId, ev.cauThuId)}
-                                  disabled={selectedMatch.trangThai === 'KET_THUC'}
-                                >x</button>
-                              </div>
-                            ))
-                          ) : (
-                            <p className={styles.consoleEventEmpty}>Chua co su kien nao</p>
-                          )}
-                        </div>
-                      </div>
-                    </div>
-
-                    {/* RIGHT — Doi khach */}
-                    <div className={styles.consoleTeamPanel}>
-                      <div className={styles.consoleTeamHeader}>
-                        <div style={{ flex: 1, minWidth: 0, textAlign: 'right' }}>
-                          <div className={styles.consoleTeamName}>{selectedMatch.doiKhach?.ten || 'Chờ xác định'}</div>
-                          <div className={styles.consoleTeamLabel} style={{ color: '#60a5fa', textAlign: 'right' }}>ĐỘI KHÁCH</div>
-                        </div>
-                        <span className={styles.consoleTeamEmoji}><TeamLogo logo={selectedMatch.doiKhach?.logo} /></span>
-                      </div>
-                      <div className={styles.consoleRosterGrid}>
-                        {(!selectedMatch.doiKhach?.cauThu || selectedMatch.doiKhach.cauThu.length === 0) ? (
-                          <p className={styles.consoleEmptyRoster}>Chua co cau thu nao</p>
-                        ) : (
-                          (() => {
-                            const { starters, bench } = calculateCurrentRoster(selectedMatch.doiKhach, selectedMatch.suKien, starterCount);
-                            const renderPlayer = (player: any, isBench: boolean) => {
-                          const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
-                          const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
-                          const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                          const customEventCounts = customEvents.map(evt => ({
-                            ...evt,
-                            count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
-                          }));
-                          const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
-                          const isClickable = !hasRedCard && (selectedMatch.trangThai === 'DANG_DIEN_RA' || selectedMatch.trangThai === 'KET_THUC');
-                          
-                          const isPendingSub = pendingSubOut?.player?.id === player.id;
-                          const isOtherPending = pendingSubOut && pendingSubOut.teamId === selectedMatch.doiKhach.id && !isPendingSub;
-                          const dimClass = isOtherPending && !isBench ? styles.consolePlayerDimmed : '';
-                          const highlightClass = pendingSubOut && isBench && pendingSubOut.teamId === selectedMatch.doiKhach.id ? styles.consolePlayerHighlighted : '';
-                          const benchClass = isBench ? styles.consolePlayerBench : '';
-                          
-                          const handleClick = () => {
-                            if (!isClickable) return;
-                            if (pendingSubOut) {
-                              if (pendingSubOut.teamId !== selectedMatch.doiKhach.id) return;
-                              if (isPendingSub) {
-                                setPendingSubOut(null); // Cancel
-                              } else if (isBench) {
-                                handleExecuteSubstitution(player, pendingSubOut.player, pendingSubOut.teamId);
-                              }
-                            } else {
-                              setActivePlayerParams({ matchId: selectedMatch.id, teamId: selectedMatch.doiKhach.id, player, isBench });
-                            }
-                          };
-
-                          return (
-                            <button
-                              key={player.id}
-                              className={`${styles.consolePlayerBtn} ${benchClass} ${hasRedCard ? styles.consolePlayerRedCarded : ''} ${isClickable ? styles.consolePlayerActive : ''} ${dimClass} ${highlightClass}`}
-                              onClick={handleClick}
-                              disabled={!isClickable && !isPendingSub}
-                            >
-                              <div className={styles.consolePlayerNo}>{player.soAo}</div>
-                              <div className={styles.consolePlayerName}>{player.ten || 'Chưa đặt tên'}</div>
-                              
-                              {/* Action Badges */}
-                              <div className={styles.consolePlayerBadges}>
-                                {goalCount > 0 && <span>{goalCount > 1 ? goalCount : ''}&#x26BD;</span>}
-                                {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.count > 1 ? cEvt.count : ''}{cEvt.icon}</span> : null)}
-                                {yellowCount > 0 && <span>Y{yellowCount > 1 ? yellowCount : ''}</span>}
-                                {hasRedCard && <span>R</span>}
-                                {isMotm && <span>MVP</span>}
-                              </div>
-                            </button>
-                          );
-                        };
-                        return (
-                          <>
-                            <div className={styles.rosterHeader}>🏟️ ĐỘI HÌNH CHÍNH</div>
-                            {starters.map(p => renderPlayer(p, false))}
-                            
-                            <div className={styles.rosterHeader} style={{marginTop: '20px', color: '#64748b', borderColor: '#cbd5e1'}}>🔄 CẦU THỦ DỰ BỊ</div>
-                            <div className={styles.benchListView}>
-                              {bench.length === 0 ? (
-                                <p style={{ fontSize: '12px', color: '#94a3b8', padding: '8px 12px', margin: 0, gridColumn: '1 / -1' }}>Không có cầu thủ dự bị</p>
-                              ) : (
-                                bench.map((player: any) => {
-                                  const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
-                                  const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
-                                  const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                                  const customEventCounts = customEvents.map(evt => ({
-                                    ...evt,
-                                    count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
-                                  }));
-                                  const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
-
-                                  return (
-                                    <div key={player.id} className={styles.benchListRow}>
-                                      <span className={styles.benchListNo}>#{player.soAo}</span>
-                                      <span className={styles.benchListName}>{player.ten}</span>
-                                      
-                                      <div className={styles.benchListBadges}>
-                                        {goalCount > 0 && <span title="Bàn thắng">⚽ {goalCount > 1 ? goalCount : ''}</span>}
-                                        {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.icon} {cEvt.count > 1 ? cEvt.count : ''}</span> : null)}
-                                        {yellowCount > 0 && <span style={{ background: '#fef08a', color: '#a16207' }} title="Thẻ vàng">🟨 {yellowCount > 1 ? yellowCount : ''}</span>}
-                                        {hasRedCard && <span style={{ background: '#fee2e2', color: '#b91c1c' }} title="Thẻ đỏ">🟥</span>}
-                                        {isMotm && <span style={{ background: '#faf5ff', color: '#7e22ce' }}>🏅 MVP</span>}
-                                      </div>
-                                    </div>
-                                  );
-                                })
-                              )}
-                            </div>
-                          </>
-                        );
-                      })()
-                    )}
-                  </div>
-                    </div>
-                  </div>
-                </div>
-              )}
-            </div>
+            <RefereeTab
+              styles={styles}
+              selectedMatchId={selectedMatchId}
+              setSelectedMatchId={setSelectedMatchId}
+              refereeFilterVong={refereeFilterVong}
+              setRefereeFilterVong={setRefereeFilterVong}
+              refereeFilterBang={refereeFilterBang}
+              setRefereeFilterBang={setRefereeFilterBang}
+              uniqueRounds={uniqueRounds}
+              uniqueGroups={uniqueGroups}
+              isKnockoutActive={isKnockoutActive}
+              filteredAndSortedRefereeMatches={filteredAndSortedRefereeMatches}
+              calculateMatchMinute={calculateMatchMinute}
+              formatMatchTime={formatMatchTime}
+              selectedMatch={selectedMatch}
+              starterCount={starterCount}
+              calculateCurrentRoster={calculateCurrentRoster}
+              pendingSubOut={pendingSubOut}
+              setPendingSubOut={setPendingSubOut}
+              handleExecuteSubstitution={handleExecuteSubstitution}
+              setActivePlayerParams={setActivePlayerParams}
+              activePlayerParams={activePlayerParams}
+              customEvents={customEvents}
+              handleStartMatch={handleStartMatch}
+              handleTemporaryPauseToggle={handleTemporaryPauseToggle}
+              handlePauseMatch={handlePauseMatch}
+              handleResumeMatch={handleResumeMatch}
+              handleFinishMatch={handleFinishMatch}
+              handleResetMatch={handleResetMatch}
+              handleDeleteEvent={handleDeleteEvent}
+              isSelectingSubstitute={isSelectingSubstitute}
+              setIsSelectingSubstitute={setIsSelectingSubstitute}
+              handleActionSelect={handleActionSelect}
+              getMatchHalfState={getMatchHalfState}
+            />
           )}
         </main>
 
         {/* Toast */}
         {toast.visible && <div className={styles.toast}>{toast.message}</div>}
-
-        {/* Action Selection Bottom Sheet */}
-        {activePlayerParams && selectedMatch && (
-          <>
-            <div className={styles.bottomSheetOverlay} onClick={() => setActivePlayerParams(null)} />
-            <div className={styles.bottomSheet}>
-              <div className={styles.bottomSheetHeader}>
-                <div className={styles.bottomSheetHandle} />
-                <div className={styles.sheetPlayerInfoContainer}>
-                  <span className={styles.sheetPlayerJersey}>#{activePlayerParams.player.soAo}</span>
-                  <div>
-                    <h3 className={styles.sheetPlayerFullName}>{activePlayerParams.player.ten}</h3>
-                    <p className={styles.sheetPlayerTeamName}>
-                      {activePlayerParams.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha?.ten : selectedMatch.doiKhach?.ten}
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {isSelectingSubstitute ? (
-                <div className={styles.bottomSheetActionsGrid} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  <div style={{fontWeight: 600, fontSize: '14px', color: '#64748b'}}>Chọn người {activePlayerParams.isBench ? 'được thay ra' : 'vào thay'}</div>
-                  {(() => {
-                    const team = activePlayerParams.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha : selectedMatch.doiKhach;
-                    const { starters, bench } = calculateCurrentRoster(team, selectedMatch.suKien, starterCount);
-                    const targetList = activePlayerParams.isBench ? starters : bench;
-                    
-                    return targetList.map((p: any) => (
-                      <button 
-                        key={p.id} 
-                        className={styles.bsActionCard} 
-                        onClick={() => {
-                          if (activePlayerParams.isBench) {
-                            handleExecuteSubstitution(activePlayerParams.player, p, activePlayerParams.teamId);
-                          } else {
-                            handleExecuteSubstitution(p, activePlayerParams.player, activePlayerParams.teamId);
-                          }
-                        }}
-                        style={{justifyContent: 'flex-start', padding: '12px'}}
-                      >
-                        <span style={{marginRight: '10px', background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', fontSize: '12px'}}>{p.soAo}</span>
-                        <span style={{fontWeight: 600}}>{p.ten}</span>
-                      </button>
-                    ));
-                  })()}
-                  <button className={styles.bsCancelBtn} onClick={() => setIsSelectingSubstitute(false)}>
-                    Hủy
-                  </button>
-                </div>
-              ) : (
-                <div className={styles.bottomSheetActionsGrid}>
-                  {selectedMatch.trangThai === 'KET_THUC' ? (
-                    <button 
-                      className={`${styles.bsActionCard} ${styles.bsMotm}`} 
-                      onClick={() => handleActionSelect('motm')}
-                      style={{ gridColumn: 'span 2', background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)', border: '1px solid #c084fc' }}
-                    >
-                      <span className={styles.bsActionIcon}>🏅</span>
-                      <span className={styles.bsActionText} style={{ color: '#7e22ce', fontWeight: 700 }}>Chọn làm cầu thủ xuất sắc nhất (MOTM)</span>
-                    </button>
-                  ) : (
-                    <>
-                      <button className={`${styles.bsActionCard} ${styles.bsSub}`} onClick={() => setIsSelectingSubstitute(true)}>
-                        <span className={styles.bsActionIcon}>🔄</span>
-                        <span className={styles.bsActionText}>{activePlayerParams.isBench ? 'Vào sân' : 'Thay ra'}</span>
-                      </button>
-                      <button className={`${styles.bsActionCard} ${styles.bsGoalNormal}`} onClick={() => handleActionSelect('goal', 'normal')}>
-                        <span className={styles.bsActionIcon}>⚽</span>
-                        <span className={styles.bsActionText}>Bàn thắng</span>
-                      </button>
-
-                      <button className={`${styles.bsActionCard} ${styles.bsGoalPen}`} onClick={() => handleActionSelect('goal', 'pen')}>
-                        <span className={styles.bsActionIcon}>🥅</span>
-                        <span className={styles.bsActionText}>Penalty</span>
-                      </button>
-
-                      <button className={`${styles.bsActionCard} ${styles.bsGoalOg}`} onClick={() => handleActionSelect('goal', 'og')}>
-                        <span className={styles.bsActionIcon}>😈</span>
-                        <span className={styles.bsActionText}>Phản lưới</span>
-                      </button>
-
-                      {customEvents.map((evt) => (
-                        <button key={evt.id} className={`${styles.bsActionCard} ${styles.bsChotDeal}`} onClick={() => handleActionSelect('custom', evt.id)}>
-                          <span className={styles.bsActionIcon}>{evt.icon}</span>
-                          <span className={styles.bsActionText}>{evt.name} {evt.points ? `(+${evt.points})` : ''}</span>
-                        </button>
-                      ))}
-
-                      <button className={`${styles.bsActionCard} ${styles.bsYellow}`} onClick={() => handleActionSelect('card', 'yellow')}>
-                        <span className={styles.bsActionIcon}>🟨</span>
-                        <span className={styles.bsActionText}>Thẻ vàng</span>
-                      </button>
-
-                      <button className={`${styles.bsActionCard} ${styles.bsRed}`} onClick={() => handleActionSelect('card', 'red')}>
-                        <span className={styles.bsActionIcon}>🟥</span>
-                        <span className={styles.bsActionText}>Thẻ đỏ</span>
-                      </button>
-                    </>
-                  )}
-                </div>
-              )}
-
-              <div style={{ padding: '16px 0 8px 0', marginTop: '12px' }}>
-                <button className={styles.finishBtn} style={{ width: '100%', margin: 0, background: '#d71920', color: '#ffffff' }} onClick={() => setActivePlayerParams(null)}>
-                  Hủy bỏ
-                </button>
-              </div>
-            </div>
-          </>
-        )}
 
         {/* Adding Team Modal */}
         {isAddingTeam && (
@@ -3142,13 +2319,14 @@ export default function QuanTriPage() {
                       id: newId,
                       ten: newTournamentData.ten,
                       muaGiai: newTournamentData.muaGiai,
-                      ngayBatDau: newTournamentData.ngayBatDau
+                      ngayBatDau: newTournamentData.ngayBatDau,
+                      venue_type: newTournamentData.venue_type
                     };
                     const { error } = await createTournament(payload);
                     if (!error) {
                       setIsCreatingTournament(false);
                       showToast(`🏆 Đã khởi tạo thành công giải đấu: ${newTournamentData.ten}!`);
-                      setNewTournamentData({ ten: '', muaGiai: '2025', ngayBatDau: '2025-05-01' });
+                      setNewTournamentData({ ten: '', muaGiai: '2025', ngayBatDau: '2025-05-01', venue_type: 'CENTRALIZED' });
                       await fetchData(newId);
                     } else {
                       showToast(`❌ Lỗi: ${error.message}`);
@@ -3165,7 +2343,7 @@ export default function QuanTriPage() {
         {/* Smart Scheduler Config Modal */}
         {isSchedulerConfigOpen && (
           <div className={styles.overlay}>
-            <div className={styles.modal} style={{ maxWidth: '500px' }}>
+            <div className={styles.modal} style={{ maxWidth: '500px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', padding: '25px 25px 20px 25px' }}>
               <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b' }}>
                 ⚙️ CẤU HÌNH SMART SCHEDULER
               </h3>
@@ -3173,20 +2351,183 @@ export default function QuanTriPage() {
                 Thiết lập các thông số rải lịch và blackout dates để tự động tạo lịch đấu tối ưu.
               </p>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                <div className={styles.formGroup}>
-                  <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Số trận / Tuần</label>
-                  <input
-                    type="number"
-                    min="1"
-                    className={styles.modalInput}
-                    value={scheduleConfig.matchesPerWeek === 0 ? '' : scheduleConfig.matchesPerWeek}
-                    onChange={(e) => {
-                      const val = e.target.value === '' ? 0 : Number(e.target.value);
-                      setScheduleConfig({ ...scheduleConfig, matchesPerWeek: val });
-                    }}
-                  />
+              {/* Scrollable Form Content */}
+              <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '15px' }}>
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Ngày bắt đầu</label>
+                    <input
+                      type="date"
+                      className={styles.modalInput}
+                      value={schedulerConfig.startDate}
+                      onChange={(e) => {
+                        const newStart = e.target.value;
+                        let newEnd = schedulerConfig.endDate;
+                        if (!newEnd || newEnd < newStart) {
+                          newEnd = newStart;
+                        }
+                        updateSchedulerConfig({ startDate: newStart, endDate: newEnd });
+                      }}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Ngày kết thúc dự kiến</label>
+                    <input
+                      type="date"
+                      className={styles.modalInput}
+                      min={schedulerConfig.startDate}
+                      value={schedulerConfig.endDate}
+                      onChange={(e) => updateSchedulerConfig({ endDate: e.target.value })}
+                    />
+                  </div>
                 </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Thời lượng trận (phút)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      className={styles.modalInput}
+                      value={schedulerConfig.matchDurationMinutes}
+                      onChange={(e) => updateSchedulerConfig({ matchDurationMinutes: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Nghỉ giữa các trận (phút)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className={styles.modalInput}
+                      disabled={tournamentVenueType === 'HOME_AWAY'}
+                      value={tournamentVenueType === 'HOME_AWAY' ? 0 : schedulerConfig.breakTimeMinutes}
+                      onChange={(e) => updateSchedulerConfig({ breakTimeMinutes: Number(e.target.value) })}
+                    />
+                    <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', display: 'block' }}>
+                      {tournamentVenueType === 'HOME_AWAY' 
+                        ? 'Không áp dụng đối với thể thức Sân nhà - Sân khách.' 
+                        : 'Thời gian giãn cách giữa 2 trận đấu liên tiếp trên cùng 1 sân.'}
+                    </span>
+                  </div>
+                </div>
+
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Khoảng cách trận tối thiểu (giờ)</label>
+                    <input
+                      type="number"
+                      min="0"
+                      className={styles.modalInput}
+                      value={schedulerConfig.minRestHours}
+                      onChange={(e) => updateSchedulerConfig({ minRestHours: Number(e.target.value) })}
+                    />
+                  </div>
+                  <div className={styles.formGroup}>
+                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Số trận cùng giờ (Sân khả dụng)</label>
+                    <input
+                      type="number"
+                      min="1"
+                      className={styles.modalInput}
+                      value={schedulerConfig.pitchesAvailable}
+                      onChange={(e) => updateSchedulerConfig({ pitchesAvailable: Number(e.target.value) })}
+                    />
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Ngày thi đấu trong tuần</label>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
+                    {['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'].map((dayName, idx) => {
+                      const dayOfWeek = idx; 
+                      const isChecked = schedulerConfig.playDays.find(d => d.dayOfWeek === dayOfWeek)?.enabled || false;
+                      return (
+                        <button
+                          key={dayName}
+                          type="button"
+                          onClick={() => {
+                            const updatedPlayDays = schedulerConfig.playDays.map(d => 
+                              d.dayOfWeek === dayOfWeek ? { ...d, enabled: !isChecked } : d
+                            );
+                            updateSchedulerConfig({ playDays: updatedPlayDays });
+                          }}
+                          style={{
+                            padding: '8px 10px',
+                            borderRadius: '8px',
+                            border: '1px solid',
+                            borderColor: isChecked ? 'var(--color-primary)' : '#cbd5e1',
+                            background: isChecked ? 'var(--color-primary-light)' : '#fff',
+                            color: isChecked ? 'var(--color-primary)' : '#475569',
+                            fontWeight: 600,
+                            fontSize: '12px',
+                            cursor: 'pointer',
+                            textAlign: 'center',
+                            transition: 'all 0.2s ease',
+                          }}
+                        >
+                          {dayName}
+                        </button>
+                      );
+                    })}
+                  </div>
+                </div>
+
+                <div className={styles.formGroup}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, margin: 0 }}>Cấu hình Khung giờ (Time Slots)</label>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        const newId = `slot-${Date.now()}`;
+                        updateSchedulerConfig({
+                          timeSlots: [...schedulerConfig.timeSlots, { id: newId, startTime: '15:00', endTime: '16:30' }]
+                        });
+                      }}
+                      style={{ padding: '4px 8px', background: 'var(--color-primary)', color: '#fff', borderRadius: '4px', fontSize: '11px', fontWeight: 600, cursor: 'pointer' }}
+                    >
+                      + Thêm khung giờ
+                    </button>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: '#f8fafc', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                    {schedulerConfig.timeSlots.length === 0 ? (
+                      <span style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>Chưa cấu hình khung giờ nào.</span>
+                    ) : (
+                      schedulerConfig.timeSlots.map((slot, sIdx) => (
+                        <div key={slot.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{ fontSize: '12px', color: '#64748b', minWidth: '40px' }}>Ca {sIdx + 1}:</span>
+                          <input
+                            type="time"
+                            className={styles.modalInput}
+                            style={{ margin: 0, padding: '4px 8px', width: '150px' }}
+                            value={slot.startTime}
+                            onChange={(e) => {
+                              const updatedSlots = schedulerConfig.timeSlots.map(s => 
+                                s.id === slot.id ? { ...s, startTime: e.target.value } : s
+                              );
+                              updateSchedulerConfig({ timeSlots: updatedSlots });
+                            }}
+                          />
+                          <button
+                            type="button"
+                            onClick={() => {
+                              updateSchedulerConfig({
+                                timeSlots: schedulerConfig.timeSlots.filter(s => s.id !== slot.id)
+                              });
+                            }}
+                            style={{ color: '#ef4444', background: 'none', border: 'none', fontSize: '18px', cursor: 'pointer', padding: '0 4px', display: 'flex', alignItems: 'center' }}
+                          >
+                            ×
+                          </button>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+
+                {tournamentVenueType === 'HOME_AWAY' && (
+                  <div style={{ padding: '10px 14px', background: 'var(--color-surface-hover)', borderRadius: '8px', border: '1px solid var(--color-border)', fontSize: '13px', color: 'var(--color-primary)', fontWeight: 500 }}>
+                    🏠 Thể thức Sân nhà - Sân khách: Các trận đấu sẽ được xếp tự động tại sân nhà của Đội Nhà (Đội 1).
+                  </div>
+                )}
 
                 <div className={styles.formGroup}>
                   <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Blackout Dates (Ngày nghỉ)</label>
@@ -3207,7 +2548,7 @@ export default function QuanTriPage() {
                           showToast("⚠️ Ngày nghỉ này đã được cấu hình!");
                           return;
                         }
-                        setBlackoutDates([...blackoutDates, newBlackoutDate].sort());
+                        saveBlackoutDates([...blackoutDates, newBlackoutDate].sort());
                         setNewBlackoutDate('');
                         showToast(`Đã thêm ngày nghỉ: ${newBlackoutDate}`);
                       }}
@@ -3223,7 +2564,7 @@ export default function QuanTriPage() {
                           <button
                             style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '16px', padding: '0 4px' }}
                             onClick={() => {
-                              setBlackoutDates(blackoutDates.filter(d => d !== date));
+                              saveBlackoutDates(blackoutDates.filter(d => d !== date));
                               showToast(`Đã xóa ngày nghỉ: ${date}`);
                             }}
                           >
@@ -3239,15 +2580,12 @@ export default function QuanTriPage() {
                 </div>
               </div>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '25px' }}>
+              {/* Sticky Action Footer */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
                 <button
                   className={styles.finishBtn}
                   style={{ width: '100%', margin: 0, justifyContent: 'center' }}
                   onClick={async () => {
-                    if (scheduleConfig.matchesPerWeek < 1) {
-                      showToast("⚠️ Số trận / Tuần tối thiểu phải là 1!");
-                      return;
-                    }
                     await handleAutoSchedule();
                     setIsSchedulerConfigOpen(false);
                   }}
@@ -3266,11 +2604,14 @@ export default function QuanTriPage() {
                         async () => {
                           try {
                             showToast("🧹 Đang dọn dẹp lịch cũ...");
-                            const draftMatches = liveMatches.filter(m => m.trangThai === 'SAP_DIEN_RA');
+                            const draftMatches = liveMatches.filter(m => m.trangThai === 'DRAFT' || m.trangThai === 'SAP_DIEN_RA');
+                            const matchIds = draftMatches.map(m => m.id);
+                            if (matchIds.length > 0) {
+                              const { error: delEventsErr } = await supabase.from('su_kien').delete().in('tran_dau_id', matchIds);
+                              if (delEventsErr) throw delEventsErr;
 
-                            for (const m of draftMatches) {
-                              await supabase.from('su_kien').delete().eq('tran_dau_id', m.id);
-                              await supabase.from('tran_dau').delete().eq('id', m.id);
+                              const { error: delMatchesErr } = await supabase.from('tran_dau').delete().in('id', matchIds);
+                              if (delMatchesErr) throw delMatchesErr;
                             }
                             await fetchData(selectedTournament?.id);
                             showToast('Đã xóa toàn bộ lịch nháp!');

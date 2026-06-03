@@ -21,7 +21,8 @@ export async function createTournament(tournament: any) {
       id: tournament.id,
       ten: tournament.ten,
       mua_giai: tournament.muaGiai,
-      ngay_bat_dau: tournament.ngayBatDau
+      ngay_bat_dau: tournament.ngayBatDau,
+      venue_type: tournament.venue_type
     }])
     .select();
   return { data, error };

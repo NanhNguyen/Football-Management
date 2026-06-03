@@ -35,9 +35,68 @@ export default function MatchListFeed({ data, onMatchClick }: MatchListFeedProps
     return acc;
   }, {});
 
+  // Sort matches within each group chronologically, prioritizing live matches
+  Object.keys(groupedMatches).forEach((groupName) => {
+    groupedMatches[groupName].sort((a: any, b: any) => {
+      const isLiveA = a.trangThai === 'DANG_DIEN_RA' ? 1 : 0;
+      const isLiveB = b.trangThai === 'DANG_DIEN_RA' ? 1 : 0;
+      if (isLiveA !== isLiveB) return isLiveB - isLiveA;
+
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+
+      const timeA = a.time || '';
+      const timeB = b.time || '';
+      return timeA.localeCompare(timeB);
+    });
+  });
+
+  // Sort the groups chronologically / numerically by tournament and round
+  const sortedGroupNames = Object.keys(groupedMatches).sort((groupA, groupB) => {
+    const matchesA = groupedMatches[groupA];
+    const matchesB = groupedMatches[groupB];
+    const firstA = matchesA[0];
+    const firstB = matchesB[0];
+    
+    // 1. Sort by tournament name
+    const tourneyA = firstA.giaiDauTen || '';
+    const tourneyB = firstB.giaiDauTen || '';
+    if (tourneyA !== tourneyB) {
+      return tourneyA.localeCompare(tourneyB);
+    }
+    
+    // 2. Sort by Round number (extract digit from 'vong')
+    const roundStrA = String(firstA.vong || '');
+    const roundStrB = String(firstB.vong || '');
+    
+    const numA = roundStrA.match(/\d+/);
+    const numB = roundStrB.match(/\d+/);
+    
+    if (numA && numB) {
+      const valA = parseInt(numA[0], 10);
+      const valB = parseInt(numB[0], 10);
+      if (valA !== valB) return valA - valB;
+    } else if (numA) {
+      return -1;
+    } else if (numB) {
+      return 1;
+    }
+    
+    // Fallback: sort alphabetically by round name
+    if (roundStrA !== roundStrB) {
+      return roundStrA.localeCompare(roundStrB);
+    }
+    
+    // 3. Fallback: sort by date/time of the earliest match in the group
+    const minDateA = Math.min(...matchesA.map((m: any) => new Date(m.date || 0).getTime()));
+    const minDateB = Math.min(...matchesB.map((m: any) => new Date(m.date || 0).getTime()));
+    return minDateA - minDateB;
+  });
+
   return (
     <div className={styles.feedContainer}>
-      {Object.keys(groupedMatches).map((groupName) => (
+      {sortedGroupNames.map((groupName) => (
         <div key={groupName} className={styles.matchGroup}>
           <div className={styles.groupHeader}>
             <span>🏆 {groupName}</span>

@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
+import Link from 'next/link';
 import styles from './page.module.css';
 import MatchListFeed from '@/components/MatchListFeed';
 import { usePublicTournament } from '@/components/PublicTournamentContext';
