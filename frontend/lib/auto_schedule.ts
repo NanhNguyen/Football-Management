@@ -17,21 +17,25 @@ export const runAutoSchedule = async (
 
   showToast("Đang chuẩn bị cơ sở dữ liệu lịch đấu...");
 
-  // 1. Delete draft matches
+  // 1. Delete draft and scheduled matches (only those that are not started/live/finished)
   const { data: allCurrentMatches, error: fetchErr } = await supabase
     .from('tran_dau')
     .select('id')
     .eq('giai_dau_id', selectedTournament?.id)
-    .eq('trang_thai', 'DRAFT');
+    .in('trang_thai', ['DRAFT', 'SAP_DIEN_RA']);
   if (fetchErr) throw fetchErr;
 
   if (allCurrentMatches && allCurrentMatches.length > 0) {
     const matchIds = allCurrentMatches.map(m => m.id);
-    const { error: delEventsErr } = await supabase.from('su_kien').delete().in('tran_dau_id', matchIds);
-    if (delEventsErr) throw delEventsErr;
+    const chunkSize = 100;
+    for (let i = 0; i < matchIds.length; i += chunkSize) {
+      const chunk = matchIds.slice(i, i + chunkSize);
+      const { error: delEventsErr } = await supabase.from('su_kien').delete().in('tran_dau_id', chunk);
+      if (delEventsErr) throw delEventsErr;
 
-    const { error: delMatchesErr } = await supabase.from('tran_dau').delete().in('id', matchIds);
-    if (delMatchesErr) throw delMatchesErr;
+      const { error: delMatchesErr } = await supabase.from('tran_dau').delete().in('id', chunk);
+      if (delMatchesErr) throw delMatchesErr;
+    }
   }
 
   showToast("⚡ Đang chạy thuật toán CSP để xếp lịch...");
@@ -132,7 +136,7 @@ export const runAutoSchedule = async (
       gio: m.time,
       san,
       giai_dau_id: selectedTournament?.id,
-      trang_thai: 'DRAFT',
+      trang_thai: 'SAP_DIEN_RA',
       ty_doi_nha: 0,
       ty_doi_khach: 0,
       phut: 0

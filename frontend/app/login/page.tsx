@@ -34,7 +34,7 @@ export default function LoginPage() {
     <div className={styles.container}>
       <div className={styles.loginBox}>
         <h2 className={styles.title}>Đăng nhập Quản trị</h2>
-        <p className={styles.subtitle}>Hệ thống quản lý giải đấu TKScore</p>
+        <p className={styles.subtitle}>Hệ thống quản lý giải đấu Sparta</p>
         
         <form onSubmit={handleLogin} className={styles.form}>
           <div className={styles.inputGroup}>
@@ -46,7 +46,7 @@ export default function LoginPage() {
               onChange={(e) => setEmail(e.target.value)}
               required
               className={styles.input}
-              placeholder="admin@tkscore.com"
+              placeholder="admin@sparta.com"
             />
           </div>
           

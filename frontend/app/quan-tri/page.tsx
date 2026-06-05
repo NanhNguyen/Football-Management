@@ -32,6 +32,7 @@ import SettingsTab from './components/SettingsTab';
 import TeamsTab from './components/TeamsTab';
 import SchedulerTab from './components/SchedulerTab';
 import RefereeTab from './components/RefereeTab';
+import TeamDetailView from './components/TeamDetailView';
 
 import * as XLSX from 'xlsx';
 import TeamLogo from '@/components/TeamLogo';
@@ -179,7 +180,6 @@ export default function QuanTriPage() {
 
   // Scheduler states
   const [scheduleFilterVong, setScheduleFilterVong] = useState<string>('all');
-  const [selectedDraftMatches, setSelectedDraftMatches] = useState<string[]>([]);
 
   // Referee filtering states
   const [refereeFilterVong, setRefereeFilterVong] = useState<string>('all');
@@ -1223,47 +1223,7 @@ export default function QuanTriPage() {
     });
   })();
 
-  const handleSelectDraft = (id: string, checked: boolean) => {
-    if (checked) {
-      setSelectedDraftMatches(prev => [...prev, id]);
-    } else {
-      setSelectedDraftMatches(prev => prev.filter(mid => mid !== id));
-    }
-  };
 
-  const handleSelectAllDrafts = (e: any) => {
-    if (e.target.checked) {
-      const draftIds = filteredAndSortedScheduleMatches
-        .filter((m: any) => m.trangThai === 'DRAFT')
-        .map((m: any) => m.id);
-      setSelectedDraftMatches(draftIds);
-    } else {
-      setSelectedDraftMatches([]);
-    }
-  };
-
-  const handlePublishSelectedMatches = async () => {
-    if (selectedDraftMatches.length === 0) return;
-    try {
-      setLoading(true);
-      const { error } = await supabase
-        .from('tran_dau')
-        .update({ trang_thai: 'SAP_DIEN_RA' })
-        .in('id', selectedDraftMatches);
-        
-      if (!error) {
-        showToast(`🎉 Đã phát hành chính thức ${selectedDraftMatches.length} trận đấu!`);
-        setSelectedDraftMatches([]);
-        await fetchData(selectedTournament?.id);
-      } else {
-        showToast(`❌ Lỗi phát hành: ${error.message}`);
-      }
-    } catch (err: any) {
-      showToast(`❌ Lỗi: ${err.message}`);
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const handleInlineUpdateMatch = async (id: string, field: string, value: string) => {
     try {
@@ -1335,7 +1295,7 @@ export default function QuanTriPage() {
           </button>
           <a href="/" className={styles.topbarLogo}>
             <img src="/logo-premium-transparent.png" alt="Logo" className={styles.topbarLogoImg} />
-            <span className={styles.topbarLogoText}>TKScore</span>
+            <span className={styles.topbarLogoText}>Sparta</span>
           </a>
           <div className={styles.switcherContainer}>
             <div id="tour-tournament-switcher" className={styles.tournamentSwitcher} onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}>
@@ -1639,33 +1599,43 @@ export default function QuanTriPage() {
           )}
 
           {activeTab === 'doi' && (
-            <TeamsTab
-              styles={styles}
-              setIsBulkImportOpen={setIsBulkImportOpen}
-              handleAddTeam={handleAddTeam}
-              teams={teams}
-              setViewingTeam={setViewingTeam}
-              handleEditTeam={handleEditTeam}
-              handleDeleteTeam={handleDeleteTeam}
-              handleDeleteAllTeams={handleDeleteAllTeams}
-            />
+            viewingTeam ? (
+              <TeamDetailView
+                team={viewingTeam}
+                styles={styles}
+                onBack={() => setViewingTeam(null)}
+                onEdit={() => {
+                  const teamToEdit = viewingTeam;
+                  setViewingTeam(null);
+                  handleEditTeam(teamToEdit);
+                }}
+              />
+            ) : (
+              <TeamsTab
+                styles={styles}
+                setIsBulkImportOpen={setIsBulkImportOpen}
+                handleAddTeam={handleAddTeam}
+                teams={teams}
+                setViewingTeam={setViewingTeam}
+                handleEditTeam={handleEditTeam}
+                handleDeleteTeam={handleDeleteTeam}
+                handleDeleteAllTeams={handleDeleteAllTeams}
+              />
+            )
           )}
 
           {activeTab === 'lich' && (
             <SchedulerTab
               styles={styles}
               setIsSchedulerConfigOpen={setIsSchedulerConfigOpen}
-              selectedDraftMatches={selectedDraftMatches}
-              handlePublishSelectedMatches={handlePublishSelectedMatches}
               scheduleUniqueRounds={scheduleUniqueRounds}
               scheduleFilterVong={scheduleFilterVong}
               setScheduleFilterVong={setScheduleFilterVong}
               setIsAddingMatch={setIsAddingMatch}
-              handleSelectAllDrafts={handleSelectAllDrafts}
               filteredAndSortedScheduleMatches={filteredAndSortedScheduleMatches}
-              handleSelectDraft={handleSelectDraft}
               handleInlineUpdateMatch={handleInlineUpdateMatch}
               handleDeleteMatch={handleDeleteMatch}
+              handleEditMatch={handleEditMatch}
               liveMatches={liveMatches}
             />
           )}
@@ -1966,158 +1936,7 @@ export default function QuanTriPage() {
           </div>
         )}
 
-        {/* Team Details Modal */}
-        {viewingTeam && (
-          <div className={styles.overlay} onClick={() => setViewingTeam(null)}>
-            <div className={styles.modal} onClick={(e) => e.stopPropagation()} style={{ maxWidth: '550px' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                  <div style={{ fontSize: '40px', background: '#f8fafc', width: '64px', height: '64px', display: 'flex', alignItems: 'center', justifyContent: 'center', borderRadius: '16px', border: '1px solid #e2e8f0' }}>
-                    <TeamLogo logo={viewingTeam.logo} />
-                  </div>
-                  <div>
-                    <h3 style={{ margin: 0, fontSize: '22px', fontWeight: 800 }}>{viewingTeam.ten}</h3>
-                    <p style={{ margin: '4px 0 0 0', fontSize: '14px', color: '#64748b', display: 'flex', gap: '10px', alignItems: 'center' }}>
-                      <span className={styles.statusBadge} style={{ background: '#f1f5f9' }}>Bảng {viewingTeam.bang}</span>
-                      <span>•</span>
-                      <span>{viewingTeam.cauThu?.length || 0} cầu thủ</span>
-                    </p>
-                  </div>
-                </div>
-                <button
-                  onClick={() => setViewingTeam(null)}
-                  style={{ background: 'none', border: 'none', fontSize: '24px', cursor: 'pointer', color: '#94a3b8' }}
-                >
-                  ×
-                </button>
-              </div>
 
-              <div style={{ marginTop: '20px' }}>
-                <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#1e293b', marginBottom: '12px', borderBottom: '1px solid #f1f5f9', paddingBottom: '8px' }}>
-                  Danh sách cầu thủ đăng ký
-                </h4>
-                {(!viewingTeam.cauThu || viewingTeam.cauThu.length === 0) ? (
-                  <p style={{ color: '#94a3b8', fontSize: '13px', fontStyle: 'italic', textAlign: 'center', padding: '20px 0' }}>
-                    Chưa có cầu thủ nào được đăng ký cho đội bóng này.
-                  </p>
-                ) : (() => {
-                  const chinhThuc = viewingTeam.cauThu.filter((p: any) => !p.viTri?.startsWith('Dự bị'));
-                  const duBi = viewingTeam.cauThu.filter((p: any) => p.viTri?.startsWith('Dự bị'));
-
-                  const posOrder: Record<string, number> = {
-                    'Thủ môn': 1, 'GK': 1,
-                    'Hậu vệ': 2, 'DF': 2,
-                    'Tiền vệ': 3, 'MF': 3,
-                    'Tiền đạo': 4, 'FW': 4,
-                    'Chưa rõ': 99
-                  };
-
-                  const sortPlayers = (list: any[]) => {
-                    return [...list].sort((a: any, b: any) => {
-                      const cleanPosA = a.viTri?.replace('Dự bị - ', '') || 'Chưa rõ';
-                      const cleanPosB = b.viTri?.replace('Dự bị - ', '') || 'Chưa rõ';
-                      return (posOrder[cleanPosA] || 99) - (posOrder[cleanPosB] || 99) || (a.soAo - b.soAo);
-                    });
-                  };
-
-                  const sortedChinhThuc = sortPlayers(chinhThuc);
-                  const sortedDuBi = sortPlayers(duBi);
-
-                  const getDisplayPos = (pos: string) => {
-                    if (!pos) return 'Chưa rõ';
-                    if (pos.startsWith('Dự bị - ')) return pos.replace('Dự bị - ', '') + ' (Dự bị)';
-                    return pos === 'GK' ? 'Thủ môn' : pos === 'DF' ? 'Hậu vệ' : pos === 'MF' ? 'Tiền vệ' : pos === 'FW' ? 'Tiền đạo' : pos;
-                  };
-
-                  return (
-                    <div style={{ maxHeight: '380px', overflowY: 'auto', paddingRight: '4px', display: 'flex', flexDirection: 'column', gap: '20px' }}>
-                      {/* Đội hình chính thức */}
-                      <div>
-                        <h5 style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#dc2626', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          🛡️ Đội hình chính thức ({chinhThuc.length})
-                        </h5>
-                        {chinhThuc.length === 0 ? (
-                          <p style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic', margin: '4px 0 0 12px' }}>Không có cầu thủ chính thức</p>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            {sortedChinhThuc.map((p: any) => (
-                              <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(255, 255, 255, 0.7)', backdropFilter: 'blur(10px)', borderRadius: '10px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 2px 4px rgba(0,0,0,0.02)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', background: '#fee2e2', color: '#ef4444', borderRadius: '50%', fontSize: '11px', fontWeight: 700 }}>
-                                    {p.soAo}
-                                  </span>
-                                  <div>
-                                    <p style={{ margin: 0, fontWeight: 600, fontSize: '13.5px', color: '#1e293b' }}>{p.ten}</p>
-                                    <p style={{ margin: 0, fontSize: '10.5px', color: '#3b82f6', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
-                                      {getDisplayPos(p.viTri)}
-                                    </p>
-                                  </div>
-                                </div>
-                                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>
-                                  ⚽ {p.banThang || 0} bàn
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-
-                      {/* Danh sách dự bị */}
-                      <div>
-                        <h5 style={{ margin: '0 0 10px 0', fontSize: '13px', color: '#4b5563', textTransform: 'uppercase', fontWeight: 800, letterSpacing: '0.05em', display: 'flex', alignItems: 'center', gap: '6px' }}>
-                          📋 Danh sách dự bị ({duBi.length})
-                        </h5>
-                        {duBi.length === 0 ? (
-                          <p style={{ color: '#94a3b8', fontSize: '12px', fontStyle: 'italic', margin: '4px 0 0 12px' }}>Không có cầu thủ dự bị</p>
-                        ) : (
-                          <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                            {sortedDuBi.map((p: any) => (
-                              <div key={p.id} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '8px 12px', background: 'rgba(248, 250, 252, 0.7)', backdropFilter: 'blur(10px)', borderRadius: '10px', border: '1px solid rgba(226, 232, 240, 0.8)', boxShadow: '0 2px 4px rgba(0,0,0,0.01)' }}>
-                                <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                                  <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', background: '#f1f5f9', color: '#475569', borderRadius: '50%', fontSize: '11px', fontWeight: 700 }}>
-                                    {p.soAo}
-                                  </span>
-                                  <div>
-                                    <p style={{ margin: 0, fontWeight: 600, fontSize: '13.5px', color: '#334155' }}>{p.ten}</p>
-                                    <p style={{ margin: 0, fontSize: '10.5px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em' }}>
-                                      {getDisplayPos(p.viTri)}
-                                    </p>
-                                  </div>
-                                </div>
-                                <span style={{ fontSize: '11px', color: '#64748b', fontWeight: 500 }}>
-                                  ⚽ {p.banThang || 0} bàn
-                                </span>
-                              </div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    </div>
-                  );
-                })()}
-              </div>
-
-              <div className={styles.modalFooter}>
-                <button
-                  className={`${styles.modalFooterBtn} ${styles.modalFooterPrimary}`}
-                  onClick={() => {
-                    const teamToEdit = viewingTeam;
-                    setViewingTeam(null);
-                    handleEditTeam(teamToEdit);
-                  }}
-                >
-                  Chỉnh sửa thành viên
-                </button>
-                <button
-                  className={`${styles.modalFooterBtn} ${styles.modalFooterSecondary}`}
-                  onClick={() => setViewingTeam(null)}
-                >
-                  Đóng
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
 
         {/* Create Tournament Modal */}
         {isCreatingTournament && (
@@ -2541,11 +2360,15 @@ export default function QuanTriPage() {
                             const draftMatches = liveMatches.filter(m => m.trangThai === 'DRAFT' || m.trangThai === 'SAP_DIEN_RA');
                             const matchIds = draftMatches.map(m => m.id);
                             if (matchIds.length > 0) {
-                              const { error: delEventsErr } = await supabase.from('su_kien').delete().in('tran_dau_id', matchIds);
-                              if (delEventsErr) throw delEventsErr;
+                              const chunkSize = 100;
+                              for (let i = 0; i < matchIds.length; i += chunkSize) {
+                                const chunk = matchIds.slice(i, i + chunkSize);
+                                const { error: delEventsErr } = await supabase.from('su_kien').delete().in('tran_dau_id', chunk);
+                                if (delEventsErr) throw delEventsErr;
 
-                              const { error: delMatchesErr } = await supabase.from('tran_dau').delete().in('id', matchIds);
-                              if (delMatchesErr) throw delMatchesErr;
+                                const { error: delMatchesErr } = await supabase.from('tran_dau').delete().in('id', chunk);
+                                if (delMatchesErr) throw delMatchesErr;
+                              }
                             }
                             await fetchData(selectedTournament?.id);
                             showToast('Đã xóa toàn bộ lịch nháp!');

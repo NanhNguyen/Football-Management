@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { usePublicTournament } from './PublicTournamentContext';
 import { layDanhSachDoi } from '@/lib/api';
+import { supabase } from '@/lib/supabase';
 import styles from './PublicSidebar.module.css';
 
 interface PublicSidebarProps {
@@ -15,17 +16,55 @@ interface PublicSidebarProps {
 export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
   const pathname = usePathname();
   const router = useRouter();
-  const { 
-    selectedTournament, 
-    tournaments, 
+  const {
+    selectedTournament,
+    tournaments,
     setSelectedTournamentId,
     favoriteTeams,
-    toggleFollowTeam 
+    toggleFollowTeam
   } = usePublicTournament();
 
   const [teams, setTeams] = useState<any[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(true);
   const [followedTournaments, setFollowedTournaments] = useState<string[]>([]);
+  const [user, setUser] = useState<any>(null);
+
+  // Authentication status effect
+  useEffect(() => {
+    const initAuth = async () => {
+      const { data: { session } } = await supabase.auth.getSession();
+      if (session) {
+        setUser(session.user);
+        const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
+        const now = Date.now();
+        if (expiresAt - now < 5 * 60 * 1000) {
+          await supabase.auth.refreshSession();
+        }
+      } else {
+        setUser(null);
+      }
+    };
+    
+    initAuth();
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+      if (session) {
+        setUser(session.user);
+      } else {
+        setUser(null);
+        if (pathname.startsWith('/quan-tri') && event === 'SIGNED_OUT') {
+          window.location.href = '/login';
+        }
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, [pathname]);
+
+  const handleLogout = async () => {
+    await supabase.auth.signOut();
+    window.location.href = '/login';
+  };
 
   // Fetch all teams for basic data
   useEffect(() => {
@@ -99,7 +138,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
     const updated = followedTournaments.includes(id)
       ? followedTournaments.filter(x => x !== id)
       : [...followedTournaments, id];
-    
+
     localStorage.setItem('followedTournaments', JSON.stringify(updated));
     setFollowedTournaments(updated);
     window.dispatchEvent(new Event('follow-update'));
@@ -136,22 +175,22 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
         {/* Logo Section */}
         <div className={styles.logoSection}>
           <Link href="/" className={styles.logoLink}>
-            <img src="/logo-premium-transparent.png" alt="TKScore Logo" className={styles.logoImg} />
-            <span className={styles.logoText}>TKSCORE</span>
+            <img src="/logo-premium-transparent.png" alt="Sparta Logo" className={styles.logoImg} />
+            <span className={styles.logoText}>SPARTA</span>
           </Link>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close sidebar">×</button>
         </div>
 
         {/* Scroll Container for Sidebar Content */}
         <div className={styles.scrollContainer}>
-          
+
           {/* Section 1: ⭐ ĐANG THEO DÕI (Consumes Global State `favoriteTeams`) */}
           <section className={styles.sectionWrapper}>
             <div className={styles.sectionHeader}>
-              <span className={styles.sectionTitleIcon} style={{color: '#d71920'}}>★</span>
+              <span className={styles.sectionTitleIcon} style={{ color: 'var(--color-primary)' }}>★</span>
               <span className={styles.sectionTitleText}>ĐANG THEO DÕI</span>
             </div>
-            
+
             <div className={styles.sectionContent}>
               {!hasFollowedItems ? (
                 <div className={styles.emptyFollowPlaceholder}>
@@ -184,7 +223,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                           onClick={(e) => toggleFollowTournament(t.id, e)}
                           title="Bỏ theo dõi"
                         >
-                          <span style={{color: '#d71920'}}>★</span>
+                          <span style={{ color: 'var(--color-primary)' }}>★</span>
                         </button>
                       </div>
                     );
@@ -214,7 +253,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                           onClick={(e) => handleToggleFollowTeam(team.id, e)}
                           title="Bỏ theo dõi"
                         >
-                          <span style={{color: '#d71920'}}>★</span>
+                          <span style={{ color: 'var(--color-primary)' }}>★</span>
                         </button>
                       </Link>
                     );
@@ -261,7 +300,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                           onClick={(e) => toggleFollowTournament(t.id, e)}
                           title={isFollowed ? "Bỏ theo dõi" : "Theo dõi"}
                         >
-                          {isFollowed ? <span style={{color: '#d71920'}}>★</span> : '☆'}
+                          {isFollowed ? <span style={{ color: 'var(--color-primary)' }}>★</span> : '☆'}
                         </button>
                       </div>
                     );
@@ -273,10 +312,53 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
 
         </div>
 
+        {/* User Auth Info Section */}
+        <div className={styles.authSection}>
+          {user ? (
+            <div className={styles.userProfile}>
+              <div className={styles.userInfoWrapper}>
+                <div className={styles.avatar}>
+                  {user.email ? user.email.substring(0, 2).toUpperCase() : 'AD'}
+                  <span className={styles.onlineBadge}></span>
+                </div>
+                <div className={styles.userDetails}>
+                  <p className={styles.userName} title={user.email}>Nguyễn Nam Anh</p>
+                  <p className={styles.userRole}>Ban Tổ Chức</p>
+                </div>
+              </div>
+              <div className={styles.profileActions}>
+                <Link href="/quan-tri" className={styles.actionBtn} title="Trang Quản trị">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <circle cx="12" cy="12" r="3"></circle>
+                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                  </svg>
+                  <span>Quản trị</span>
+                </Link>
+                <button onClick={handleLogout} className={`${styles.actionBtn} ${styles.logoutBtn}`} title="Đăng xuất">
+                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
+                    <polyline points="16 17 21 12 16 7"></polyline>
+                    <line x1="21" y1="12" x2="9" y2="12"></line>
+                  </svg>
+                  <span>Đăng xuất</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Link href="/login" className={styles.loginBtn}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
+                <polyline points="10 17 15 12 10 7"></polyline>
+                <line x1="15" y1="12" x2="3" y2="12"></line>
+              </svg>
+              <span>Đăng nhập BTC</span>
+            </Link>
+          )}
+        </div>
+
         {/* Sidebar Footer */}
         <div className={styles.sidebarFooter}>
-          <p className={styles.footerBrand}>TKScore Premium v2.0</p>
-          <p className={styles.footerCopyright}>© 2026 Thiên Khôi Group</p>
+          <p className={styles.footerBrand}>Sparta Premium v2.0</p>
         </div>
       </aside>
     </>

@@ -126,7 +126,7 @@ export default function TopNav() {
       {/* LEFT — Logo & Season */}
       <div className={styles.left}>
         <Link href="/" className={styles.logo}>
-          <img src="/logo-premium-transparent.png" alt="TKSCORE Logo" className={styles.logoImg} />
+          <img src="/logo-premium-transparent.png" alt="SPARTA Logo" className={styles.logoImg} />
         </Link>
       </div>
 

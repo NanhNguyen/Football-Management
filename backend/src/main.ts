@@ -9,6 +9,6 @@ async function bootstrap() {
   });
   app.setGlobalPrefix('api');
   await app.listen(3001);
-  console.log('🏟️  TKSCORE Football League API đang chạy tại http://localhost:3001');
+  console.log('🏟️  SPARTA Football League API đang chạy tại http://localhost:3001');
 }
 bootstrap();

@@ -3,34 +3,28 @@ import React, { Fragment } from 'react';
 interface SchedulerTabProps {
   styles: any;
   setIsSchedulerConfigOpen: (val: boolean) => void;
-  selectedDraftMatches: string[];
-  handlePublishSelectedMatches: () => void;
   scheduleUniqueRounds: string[];
   scheduleFilterVong: string;
   setScheduleFilterVong: (val: string) => void;
   setIsAddingMatch: (val: boolean) => void;
-  handleSelectAllDrafts: (e: any) => void;
   filteredAndSortedScheduleMatches: any[];
-  handleSelectDraft: (id: string, checked: boolean) => void;
   handleInlineUpdateMatch: (id: string, field: string, value: string) => void;
   handleDeleteMatch: (id: string) => void;
+  handleEditMatch: (match: any) => void;
   liveMatches: any[];
 }
 
 export default function SchedulerTab({
   styles,
   setIsSchedulerConfigOpen,
-  selectedDraftMatches,
-  handlePublishSelectedMatches,
   scheduleUniqueRounds,
   scheduleFilterVong,
   setScheduleFilterVong,
   setIsAddingMatch,
-  handleSelectAllDrafts,
   filteredAndSortedScheduleMatches,
-  handleSelectDraft,
   handleInlineUpdateMatch,
   handleDeleteMatch,
+  handleEditMatch,
   liveMatches
 }: SchedulerTabProps) {
   return (
@@ -48,15 +42,6 @@ export default function SchedulerTab({
             title="Thiết lập tham số (ngày bắt đầu, thời gian, sân thi đấu...) và chạy thuật toán xếp lịch tự động"
           >
             ⚙️ Cấu hình & Sinh lịch
-          </button>
-          <button
-            className={styles.addBtn}
-            style={{ background: selectedDraftMatches.length > 0 ? '#10b981' : '#cbd5e1', cursor: selectedDraftMatches.length > 0 ? 'pointer' : 'not-allowed' }}
-            onClick={handlePublishSelectedMatches}
-            disabled={selectedDraftMatches.length === 0}
-            title={selectedDraftMatches.length > 0 ? `Ấn để phát hành chính thức ${selectedDraftMatches.length} trận đấu nháp đang được chọn` : "Chọn ít nhất 1 trận đấu nháp bên dưới để phát hành"}
-          >
-            Phát hành Lịch ({selectedDraftMatches.length})
           </button>
         </div>
       </div>
@@ -105,15 +90,7 @@ export default function SchedulerTab({
           <table className={styles.adminTable}>
             <thead>
               <tr>
-                <th style={{ width: '40px', textAlign: 'center' }}>
-                  <input
-                    type="checkbox"
-                    onChange={handleSelectAllDrafts}
-                    checked={filteredAndSortedScheduleMatches.length > 0 && selectedDraftMatches.length === filteredAndSortedScheduleMatches.filter((m: any) => m.trangThai === 'DRAFT').length}
-                    style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--color-primary)' }}
-                    title="Chọn tất cả các trận nháp đang hiển thị để thực hiện phát hành"
-                  />
-                </th>
+                <th style={{ width: '50px', textAlign: 'center' }}>#</th>
                 <th>Thời gian</th>
                 <th>Trận đấu</th>
                 <th>Sân</th>
@@ -143,18 +120,10 @@ export default function SchedulerTab({
                         {vong}
                       </td>
                     </tr>
-                    {matches.map((m: any) => (
+                    {matches.map((m: any, idx: number) => (
                       <tr key={m.id} style={{ transition: 'background-color 0.2s' }}>
-                        <td style={{ textAlign: 'center' }}>
-                          {m.trangThai === 'DRAFT' && (
-                            <input
-                              type="checkbox"
-                              checked={selectedDraftMatches.includes(m.id)}
-                              onChange={(e) => handleSelectDraft(m.id, e.target.checked)}
-                              style={{ width: '16px', height: '16px', cursor: 'pointer', accentColor: 'var(--color-primary)' }}
-                              title="Chọn trận này để phát hành chính thức"
-                            />
-                          )}
+                        <td style={{ textAlign: 'center', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>
+                          {idx + 1}
                         </td>
                         <td>
                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
@@ -200,7 +169,22 @@ export default function SchedulerTab({
                         </td>
                         <td>
                           <div style={{ display: 'flex', gap: '8px' }}>
-                            <button className={styles.deleteBtnCompact} style={{ padding: '6px' }} onClick={() => handleDeleteMatch(m.id)} title="Xóa trận đấu này khỏi lịch thi đấu đề xuất">❌</button>
+                            <button
+                              className={styles.editBtnCompact}
+                              style={{ padding: '6px', fontSize: '12px', height: 'auto', minHeight: 'auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                              onClick={() => handleEditMatch(m)}
+                              title="Chỉnh sửa chi tiết trận đấu"
+                            >
+                              ✏️
+                            </button>
+                            <button
+                              className={styles.deleteBtnCompact}
+                              style={{ padding: '6px', fontSize: '12px', height: 'auto', minHeight: 'auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
+                              onClick={() => handleDeleteMatch(m.id)}
+                              title="Xóa trận đấu này khỏi lịch thi đấu đề xuất"
+                            >
+                              ❌
+                            </button>
                           </div>
                         </td>
                       </tr>

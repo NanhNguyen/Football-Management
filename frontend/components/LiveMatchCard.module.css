@@ -3,6 +3,7 @@
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-lg);
   padding: var(--space-base);
+  box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
   animation: fade-in 0.4s ease-out;
 }
@@ -13,8 +14,9 @@
 }
 
 .cardLive {
-  border-color: var(--color-primary);
+  border-color: var(--color-live);
   border-width: 2px;
+  background: linear-gradient(135deg, #FFFFFF 0%, rgba(244, 63, 94, 0.04) 100%);
 }
 
 /* Status Row */
@@ -42,7 +44,7 @@
   align-items: center;
   gap: 6px;
   padding: 4px 10px;
-  background: var(--color-primary);
+  background: var(--color-live);
   color: white;
   font-size: 11px;
   font-weight: 700;
@@ -123,10 +125,10 @@
   display: flex;
   align-items: center;
   gap: var(--space-sm);
-  background: var(--color-primary-light);
+  background: var(--color-surface);
   padding: var(--space-sm) var(--space-base);
   border-radius: var(--radius-lg);
-  border: 2px solid rgba(215, 25, 32, 0.15);
+  border: 2px solid rgba(130, 170, 227, 0.2);
 }
 
 .scoreNum {

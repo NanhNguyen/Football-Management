@@ -32,18 +32,19 @@
   align-items: center;
   padding: 10px 16px;
   background-color: var(--color-surface); /* White card background */
-  border-radius: 12px; /* Smooth rounded corners */
-  border: 1px solid var(--color-border-light); /* Subtle light gray card border */
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02); /* Soft shadow to lift card */
+  border-radius: var(--radius-md); /* 8px rounded corners */
+  border: 1px solid var(--color-border-light);
+  box-shadow: var(--shadow-sm); /* Soft shadow to lift card */
   cursor: pointer;
   transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+  border-left: 4px solid transparent; /* Prepare for active state */
 }
 
 .matchRow:hover {
-  background-color: var(--color-surface);
+  background: linear-gradient(90deg, var(--color-surface-hover) 0%, #FFFFFF 100%);
   transform: translateY(-2px); /* Modern floating micro-lift */
-  box-shadow: 0 8px 18px rgba(0, 0, 0, 0.05); /* Deeper shadow on lift */
-  border-color: rgba(215, 25, 32, 0.18); /* Soft brand color glow */
+  box-shadow: var(--shadow-md); /* Deeper shadow on lift */
+  border-left-color: var(--color-primary); /* Blue active border */
 }
 
 .colTime {
@@ -56,7 +57,7 @@
 }
 
 .timeLive {
-  color: var(--color-primary); /* Red */
+  color: var(--color-live); /* Red */
   font-weight: 700;
   animation: pulse-live 1.5s infinite;
 }
@@ -145,7 +146,7 @@
 }
 
 .scoreLive {
-  color: var(--color-primary); /* Red */
+  color: var(--color-live); /* Coral Red */
 }
 
 .scoreDash {

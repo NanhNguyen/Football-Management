@@ -1,42 +1,42 @@
 /* ============================================================
-   TKSCORE FOOTBALL LEAGUE — DESIGN SYSTEM
+   SPARTA FOOTBALL LEAGUE — DESIGN SYSTEM
    Based on Stitch MCP Design Tokens
    ============================================================ */
 
 /* ===== CSS VARIABLES ===== */
 :root {
   /* Brand Colors */
-  --color-primary: #D71920;
-  --color-primary-dark: #AE0011;
-  --color-primary-light: #FFDAD6;
-  --color-primary-dim: #FFB4AB;
+  --color-primary: #82AAE3;
+  --color-primary-dark: #6A92CD;
+  --color-primary-light: #BFEAF5;
+  --color-primary-dim: #EAFDFC;
 
   /* Surfaces */
-  --color-bg: #F4F5F7;
+  --color-bg: #F8FAFC;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #FFF0EE;
-  --color-surface-container: #FFE9E6;
-  --color-surface-high: #FFE2DE;
+  --color-surface-hover: #F0FBFC; /* Very light, gentle cyan for hover */
+  --color-surface-container: #BFEAF5;
+  --color-surface-high: #91D8E4;
 
   /* Text */
-  --color-text: #1F2937;
-  --color-text-secondary: #5D3F3C;
-  --color-text-muted: #926F6B;
+  --color-text: #0F172A;
+  --color-text-secondary: #1E293B;
+  --color-text-muted: #334155;
 
   /* Borders */
-  --color-border: #E6BDB8;
-  --color-border-light: #E5E7EB;
+  --color-border: #91D8E4;
+  --color-border-light: #BFEAF5;
 
   /* Status */
   --color-success: #059669;
   --color-warning: #D97706;
-  --color-live: #D71920;
+  --color-live: #F43F5E;
 
   /* Live Screen */
-  --live-bg-start: #240B0B;
-  --live-bg-end: #3A1010;
-  --glass-fill: rgba(255, 255, 255, 0.12);
-  --glass-border: rgba(255, 255, 255, 0.18);
+  --live-bg-start: #EAFDFC;
+  --live-bg-end: #BFEAF5;
+  --glass-fill: rgba(255, 255, 255, 0.4);
+  --glass-border: rgba(145, 216, 228, 0.5);
 
   /* Spacing */
   --space-xs: 4px;
@@ -55,7 +55,7 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
   --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
   --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
   --shadow-glow: 0 0 12px rgba(215, 25, 32, 0.4);
@@ -77,7 +77,8 @@ html {
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background-color: var(--color-bg);
+  background: linear-gradient(135deg, #F8FAFC 0%, #EAFDFC 100%);
+  background-attachment: fixed;
   color: var(--color-text);
   font-size: 14px;
   line-height: 1.5;
@@ -187,8 +188,8 @@ button {
   background: var(--color-text-muted);
 }
 
-/* ===== EMOJI RED TINT ===== 
-   Turns all emoji icons into brand red to match the red/white premium theme.
+/* ===== EMOJI NAVY TINT ===== 
+   Turns all emoji icons into Navy Dark to match the Pastel Aqua theme.
    Ignores elements that contain actual <img> tags (like real team logos).
 */
 [class*="teamLogo"]:not(:has(img)),
@@ -201,5 +202,5 @@ button {
 [class*="bsActionIcon"],
 [class*="timelineIcon"],
 [class*="calendarBtn"] {
-  filter: brightness(0) saturate(100%) invert(16%) sepia(87%) saturate(5838%) hue-rotate(348deg) brightness(87%) contrast(96%);
+  filter: brightness(0) saturate(100%) invert(7%) sepia(20%) saturate(1915%) hue-rotate(188deg) brightness(98%) contrast(95%);
 }
