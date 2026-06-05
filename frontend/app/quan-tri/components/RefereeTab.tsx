@@ -1,4 +1,4 @@
-import React, { Fragment } from 'react';
+import React, { useState, useEffect } from 'react';
 import TeamLogo from '@/components/TeamLogo';
 
 interface RefereeTabProps {
@@ -33,7 +33,7 @@ interface RefereeTabProps {
   handleDeleteEvent: (evtId: string, type: string, points?: number, isIndividual?: boolean, playerId?: string) => void;
   isSelectingSubstitute: boolean;
   setIsSelectingSubstitute: (val: boolean) => void;
-  handleActionSelect: (type: string, detail?: string) => void;
+  handleActionSelect: (type: string, detail?: string, overrideParams?: any) => void;
   getMatchHalfState: (match: any) => '1_not_started' | '1_active' | 'half_time' | '2_active' | 'finished';
 }
 
@@ -54,11 +54,7 @@ export default function RefereeTab({
   selectedMatch,
   starterCount,
   calculateCurrentRoster,
-  pendingSubOut,
-  setPendingSubOut,
   handleExecuteSubstitution,
-  setActivePlayerParams,
-  activePlayerParams,
   customEvents,
   handleStartMatch,
   handleTemporaryPauseToggle,
@@ -67,11 +63,78 @@ export default function RefereeTab({
   handleFinishMatch,
   handleResetMatch,
   handleDeleteEvent,
-  isSelectingSubstitute,
-  setIsSelectingSubstitute,
   handleActionSelect,
   getMatchHalfState
 }: RefereeTabProps) {
+
+  const [wizardState, setWizardState] = useState<{
+    isOpen: boolean;
+    action: 'goal' | 'card' | 'sub' | 'custom' | 'motm' | null;
+    customActionId?: string;
+    teamId: string;
+    subType: string; // 'normal' | 'pen' | 'og' | 'yellow' | 'red'
+    step: 1 | 2; // For substitution
+    subOutPlayer?: any;
+  }>({
+    isOpen: false,
+    action: null,
+    teamId: '',
+    subType: 'normal',
+    step: 1
+  });
+
+  useEffect(() => {
+    // When match changes, ensure wizard resets
+    if (selectedMatch) {
+      setWizardState(prev => ({ ...prev, isOpen: false, teamId: selectedMatch.doiNha?.id || '' }));
+    }
+  }, [selectedMatch]);
+
+  const openWizard = (action: 'goal' | 'card' | 'sub' | 'custom' | 'motm', subType: string = 'normal', customId?: string) => {
+    if (!selectedMatch) return;
+    setWizardState({
+      isOpen: true,
+      action,
+      teamId: selectedMatch.doiNha?.id,
+      subType,
+      customActionId: customId,
+      step: 1,
+      subOutPlayer: undefined
+    });
+  };
+
+  const closeWizard = () => {
+    setWizardState(prev => ({ ...prev, isOpen: false }));
+  };
+
+  const handlePlayerSelect = (player: any) => {
+    if (!selectedMatch) return;
+
+    if (wizardState.action === 'sub') {
+      if (wizardState.step === 1) {
+        // Selected player to sub out. Now show bench to select player in.
+        setWizardState(prev => ({ ...prev, step: 2, subOutPlayer: player }));
+      } else {
+        // Selected player to sub in. Execute sub.
+        handleExecuteSubstitution(player, wizardState.subOutPlayer, wizardState.teamId);
+        closeWizard();
+      }
+    } else {
+      // Goal, Card, Custom
+      const overrideParams = {
+        matchId: selectedMatch.id,
+        teamId: wizardState.teamId,
+        player
+      };
+      
+      let detail = wizardState.subType;
+      if (wizardState.action === 'custom') detail = wizardState.customActionId || '';
+
+      handleActionSelect(wizardState.action!, detail, overrideParams);
+      closeWizard();
+    }
+  };
+
   return (
     <div className={`${styles.refereeConsoleWrapper} animate-fade-in`}>
       {!selectedMatchId ? (
@@ -163,9 +226,9 @@ export default function RefereeTab({
       ) : selectedMatch && (
         <div className={styles.liveConsole}>
           {/* TOP BAR */}
-          <div className={styles.consoleTopBar}>
+          <div className={styles.consoleTopBar} style={{ marginBottom: 0, paddingBottom: '16px' }}>
             <button className={styles.consoleBackBtn} onClick={() => setSelectedMatchId(null)}>
-              ← Danh sách
+              ← Trở về
             </button>
             <div className={styles.consoleMatchMeta}>
               <span className={styles.consoleVong}>{selectedMatch.vong}</span>
@@ -181,345 +244,177 @@ export default function RefereeTab({
             </div>
           </div>
 
-          {/* MAIN FIELD CONTROLLER */}
-          <div className={styles.consoleMainArea}>
-            {/* LEFT — Home Roster */}
-            <div className={styles.consoleSideRoster}>
-              <div className={styles.consoleRosterHeader}>
-                <TeamLogo logo={selectedMatch.doiNha?.logo} />
-                <h3>{selectedMatch.doiNha?.ten}</h3>
-                {pendingSubOut && pendingSubOut.teamId === selectedMatch.doiNha.id && (
-                  <button className={styles.consoleSubCancelBtn} onClick={() => setPendingSubOut(null)}>Hủy thay người</button>
-                )}
+          {/* 1. STICKY SCOREBOARD */}
+          <div className={styles.stickyScoreboard}>
+            <div className={styles.consoleCentralHeaderCard} style={{ background: 'transparent', boxShadow: 'none', padding: 0 }}>
+              <div className={styles.consoleCentralTeam}>
+                <span className={styles.consoleCentralLogo} style={{ display: 'flex', width: '40px', height: '40px' }}><TeamLogo logo={selectedMatch.doiNha?.logo} /></span>
+                <span className={styles.consoleCentralName}>{selectedMatch.doiNha?.ten}</span>
               </div>
-              <div className={styles.consoleRosterList}>
-                {selectedMatch.doiNha?.cauThu?.length === 0 ? (
-                  <div className={styles.consoleEmptyRoster}>Chưa có cầu thủ đăng ký</div>
-                ) : (
-                  (() => {
-                    const { starters, bench } = calculateCurrentRoster(selectedMatch.doiNha, selectedMatch.suKien, starterCount);
-                    const renderPlayer = (player: any, isBench: boolean) => {
-                      const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
-                      const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
-                      const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                      const customEventCounts = customEvents.map(evt => ({
-                        ...evt,
-                        count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
-                      }));
-                      const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
-                      const isClickable = !hasRedCard && (selectedMatch.trangThai === 'DANG_DIEN_RA' || selectedMatch.trangThai === 'KET_THUC');
 
-                      const isPendingSub = pendingSubOut?.player?.id === player.id;
-                      const isOtherPending = pendingSubOut && pendingSubOut.teamId === selectedMatch.doiNha.id && !isPendingSub;
-                      const dimClass = isOtherPending && !isBench ? styles.consolePlayerDimmed : '';
-                      const highlightClass = pendingSubOut && isBench && pendingSubOut.teamId === selectedMatch.doiNha.id ? styles.consolePlayerHighlighted : '';
-                      const benchClass = isBench ? styles.consolePlayerBench : '';
+              <div className={styles.consoleCentralScoreWrapper}>
+                <div className={styles.consoleCentralScore}>
+                  <span className={styles.consoleCentralBigScore}>{selectedMatch.tyNha}</span>
+                  <span className={styles.consoleCentralScoreSep}>:</span>
+                  <span className={styles.consoleCentralBigScore}>{selectedMatch.tyKhach}</span>
+                </div>
+              </div>
 
-                      const handleClick = () => {
-                        if (!isClickable) return;
-                        if (pendingSubOut) {
-                          if (pendingSubOut.teamId !== selectedMatch.doiNha.id) return;
-                          if (isPendingSub) {
-                            setPendingSubOut(null); // Cancel
-                          } else if (isBench) {
-                            handleExecuteSubstitution(player, pendingSubOut.player, pendingSubOut.teamId);
-                          }
-                        } else {
-                          setActivePlayerParams({ matchId: selectedMatch.id, teamId: selectedMatch.doiNha.id, player, isBench });
-                        }
-                      };
-
-                      return (
-                        <button
-                          key={player.id}
-                          className={`${styles.consolePlayerBtn} ${benchClass} ${hasRedCard ? styles.consolePlayerRedCarded : ''} ${isClickable ? styles.consolePlayerActive : ''} ${dimClass} ${highlightClass}`}
-                          onClick={handleClick}
-                          disabled={!isClickable && !isPendingSub}
-                        >
-                          <div className={styles.consolePlayerNo}>{player.soAo}</div>
-                          <div className={styles.consolePlayerName}>{player.ten || 'Chưa đặt tên'}</div>
-
-                          {/* Action Badges */}
-                          <div className={styles.consolePlayerBadges}>
-                            {goalCount > 0 && <span>{goalCount > 1 ? goalCount : ''}&#x26BD;</span>}
-                            {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.count > 1 ? cEvt.count : ''}{cEvt.icon}</span> : null)}
-                            {yellowCount > 0 && <span>Y{yellowCount > 1 ? yellowCount : ''}</span>}
-                            {hasRedCard && <span>R</span>}
-                            {isMotm && <span>MVP</span>}
-                          </div>
-                        </button>
-                      );
-                    };
-                    return (
-                      <>
-                        <div className={styles.rosterHeader}>🏟️ ĐỘI HÌNH CHÍNH</div>
-                        {starters.map(p => renderPlayer(p, false))}
-
-                        <div className={styles.rosterHeader} style={{ marginTop: '20px', color: '#64748b', borderColor: '#cbd5e1' }}>🔄 CẦU THỦ DỰ BỊ</div>
-                        <div className={styles.benchListView}>
-                          {bench.length === 0 ? (
-                            <p style={{ fontSize: '12px', color: '#94a3b8', padding: '8px 12px', margin: 0, gridColumn: '1 / -1' }}>Không có cầu thủ dự bị</p>
-                          ) : (
-                            bench.map((player: any) => {
-                              const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
-                              const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
-                              const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                              const customEventCounts = customEvents.map(evt => ({
-                                ...evt,
-                                count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
-                              }));
-                              const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
-
-                              return (
-                                <div key={player.id} className={styles.benchListRow}>
-                                  <span className={styles.benchListNo}>#{player.soAo}</span>
-                                  <span className={styles.benchListName}>{player.ten}</span>
-
-                                  <div className={styles.benchListBadges}>
-                                    {goalCount > 0 && <span title="Bàn thắng">⚽ {goalCount > 1 ? goalCount : ''}</span>}
-                                    {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.icon} {cEvt.count > 1 ? cEvt.count : ''}</span> : null)}
-                                    {yellowCount > 0 && <span style={{ background: '#fef08a', color: '#a16207' }} title="Thẻ vàng">🟨 {yellowCount > 1 ? yellowCount : ''}</span>}
-                                    {hasRedCard && <span style={{ background: '#fee2e2', color: '#b91c1c' }} title="Thẻ đỏ">🟥</span>}
-                                    {isMotm && <span style={{ background: '#faf5ff', color: '#7e22ce' }}>🏅 MVP</span>}
-                                  </div>
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      </>
-                    );
-                  })()
-                )}
+              <div className={styles.consoleCentralTeam}>
+                <span className={styles.consoleCentralLogo} style={{ display: 'flex', width: '40px', height: '40px' }}><TeamLogo logo={selectedMatch.doiKhach?.logo} /></span>
+                <span className={styles.consoleCentralName}>{selectedMatch.doiKhach?.ten}</span>
               </div>
             </div>
 
-            {/* CENTER — Scoreboard + Event Log */}
-            <div className={styles.consoleCenterPanel}>
-              {/* Score display */}
-              <div className={styles.consoleScoreCard}>
-                <div className={styles.consoleScoreRow}>
-                  <span className={styles.consoleScore}>{selectedMatch.tyNha}</span>
-                  <span className={styles.consoleScoreColon}>:</span>
-                  <span className={styles.consoleScore}>{selectedMatch.tyKhach}</span>
-                </div>
-                <div className={styles.consoleTimer}>
-                  ⏱️ {formatMatchTime(selectedMatch)}
-                </div>
-
-                {/* Sequential Match State Machine Main CTA */}
-                <div className={styles.consoleMainCtaWrapper}>
-                  {getMatchHalfState(selectedMatch) === '1_not_started' && (
-                    <button
-                      className={`${styles.consoleMainCta} ${styles.ctaStartH1}`}
-                      onClick={() => handleStartMatch(selectedMatch.id)}
-                    >
-                      🟢 BẮT ĐẦU HIỆP 1
-                    </button>
-                  )}
-
-                  {getMatchHalfState(selectedMatch) === '1_active' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-                      <button
-                        className={styles.consoleMainCta}
-                        style={{
-                          background: selectedMatch.dangTamDung ? '#10b981' : '#2563eb',
-                          boxShadow: selectedMatch.dangTamDung ? '0 4px 14px rgba(16, 185, 129, 0.3)' : '0 4px 14px rgba(37, 99, 235, 0.3)'
-                        }}
-                        onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}
-                      >
-                        {selectedMatch.dangTamDung ? '▶ TIẾP TỤC TRẬN ĐẤU' : '⏸ TẠM DỪNG TRẬN ĐẤU'}
-                      </button>
-                      <button
-                        className={`${styles.consoleMainCta} ${styles.ctaEndH1}`}
-                        onClick={() => handlePauseMatch(selectedMatch.id)}
-                      >
-                        ⏸ KẾT THÚC HIỆP 1
-                      </button>
-                    </div>
-                  )}
-
-                  {getMatchHalfState(selectedMatch) === 'half_time' && (
-                    <>
-                      <span className={styles.halfTimeOverlayText}>Đang nghỉ giữa hiệp</span>
-                      <button
-                        className={`${styles.consoleMainCta} ${styles.ctaStartH2}`}
-                        onClick={() => handleResumeMatch(selectedMatch.id)}
-                      >
-                        🟢 BẮT ĐẦU HIỆP 2
-                      </button>
-                    </>
-                  )}
-
-                  {getMatchHalfState(selectedMatch) === '2_active' && (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
-                      <button
-                        className={styles.consoleMainCta}
-                        style={{
-                          background: selectedMatch.dangTamDung ? '#10b981' : '#2563eb',
-                          boxShadow: selectedMatch.dangTamDung ? '0 4px 14px rgba(16, 185, 129, 0.3)' : '0 4px 14px rgba(37, 99, 235, 0.3)'
-                        }}
-                        onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}
-                      >
-                        {selectedMatch.dangTamDung ? '▶ TIẾP TỤC TRẬN ĐẤU' : '⏸ TẠM DỪNG TRẬN ĐẤU'}
-                      </button>
-                      <button
-                        className={`${styles.consoleMainCta} ${styles.ctaEndMatch}`}
-                        onClick={() => handleFinishMatch(selectedMatch.id)}
-                      >
-                        🟥 KẾT THÚC TRẬN ĐẤU
-                      </button>
-                    </div>
-                  )}
-
-                  {getMatchHalfState(selectedMatch) === 'finished' && (
-                    <button
-                      className={`${styles.consoleMainCta} ${styles.ctaReset}`}
-                      onClick={() => handleResetMatch(selectedMatch.id)}
-                    >
-                      🔄 THIẾT LẬP LẠI TRẬN ĐẤU
-                    </button>
-                  )}
-                </div>
+            <div className={styles.consoleCentralTimerWrapper} style={{ marginTop: '12px' }}>
+              <div className={styles.consoleCentralTimer}>
+                ⏱️ {formatMatchTime(selectedMatch)}
               </div>
+              <div className={styles.consoleCentralHalfLabel}>
+                Hiệp {selectedMatch.hiepHienTai || 1}
+              </div>
+            </div>
+          </div>
 
-              {/* Event Log */}
-              <div className={styles.consoleEventLog}>
-                <h4>BIÊN NIÊN SỰ KIỆN</h4>
-                <div className={styles.eventLogList}>
-                  {(!selectedMatch.suKien || selectedMatch.suKien.length === 0) ? (
-                    <p style={{ fontStyle: 'italic', color: '#94a3b8', fontSize: '13px', textAlign: 'center', marginTop: '20px' }}>Chưa ghi nhận sự kiện nào trong trận đấu</p>
-                  ) : (
-                    selectedMatch.suKien.slice().sort((a: any, b: any) => b.phut - a.phut || b.id.localeCompare(a.id)).map((ev: any) => {
-                      const pointsLabel = ev.diemCong ? ` (${ev.diemCong > 0 ? '+' : ''}${ev.diemCong}đ)` : '';
-                      return (
-                        <div key={ev.id} className={styles.eventLogRow}>
-                          <span className={styles.eventLogTime}>{ev.phut || 0}'</span>
-                          <span className={styles.eventLogText}>
-                            {ev.teamId === selectedMatch.doiNha?.id ? '🏠 ' : '✈️ '}
-                            <strong>{ev.cauThu?.ten || 'Cầu thủ'}</strong> ({ev.moTa || ev.loai}){pointsLabel}
-                          </span>
-                          <button
-                            className={styles.eventLogDelete}
-                            onClick={() => handleDeleteEvent(ev.id, ev.loai, ev.diemCong, ev.isIndividual, ev.cauThuId)}
-                          >
-                            ✕
-                          </button>
-                        </div>
-                      );
-                    })
-                  )}
+          {/* MAIN FIELD CONTROLLER (MOBILE FIRST) */}
+          <div style={{ padding: '0 16px' }}>
+            
+            {/* MATCH STATE MACHINE MAIN CTA (START / PAUSE / RESUME) */}
+            <div className={styles.consoleMainCtaWrapper} style={{ marginBottom: '24px' }}>
+              {getMatchHalfState(selectedMatch) === '1_not_started' && (
+                <button className={`${styles.consoleMainCta} ${styles.ctaStartH1}`} onClick={() => handleStartMatch(selectedMatch.id)}>
+                  🟢 BẮT ĐẦU HIỆP 1
+                </button>
+              )}
+
+              {getMatchHalfState(selectedMatch) === '1_active' && (
+                <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                  <button className={styles.consoleMainCta} style={{ background: selectedMatch.dangTamDung ? '#10b981' : '#2563eb' }} onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}>
+                    {selectedMatch.dangTamDung ? '▶ TIẾP TỤC' : '⏸ TẠM DỪNG'}
+                  </button>
+                  <button className={`${styles.consoleMainCta} ${styles.ctaEndH1}`} onClick={() => handlePauseMatch(selectedMatch.id)}>
+                    ⏸ HẾT H1
+                  </button>
                 </div>
+              )}
+
+              {getMatchHalfState(selectedMatch) === 'half_time' && (
+                <>
+                  <span className={styles.halfTimeOverlayText}>Đang nghỉ giữa hiệp</span>
+                  <button className={`${styles.consoleMainCta} ${styles.ctaStartH2}`} onClick={() => handleResumeMatch(selectedMatch.id)}>
+                    🟢 BẮT ĐẦU HIỆP 2
+                  </button>
+                </>
+              )}
+
+              {getMatchHalfState(selectedMatch) === '2_active' && (
+                <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+                  <button className={styles.consoleMainCta} style={{ background: selectedMatch.dangTamDung ? '#10b981' : '#2563eb' }} onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}>
+                    {selectedMatch.dangTamDung ? '▶ TIẾP TỤC' : '⏸ TẠM DỪNG'}
+                  </button>
+                  <button className={`${styles.consoleMainCta} ${styles.ctaEndMatch}`} onClick={() => handleFinishMatch(selectedMatch.id)}>
+                    🟥 KẾT THÚC
+                  </button>
+                </div>
+              )}
+
+              {getMatchHalfState(selectedMatch) === 'finished' && (
+                <button className={`${styles.consoleMainCta} ${styles.ctaReset}`} onClick={() => handleResetMatch(selectedMatch.id)}>
+                  🔄 THIẾT LẬP LẠI
+                </button>
+              )}
+            </div>
+
+            {/* 2. HUGE ACTION BUTTONS (EVENT WIZARD FLOW) */}
+            <div className={styles.mobileMainActionArea}>
+              <button 
+                className={`${styles.hugeActionBtn} ${styles.hugeActionGoal}`}
+                onClick={() => openWizard('goal')}
+                disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC'}
+                style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC') ? 0.5 : 1 }}
+              >
+                <span className={styles.hugeActionIcon}>⚽</span>
+                <span>Bàn thắng</span>
+              </button>
+              
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                <button 
+                  className={`${styles.hugeActionBtn} ${styles.hugeActionCard}`}
+                  onClick={() => openWizard('card')}
+                  disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC'}
+                  style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC') ? 0.5 : 1 }}
+                >
+                  <span className={styles.hugeActionIcon}>🟨/🟥</span>
+                  <span>Thẻ phạt</span>
+                </button>
+
+                <button 
+                  className={`${styles.hugeActionBtn} ${styles.hugeActionSub}`}
+                  onClick={() => openWizard('sub')}
+                  disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC'}
+                  style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC') ? 0.5 : 1 }}
+                >
+                  <span className={styles.hugeActionIcon}>🔄</span>
+                  <span>Thay người</span>
+                </button>
               </div>
             </div>
 
-            {/* RIGHT — Away Roster */}
-            <div className={styles.consoleSideRoster}>
-              <div className={styles.consoleRosterHeader}>
-                <TeamLogo logo={selectedMatch.doiKhach?.logo} />
-                <h3>{selectedMatch.doiKhach?.ten}</h3>
-                {pendingSubOut && pendingSubOut.teamId === selectedMatch.doiKhach.id && (
-                  <button className={styles.consoleSubCancelBtn} onClick={() => setPendingSubOut(null)}>Hủy thay người</button>
+            {/* SECONDARY ACTION BUTTONS (CUSTOM EVENTS & MOTM) */}
+            {(customEvents.length > 0 || selectedMatch.trangThai === 'KET_THUC') && (
+              <div className={styles.mobileSecondaryActionArea}>
+                {selectedMatch.trangThai === 'KET_THUC' && (
+                  <button 
+                    className={styles.secondaryActionBtn} 
+                    onClick={() => openWizard('motm', 'normal')}
+                    style={{ gridColumn: '1 / -1', background: '#faf5ff', borderColor: '#c084fc', color: '#7e22ce' }}
+                  >
+                    🏅 Bầu xuất sắc nhất (MOTM)
+                  </button>
                 )}
+                {customEvents.map((evt) => (
+                  <button 
+                    key={evt.id} 
+                    className={styles.secondaryActionBtn}
+                    onClick={() => openWizard('custom', 'normal', evt.id)}
+                    disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
+                  >
+                    <span>{evt.icon}</span> {evt.name} {evt.points ? `(+${evt.points})` : ''}
+                  </button>
+                ))}
               </div>
-              <div className={styles.consoleRosterList}>
-                {selectedMatch.doiKhach?.cauThu?.length === 0 ? (
-                  <div className={styles.consoleEmptyRoster}>Chưa có cầu thủ đăng ký</div>
+            )}
+
+            {/* 3. EVENT TIMELINE LOG (COMPACT) */}
+            <div className={styles.consoleEventLog}>
+              <div className={styles.consoleEventLogTitle}>NHẬT KÝ SỰ KIỆN</div>
+              <div className={styles.consoleEventLogList}>
+                {(!selectedMatch.suKien || selectedMatch.suKien.length === 0) ? (
+                  <div className={styles.consoleEventEmpty}>Chưa ghi nhận sự kiện nào</div>
                 ) : (
-                  (() => {
-                    const { starters, bench } = calculateCurrentRoster(selectedMatch.doiKhach, selectedMatch.suKien, starterCount);
-                    const renderPlayer = (player: any, isBench: boolean) => {
-                      const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
-                      const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
-                      const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                      const customEventCounts = customEvents.map(evt => ({
-                        ...evt,
-                        count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
-                      }));
-                      const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
-                      const isClickable = !hasRedCard && (selectedMatch.trangThai === 'DANG_DIEN_RA' || selectedMatch.trangThai === 'KET_THUC');
-
-                      const isPendingSub = pendingSubOut?.player?.id === player.id;
-                      const isOtherPending = pendingSubOut && pendingSubOut.teamId === selectedMatch.doiKhach.id && !isPendingSub;
-                      const dimClass = isOtherPending && !isBench ? styles.consolePlayerDimmed : '';
-                      const highlightClass = pendingSubOut && isBench && pendingSubOut.teamId === selectedMatch.doiKhach.id ? styles.consolePlayerHighlighted : '';
-                      const benchClass = isBench ? styles.consolePlayerBench : '';
-
-                      const handleClick = () => {
-                        if (!isClickable) return;
-                        if (pendingSubOut) {
-                          if (pendingSubOut.teamId !== selectedMatch.doiKhach.id) return;
-                          if (isPendingSub) {
-                            setPendingSubOut(null); // Cancel
-                          } else if (isBench) {
-                            handleExecuteSubstitution(player, pendingSubOut.player, pendingSubOut.teamId);
-                          }
-                        } else {
-                          setActivePlayerParams({ matchId: selectedMatch.id, teamId: selectedMatch.doiKhach.id, player, isBench });
-                        }
-                      };
-
-                      return (
-                        <button
-                          key={player.id}
-                          className={`${styles.consolePlayerBtn} ${benchClass} ${hasRedCard ? styles.consolePlayerRedCarded : ''} ${isClickable ? styles.consolePlayerActive : ''} ${dimClass} ${highlightClass}`}
-                          onClick={handleClick}
-                          disabled={!isClickable && !isPendingSub}
-                        >
-                          <div className={styles.consolePlayerNo}>{player.soAo}</div>
-                          <div className={styles.consolePlayerName}>{player.ten || 'Chưa đặt tên'}</div>
-
-                          {/* Action Badges */}
-                          <div className={styles.consolePlayerBadges}>
-                            {goalCount > 0 && <span>{goalCount > 1 ? goalCount : ''}&#x26BD;</span>}
-                            {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.count > 1 ? cEvt.count : ''}{cEvt.icon}</span> : null)}
-                            {yellowCount > 0 && <span>Y{yellowCount > 1 ? yellowCount : ''}</span>}
-                            {hasRedCard && <span>R</span>}
-                            {isMotm && <span>MVP</span>}
-                          </div>
-                        </button>
-                      );
-                    };
+                  selectedMatch.suKien.slice().sort((a: any, b: any) => b.phut - a.phut || b.id.localeCompare(a.id)).slice(0, 5).map((ev: any) => {
+                    const pointsLabel = ev.diemCong ? ` (${ev.diemCong > 0 ? '+' : ''}${ev.diemCong}đ)` : '';
                     return (
-                      <>
-                        <div className={styles.rosterHeader}>🏟️ ĐỘI HÌNH CHÍNH</div>
-                        {starters.map(p => renderPlayer(p, false))}
-
-                        <div className={styles.rosterHeader} style={{ marginTop: '20px', color: '#64748b', borderColor: '#cbd5e1' }}>🔄 CẦU THỦ DỰ BỊ</div>
-                        <div className={styles.benchListView}>
-                          {bench.length === 0 ? (
-                            <p style={{ fontSize: '12px', color: '#94a3b8', padding: '8px 12px', margin: 0, gridColumn: '1 / -1' }}>Không có cầu thủ dự bị</p>
-                          ) : (
-                            bench.map((player: any) => {
-                              const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
-                              const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
-                              const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
-                              const customEventCounts = customEvents.map(evt => ({
-                                ...evt,
-                                count: selectedMatch.suKien?.filter((ev: any) => ev.loai === `CUSTOM_${evt.id.toUpperCase()}` && ev.cauThuId === player.id).length || 0
-                              }));
-                              const isMotm = selectedMatch.suKien?.some((ev: any) => ev.loai === 'MOTM' && ev.cauThuId === player.id);
-
-                              return (
-                                <div key={player.id} className={styles.benchListRow}>
-                                  <span className={styles.benchListNo}>#{player.soAo}</span>
-                                  <span className={styles.benchListName}>{player.ten}</span>
-
-                                  <div className={styles.benchListBadges}>
-                                    {goalCount > 0 && <span title="Bàn thắng">⚽ {goalCount > 1 ? goalCount : ''}</span>}
-                                    {customEventCounts.map((cEvt: any) => cEvt.count > 0 ? <span key={cEvt.id} title={cEvt.name}>{cEvt.icon} {cEvt.count > 1 ? cEvt.count : ''}</span> : null)}
-                                    {yellowCount > 0 && <span style={{ background: '#fef08a', color: '#a16207' }} title="Thẻ vàng">🟨 {yellowCount > 1 ? yellowCount : ''}</span>}
-                                    {hasRedCard && <span style={{ background: '#fee2e2', color: '#b91c1c' }} title="Thẻ đỏ">🟥</span>}
-                                    {isMotm && <span style={{ background: '#faf5ff', color: '#7e22ce' }}>🏅 MVP</span>}
-                                  </div>
-                                </div>
-                              );
-                            })
-                          )}
-                        </div>
-                      </>
+                      <div key={ev.id} className={styles.consoleEventRow}>
+                        <span className={styles.consoleEventMin}>{ev.phut || 0}&apos;</span>
+                        <span className={styles.consoleEventDesc}>
+                          {ev.teamId === selectedMatch.doiNha?.id ? '🏠 ' : '✈️ '}
+                          <strong>{ev.cauThu?.ten || 'Cầu thủ'}</strong> ({ev.moTa || ev.loai}){pointsLabel}
+                        </span>
+                        <button
+                          className={styles.consoleUndoBtn}
+                          onClick={() => handleDeleteEvent(ev.id, ev.loai, ev.diemCong, ev.isIndividual, ev.cauThuId)}
+                        >
+                          ✕
+                        </button>
+                      </div>
                     );
-                  })()
+                  })
+                )}
+                {selectedMatch.suKien?.length > 5 && (
+                  <div style={{ textAlign: 'center', fontSize: '12px', color: '#94a3b8', marginTop: '8px' }}>
+                    Hiển thị 5 sự kiện gần nhất...
+                  </div>
                 )}
               </div>
             </div>
@@ -527,106 +422,132 @@ export default function RefereeTab({
         </div>
       )}
 
-      {/* BOTTOM SHEET FOR ACTIONS */}
-      {activePlayerParams && selectedMatch && (
-        <div className={styles.bottomSheetOverlay} onClick={() => setActivePlayerParams(null)}>
-          <div className={styles.bottomSheet} onClick={(e) => e.stopPropagation()}>
-            <div className={styles.bottomSheetHeader}>
-              <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                <span className={styles.bsPlayerNo}>#{activePlayerParams.player.soAo}</span>
-                <div>
-                  <h3 className={styles.bsPlayerName}>{activePlayerParams.player.ten}</h3>
-                  <span className={styles.bsPlayerTeam}>{activePlayerParams.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha?.ten : selectedMatch.doiKhach?.ten}</span>
-                </div>
-              </div>
-              <span className={styles.bsMinuteBadge}>⏱️ Phút {selectedMatch.phut || 0}</span>
+      {/* BOTTOM SHEET WIZARD OVERLAY */}
+      {wizardState.isOpen && selectedMatch && (
+        <div className={styles.mobileBottomSheetOverlay} onClick={closeWizard}>
+          <div className={styles.mobileBottomSheet} onClick={(e) => e.stopPropagation()}>
+            <div className={styles.bottomSheetHandle}></div>
+            
+            <div className={styles.bsHeaderTitle}>
+              {wizardState.action === 'goal' && '⚽ XÁC NHẬN BÀN THẮNG'}
+              {wizardState.action === 'card' && '🟨/🟥 XÁC NHẬN THẺ PHẠT'}
+              {wizardState.action === 'sub' && (wizardState.step === 1 ? '🔄 CHỌN NGƯỜI RA SÂN' : '🔄 CHỌN NGƯỜI VÀO SÂN')}
+              {wizardState.action === 'custom' && '✨ GHI NHẬN SỰ KIỆN'}
+              {wizardState.action === 'motm' && '🏅 BẦU MVP'}
             </div>
 
-            {isSelectingSubstitute ? (
-              <div className={styles.bottomSheetActionsGrid} style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                <div style={{ fontWeight: 600, fontSize: '14px', color: '#64748b' }}>Chọn người {activePlayerParams.isBench ? 'được thay ra' : 'vào thay'}</div>
-                {(() => {
-                  const team = activePlayerParams.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha : selectedMatch.doiKhach;
-                  const { starters, bench } = calculateCurrentRoster(team, selectedMatch.suKien, starterCount);
-                  const targetList = activePlayerParams.isBench ? starters : bench;
-
-                  return targetList.map((p: any) => (
-                    <button
-                      key={p.id}
-                      className={styles.bsActionCard}
-                      onClick={() => {
-                        if (activePlayerParams.isBench) {
-                          handleExecuteSubstitution(activePlayerParams.player, p, activePlayerParams.teamId);
-                        } else {
-                          handleExecuteSubstitution(p, activePlayerParams.player, activePlayerParams.teamId);
-                        }
-                      }}
-                      style={{ justifyContent: 'flex-start', padding: '12px' }}
-                    >
-                      <span style={{ marginRight: '10px', background: '#e2e8f0', padding: '2px 6px', borderRadius: '4px', fontSize: '12px' }}>{p.soAo}</span>
-                      <span style={{ fontWeight: 600 }}>{p.ten}</span>
-                    </button>
-                  ));
-                })()}
-              </div>
-            ) : (
-              <div className={styles.bottomSheetActionsGrid}>
-                {selectedMatch.trangThai === 'KET_THUC' ? (
-                  <button
-                    className={`${styles.bsActionCard} ${styles.bsMotm}`}
-                    onClick={() => handleActionSelect('motm')}
-                    style={{ gridColumn: 'span 2', background: 'linear-gradient(135deg, #faf5ff 0%, #f3e8ff 100%)', border: '1px solid #c084fc' }}
-                  >
-                    <span className={styles.bsActionIcon}>🏅</span>
-                    <span className={styles.bsActionText} style={{ color: '#7e22ce', fontWeight: 700 }}>Chọn làm cầu thủ xuất sắc nhất (MOTM)</span>
-                  </button>
-                ) : (
-                  <>
-                    <button className={`${styles.bsActionCard} ${styles.bsSub}`} onClick={() => setIsSelectingSubstitute(true)}>
-                      <span className={styles.bsActionIcon}>🔄</span>
-                      <span className={styles.bsActionText}>{activePlayerParams.isBench ? 'Vào sân' : 'Thay ra'}</span>
-                    </button>
-                    <button className={`${styles.bsActionCard} ${styles.bsGoalNormal}`} onClick={() => handleActionSelect('goal', 'normal')}>
-                      <span className={styles.bsActionIcon}>⚽</span>
-                      <span className={styles.bsActionText}>Bàn thắng</span>
-                    </button>
-
-                    <button className={`${styles.bsActionCard} ${styles.bsGoalPen}`} onClick={() => handleActionSelect('goal', 'pen')}>
-                      <span className={styles.bsActionIcon}>🥅</span>
-                      <span className={styles.bsActionText}>Penalty</span>
-                    </button>
-
-                    <button className={`${styles.bsActionCard} ${styles.bsGoalOg}`} onClick={() => handleActionSelect('goal', 'og')}>
-                      <span className={styles.bsActionIcon}>😈</span>
-                      <span className={styles.bsActionText}>Phản lưới</span>
-                    </button>
-
-                    {customEvents.map((evt) => (
-                      <button key={evt.id} className={`${styles.bsActionCard} ${styles.bsChotDeal}`} onClick={() => handleActionSelect('custom', evt.id)}>
-                        <span className={styles.bsActionIcon}>{evt.icon}</span>
-                        <span className={styles.bsActionText}>{evt.name} {evt.points ? `(+${evt.points})` : ''}</span>
-                      </button>
-                    ))}
-
-                    <button className={`${styles.bsActionCard} ${styles.bsYellow}`} onClick={() => handleActionSelect('card', 'yellow')}>
-                      <span className={styles.bsActionIcon}>🟨</span>
-                      <span className={styles.bsActionText}>Thẻ vàng</span>
-                    </button>
-
-                    <button className={`${styles.bsActionCard} ${styles.bsRed}`} onClick={() => handleActionSelect('card', 'red')}>
-                      <span className={styles.bsActionIcon}>🟥</span>
-                      <span className={styles.bsActionText}>Thẻ đỏ</span>
-                    </button>
-                  </>
-                )}
+            {/* TEAM SEGMENTED CONTROL */}
+            {wizardState.step === 1 && wizardState.action !== 'motm' && (
+              <div className={styles.segmentedControl}>
+                <button 
+                  className={`${styles.segmentBtn} ${wizardState.teamId === selectedMatch.doiNha?.id ? styles.segmentBtnActive : ''}`}
+                  onClick={() => setWizardState(prev => ({ ...prev, teamId: selectedMatch.doiNha?.id }))}
+                >
+                  🏠 {selectedMatch.doiNha?.ten}
+                </button>
+                <button 
+                  className={`${styles.segmentBtn} ${wizardState.teamId === selectedMatch.doiKhach?.id ? styles.segmentBtnActive : ''}`}
+                  onClick={() => setWizardState(prev => ({ ...prev, teamId: selectedMatch.doiKhach?.id }))}
+                >
+                  ✈️ {selectedMatch.doiKhach?.ten}
+                </button>
               </div>
             )}
 
-            <div style={{ padding: '16px 0 8px 0', marginTop: '12px' }}>
-              <button className={styles.finishBtn} style={{ width: '100%', margin: 0, background: '#d71920', color: '#ffffff' }} onClick={() => setActivePlayerParams(null)}>
-                Hủy bỏ
-              </button>
+            {/* ACTION CHIPS FOR SPECIFIC TYPES */}
+            {wizardState.action === 'goal' && (
+              <div className={styles.actionOptionsChips}>
+                <button 
+                  className={`${styles.actionChip} ${wizardState.subType === 'normal' ? styles.actionChipActive : ''}`}
+                  onClick={() => setWizardState(prev => ({ ...prev, subType: 'normal' }))}
+                >Bàn thắng thường</button>
+                <button 
+                  className={`${styles.actionChip} ${wizardState.subType === 'pen' ? styles.actionChipActive : ''}`}
+                  onClick={() => setWizardState(prev => ({ ...prev, subType: 'pen' }))}
+                >Penalty</button>
+                <button 
+                  className={`${styles.actionChip} ${wizardState.subType === 'og' ? styles.actionChipActive : ''}`}
+                  onClick={() => setWizardState(prev => ({ ...prev, subType: 'og' }))}
+                >Phản lưới nhà</button>
+              </div>
+            )}
+            
+            {wizardState.action === 'card' && (
+              <div className={styles.actionOptionsChips} style={{ justifyContent: 'center' }}>
+                <button 
+                  className={`${styles.actionChip} ${wizardState.subType === 'yellow' ? styles.actionChipActive : ''}`}
+                  onClick={() => setWizardState(prev => ({ ...prev, subType: 'yellow' }))}
+                  style={wizardState.subType === 'yellow' ? { background: '#f59e0b', borderColor: '#f59e0b' } : {}}
+                >🟨 Thẻ Vàng</button>
+                <button 
+                  className={`${styles.actionChip} ${wizardState.subType === 'red' ? styles.actionChipActive : ''}`}
+                  onClick={() => setWizardState(prev => ({ ...prev, subType: 'red' }))}
+                  style={wizardState.subType === 'red' ? { background: '#ef4444', borderColor: '#ef4444' } : {}}
+                >🟥 Thẻ Đỏ</button>
+              </div>
+            )}
+
+            {/* PLAYER LIST */}
+            <div className={styles.mobilePlayerList}>
+              {(() => {
+                const team = wizardState.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha : selectedMatch.doiKhach;
+                const { starters, bench } = calculateCurrentRoster(team, selectedMatch.suKien, starterCount);
+                
+                // Determine which list to show based on action
+                let listToShow = starters;
+                if (wizardState.action === 'sub') {
+                  listToShow = wizardState.step === 1 ? starters : bench;
+                } else if (wizardState.action === 'motm') {
+                  // For MOTM show everyone from both teams
+                  const homePlayers = selectedMatch.doiNha?.cauThu || [];
+                  const awayPlayers = selectedMatch.doiKhach?.cauThu || [];
+                  return [...homePlayers, ...awayPlayers].map(p => (
+                    <button key={p.id} className={styles.mobilePlayerItem} onClick={() => handlePlayerSelect(p)}>
+                      <div className={styles.mobilePlayerNo}>{p.soAo}</div>
+                      <div className={styles.mobilePlayerInfo}>
+                        <div className={styles.mobilePlayerName}>{p.ten}</div>
+                        <div className={styles.mobilePlayerMeta}>{p.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha?.ten : selectedMatch.doiKhach?.ten}</div>
+                      </div>
+                    </button>
+                  ));
+                }
+
+                if (!listToShow || listToShow.length === 0) {
+                  return <div className={styles.consoleEmptyRoster}>Không có cầu thủ nào</div>;
+                }
+
+                return listToShow.map((player: any) => {
+                  const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === player.id).length || 0;
+                  const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === player.id) || yellowCount >= 2;
+                  const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === player.id).length || 0;
+
+                  // Disabled logic
+                  const isRedCarded = hasRedCard;
+                  const disabled = isRedCarded && wizardState.action !== 'sub'; // Can't score/card red carded, but maybe can sub out? Actually, red carded players usually can't be subbed out. Let's disable them.
+
+                  return (
+                    <button 
+                      key={player.id} 
+                      className={styles.mobilePlayerItem}
+                      onClick={() => handlePlayerSelect(player)}
+                      disabled={disabled || (isRedCarded && wizardState.action === 'sub')}
+                      style={{ opacity: disabled || (isRedCarded && wizardState.action === 'sub') ? 0.5 : 1 }}
+                    >
+                      <div className={styles.mobilePlayerNo}>{player.soAo}</div>
+                      <div className={styles.mobilePlayerInfo}>
+                        <div className={styles.mobilePlayerName}>{player.ten}</div>
+                        <div className={styles.mobilePlayerBadges}>
+                           {goalCount > 0 && <span>{goalCount > 1 ? goalCount : ''}⚽</span>}
+                           {yellowCount > 0 && <span>{yellowCount > 1 ? yellowCount : ''}🟨</span>}
+                           {hasRedCard && <span>🟥</span>}
+                        </div>
+                      </div>
+                    </button>
+                  );
+                });
+              })()}
             </div>
+            
           </div>
         </div>
       )}

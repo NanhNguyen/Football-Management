@@ -1,5 +1,18 @@
 import { supabase } from './supabase';
 
+const NESTJS_API_URL = 'http://localhost:3001/api';
+
+export async function layDanhSachTournamentTemplates() {
+  try {
+    const response = await fetch(`${NESTJS_API_URL}/tournament-templates`);
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error('Lỗi lấy danh sách template giải đấu:', error);
+    return [];
+  }
+}
+
 // --- GIẢI ĐẤU (WORKSPACES) ---
 export async function layDanhSachGiaiDau() {
   const { data, error } = await supabase
@@ -53,7 +66,12 @@ export async function layDanhSachDoi(giaiDauId?: string) {
       banThang: ct.ban_thang,
       soAo: ct.so_ao,
       viTri: ct.vi_tri
-    })) : []
+    })).sort((a: any, b: any) => {
+      const aIsStarter = !a.viTri?.includes('Dự bị') ? 1 : 0;
+      const bIsStarter = !b.viTri?.includes('Dự bị') ? 1 : 0;
+      if (aIsStarter !== bIsStarter) return bIsStarter - aIsStarter;
+      return a.soAo - b.soAo;
+    }) : []
   }));
 }
 
@@ -119,6 +137,26 @@ export async function deleteTeam(id: string) {
   return await supabase.from('doi_bong').delete().eq('id', id);
 }
 
+export async function deleteAllTeams(giaiDauId: string) {
+  const { data: teams, error: fetchErr } = await supabase
+    .from('doi_bong')
+    .select('id')
+    .eq('giai_dau_id', giaiDauId);
+  
+  if (fetchErr) return { error: fetchErr };
+  
+  if (teams && teams.length > 0) {
+    const teamIds = teams.map(t => t.id);
+    const { error: playersErr } = await supabase
+      .from('cau_thu')
+      .delete()
+      .in('doi_id', teamIds);
+    if (playersErr) return { error: playersErr };
+  }
+  
+  return await supabase.from('doi_bong').delete().eq('giai_dau_id', giaiDauId);
+}
+
 // --- TRẬN ĐẤU ---
 export async function layDanhSachTranDau(giaiDauId?: string) {
   let query = supabase
@@ -156,7 +194,12 @@ export async function layDanhSachTranDau(giaiDauId?: string) {
         soAo: ct.so_ao,
         viTri: ct.vi_tri,
         banThang: ct.ban_thang
-      })).sort((a: any, b: any) => a.soAo - b.soAo)
+      })).sort((a: any, b: any) => {
+        const aIsStarter = !a.viTri?.includes('Dự bị') ? 1 : 0;
+        const bIsStarter = !b.viTri?.includes('Dự bị') ? 1 : 0;
+        if (aIsStarter !== bIsStarter) return bIsStarter - aIsStarter; // Starters come first
+        return a.soAo - b.soAo;
+      })
     };
   };
 
@@ -284,7 +327,12 @@ export async function layChiTietTranDau(id: string) {
         soAo: ct.so_ao,
         viTri: ct.vi_tri,
         banThang: ct.ban_thang
-      })).sort((a: any, b: any) => a.soAo - b.soAo)
+      })).sort((a: any, b: any) => {
+        const aIsStarter = !a.viTri?.includes('Dự bị') ? 1 : 0;
+        const bIsStarter = !b.viTri?.includes('Dự bị') ? 1 : 0;
+        if (aIsStarter !== bIsStarter) return bIsStarter - aIsStarter; // Starters come first
+        return a.soAo - b.soAo;
+      })
     };
   };
 

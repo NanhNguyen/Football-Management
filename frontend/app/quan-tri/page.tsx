@@ -8,6 +8,7 @@ import {
   createTeam,
   updateTeam,
   deleteTeam,
+  deleteAllTeams,
   updateMatch,
   addEvent,
   deleteEvent,
@@ -16,7 +17,8 @@ import {
   deleteMatch,
   calculateMatchMinute,
   layDanhSachGiaiDau,
-  createTournament
+  createTournament,
+  layDanhSachTournamentTemplates
 } from '@/lib/api';
 
 import { useRouter } from 'next/navigation';
@@ -33,6 +35,7 @@ import RefereeTab from './components/RefereeTab';
 
 import * as XLSX from 'xlsx';
 import TeamLogo from '@/components/TeamLogo';
+import { processBulkImport, generateBulkImportTemplate, ImportProgress } from '@/lib/bulk_import';
 
 const sidebarItems = [
   { label: 'Lịch đấu', id: 'lich' },
@@ -83,6 +86,7 @@ export default function QuanTriPage() {
   const [isSwitcherOpen, setIsSwitcherOpen] = useState(false);
   const [tournaments, setTournaments] = useState<any[]>([]);
   const [selectedTournament, setSelectedTournament] = useState<any | null>(null);
+  const [tournamentTemplates, setTournamentTemplates] = useState<any[]>([]);
 
   // New Tournament creation modal states
   const [isCreatingTournament, setIsCreatingTournament] = useState(false);
@@ -90,7 +94,8 @@ export default function QuanTriPage() {
     ten: '',
     muaGiai: '2024',
     ngayBatDau: '2024-05-01',
-    venue_type: 'CENTRALIZED'
+    venue_type: 'CENTRALIZED',
+    templateCode: 'LEAGUE'
   });
 
 
@@ -241,216 +246,58 @@ export default function QuanTriPage() {
     setTimeout(() => setToast({ message: '', visible: false }), 3000);
   };
 
-  // Excel Import states
-  const [isImportTeamsOpen, setIsImportTeamsOpen] = useState(false);
-  const [isImportPlayersOpen, setIsImportPlayersOpen] = useState(false);
-  const [importTeamsPreview, setImportTeamsPreview] = useState<any[]>([]);
-  const [importPlayersPreview, setImportPlayersPreview] = useState<any[]>([]);
-  const [importPlayersTargetTeam, setImportPlayersTargetTeam] = useState<any>(null);
-  const [importLoading, setImportLoading] = useState(false);
+  // Excel Bulk Import States
+  const [isBulkImportOpen, setIsBulkImportOpen] = useState(false);
+  const [bulkImportProgress, setBulkImportProgress] = useState<ImportProgress | null>(null);
+  const [selectedBulkFile, setSelectedBulkFile] = useState<File | null>(null);
+  const [isBulkDragActive, setIsBulkDragActive] = useState(false);
+  const bulkFileInputRef = useRef<HTMLInputElement>(null);
 
-  // Custom enhanced states for modern Excel Import Modals (Drag-and-Drop / File details / Refs)
-  const [selectedTeamsFile, setSelectedTeamsFile] = useState<File | null>(null);
-  const [isTeamsDragActive, setIsTeamsDragActive] = useState(false);
-  const fileInputRef = useRef<HTMLInputElement>(null);
-
-  const [selectedPlayersFile, setSelectedPlayersFile] = useState<File | null>(null);
-  const [isPlayersDragActive, setIsPlayersDragActive] = useState(false);
-  const playerFileInputRef = useRef<HTMLInputElement>(null);
-
-  // Excel Import Template Downloads
-  const downloadTeamsTemplate = () => {
+  const handleDownloadBulkTemplate = () => {
     try {
-      const templateData = [
-        { 'Tên đội': 'Thiên Khôi FC', 'Logo': '⚽', 'Bảng': 'A' },
-        { 'Tên đội': 'Hà Nội FC', 'Logo': '🏆', 'Bảng': 'B' },
-        { 'Tên đội': 'Hải Phòng FC', 'Logo': '⚓', 'Bảng': 'C' }
-      ];
-      const worksheet = XLSX.utils.json_to_sheet(templateData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sach Doi Bong");
-      XLSX.writeFile(workbook, "TKScore_Template_DoiBong.xlsx");
-      showToast("📥 Đã tải file mẫu TKScore_Template_DoiBong.xlsx!");
+      generateBulkImportTemplate();
+      showToast("📥 Đã tải file mẫu: Template_Nhap_Du_Lieu_Tong_Hop.xlsx!");
     } catch (err: any) {
       showToast(`❌ Lỗi tải template: ${err.message}`);
     }
   };
 
-  const downloadPlayersTemplate = () => {
+  const handleClearBulkImport = () => {
+    setSelectedBulkFile(null);
+    setBulkImportProgress(null);
+    if (bulkFileInputRef.current) {
+      bulkFileInputRef.current.value = '';
+    }
+  };
+
+  const processBulkFile = async (file: File) => {
+    if (!selectedTournament?.id) {
+      showToast("⚠️ Vui lòng chọn một giải đấu trước khi import.");
+      return;
+    }
+    setSelectedBulkFile(file);
     try {
-      const templateData = [
-        { 'Tên cầu thủ': 'Nguyễn Văn A', 'Số áo': 10, 'Vị trí': 'Tiền đạo' },
-        { 'Tên cầu thủ': 'Trần Thị B', 'Số áo': 1, 'Vị trí': 'Thủ môn' },
-        { 'Tên cầu thủ': 'Phạm Văn C', 'Số áo': 4, 'Vị trí': 'Hậu vệ' }
-      ];
-      const worksheet = XLSX.utils.json_to_sheet(templateData);
-      const workbook = XLSX.utils.book_new();
-      XLSX.utils.book_append_sheet(workbook, worksheet, "Danh sach Cau Thu");
-      XLSX.writeFile(workbook, "TKScore_Template_CauThu.xlsx");
-      showToast("📥 Đã tải file mẫu TKScore_Template_CauThu.xlsx!");
-    } catch (err: any) {
-      showToast(`❌ Lỗi tải template: ${err.message}`);
-    }
-  };
-
-  // Excel Parsing Processors
-  const processTeamsFile = (file: File) => {
-    setSelectedTeamsFile(file);
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const json: any[] = XLSX.utils.sheet_to_json(sheet);
-        // Map columns: Tên đội | Logo | Bảng
-        const parsed = json.map((row, i) => ({
-          id: `doi-import-${Date.now()}-${i}`,
-          ten: row['Tên đội'] || row['ten'] || row['Team'] || row['name'] || '',
-          logo: row['Logo'] || row['logo'] || '⚽',
-          bang: row['Bảng'] || row['bang'] || row['Group'] || 'A',
-          vietTat: (row['Tên đội'] || row['ten'] || row['Team'] || row['name'] || '').substring(0, 3).toUpperCase(),
-          cauThu: []
-        })).filter(t => t.ten.trim() !== '');
-
-        if (parsed.length === 0) {
-          showToast("⚠️ File Excel không có dữ liệu hợp lệ hoặc thiếu cột 'Tên đội'!");
-          setSelectedTeamsFile(null);
-          setImportTeamsPreview([]);
-        } else {
-          setImportTeamsPreview(parsed);
-          showToast(`📋 Đã đọc ${parsed.length} đội bóng từ file!`);
-        }
-      } catch (err: any) {
-        showToast(`❌ Lỗi đọc file: ${err.message}`);
-        setSelectedTeamsFile(null);
-        setImportTeamsPreview([]);
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  };
-
-  const processPlayersFile = (file: File) => {
-    setSelectedPlayersFile(file);
-    const reader = new FileReader();
-    reader.onload = (evt) => {
-      try {
-        const data = new Uint8Array(evt.target?.result as ArrayBuffer);
-        const workbook = XLSX.read(data, { type: 'array' });
-        const sheetName = workbook.SheetNames[0];
-        const sheet = workbook.Sheets[sheetName];
-        const json: any[] = XLSX.utils.sheet_to_json(sheet);
-        // Map columns: Tên cầu thủ | Số áo | Vị trí
-        const parsed = json.map((row, i) => ({
-          id: `ct-import-${Date.now()}-${i}`,
-          ten: row['Tên cầu thủ'] || row['Tên'] || row['ten'] || row['Player'] || row['name'] || '',
-          soAo: Number(row['Số áo'] || row['soAo'] || row['Number'] || row['number'] || i + 1),
-          viTri: row['Vị trí'] || row['viTri'] || row['Position'] || row['position'] || 'Chưa rõ',
-          banThang: 0
-        })).filter(p => p.ten.trim() !== '');
-
-        if (parsed.length === 0) {
-          showToast("⚠️ File Excel không có dữ liệu hợp lệ hoặc thiếu cột 'Tên cầu thủ'!");
-          setSelectedPlayersFile(null);
-          setImportPlayersPreview([]);
-        } else {
-          setImportPlayersPreview(parsed);
-          showToast(`📋 Đã đọc ${parsed.length} cầu thủ từ file!`);
-        }
-      } catch (err: any) {
-        showToast(`❌ Lỗi đọc file: ${err.message}`);
-        setSelectedPlayersFile(null);
-        setImportPlayersPreview([]);
-      }
-    };
-    reader.readAsArrayBuffer(file);
-  };
-
-  // File selection handlers
-  const handleImportTeamsFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      processTeamsFile(file);
-    }
-  };
-
-  const handleImportPlayersFile = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      processPlayersFile(file);
-    }
-  };
-
-  // Reset/Clear helpers
-  const handleClearTeamsImport = () => {
-    setSelectedTeamsFile(null);
-    setImportTeamsPreview([]);
-    if (fileInputRef.current) {
-      fileInputRef.current.value = '';
-    }
-  };
-
-  const handleClearPlayersImport = () => {
-    setSelectedPlayersFile(null);
-    setImportPlayersPreview([]);
-    if (playerFileInputRef.current) {
-      playerFileInputRef.current.value = '';
-    }
-  };
-
-  // Confirm Import handlers to DB
-  const handleConfirmImportTeams = async () => {
-    if (importTeamsPreview.length === 0) return;
-    setImportLoading(true);
-    try {
-      let successCount = 0;
-      const totalRequested = teams.length + importTeamsPreview.length;
+      await processBulkImport(file, selectedTournament.id, (progress) => {
+        setBulkImportProgress(progress);
+      });
       
-      // Tự động mở rộng maxTeams nếu import số lượng lớn
-      if (totalRequested > maxTeams) {
-        setMaxTeams(totalRequested);
-      }
-
-      for (const team of importTeamsPreview) {
-        const { error } = await createTeam({
-          ...team,
-          giaiDauId: selectedTournament?.id
-        });
-        if (!error) successCount++;
-      }
-      await fetchData(selectedTournament?.id);
-      setIsImportTeamsOpen(false);
-      handleClearTeamsImport();
-      showToast(`✅ Đã import thành công ${successCount} đội bóng từ file Excel!`);
-    } catch (err: any) {
-      showToast(`❌ Lỗi import: ${err.message}`);
-    } finally {
-      setImportLoading(false);
+      // On success, refresh data
+      await fetchData(selectedTournament.id);
+      setTimeout(() => {
+        setIsBulkImportOpen(false);
+        handleClearBulkImport();
+        showToast("✅ Import dữ liệu tổng hợp thành công!");
+      }, 1500);
+    } catch (error: any) {
+      // Keep modal open to show error in progress or toast
+      showToast(`❌ Lỗi Import: ${error.message}`);
     }
   };
 
-  const handleConfirmImportPlayers = async () => {
-    if (importPlayersPreview.length === 0 || !importPlayersTargetTeam) return;
-    setImportLoading(true);
-    try {
-      const existingPlayers = importPlayersTargetTeam.cauThu || [];
-      const mergedPlayers = [...existingPlayers, ...importPlayersPreview];
-      const updatedTeam = { ...importPlayersTargetTeam, cauThu: mergedPlayers };
-      const { error } = await updateTeam(updatedTeam);
-      if (!error) {
-        await fetchData(selectedTournament?.id);
-        setIsImportPlayersOpen(false);
-        handleClearPlayersImport();
-        setImportPlayersTargetTeam(null);
-        showToast(`✅ Đã import ${importPlayersPreview.length} cầu thủ vào đội ${importPlayersTargetTeam.ten}!`);
-      } else {
-        showToast(`❌ Lỗi: ${error.message}`);
-      }
-    } catch (err: any) {
-      showToast(`❌ Lỗi import: ${err.message}`);
-    } finally {
-      setImportLoading(false);
+  const handleImportBulkFile = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) {
+      processBulkFile(file);
     }
   };
 
@@ -462,6 +309,10 @@ export default function QuanTriPage() {
       if (!session) {
         router.push('/login');
       } else {
+        const templates = await layDanhSachTournamentTemplates();
+        if (templates && templates.length > 0) {
+          setTournamentTemplates(templates);
+        }
         fetchData();
       }
     };
@@ -717,6 +568,32 @@ export default function QuanTriPage() {
         if (!error) {
           await fetchData(selectedTournament?.id);
           showToast("Đã xóa đội bóng thành công!");
+        }
+      }
+    );
+  };
+
+  const handleDeleteAllTeams = async () => {
+    if (!selectedTournament?.id) return;
+    showConfirm(
+      "XÓA TẤT CẢ ĐỘI BÓNG",
+      "⚠️ Bạn có chắc chắn muốn xóa TẤT CẢ đội bóng (và toàn bộ cầu thủ của họ) khỏi giải đấu này không? Hành động này không thể hoàn tác!",
+      async () => {
+        try {
+          showToast("🧹 Đang xóa tất cả đội bóng...");
+          const { error } = await deleteAllTeams(selectedTournament.id);
+          if (error) {
+            if (error.message?.includes('violates foreign key constraint') || error.details?.includes('is still referenced')) {
+              showToast("❌ Không thể xóa! Một số đội đã được xếp lịch đấu. Hãy xóa lịch trước.");
+            } else {
+              showToast(`❌ Lỗi khi xóa: ${error.message}`);
+            }
+          } else {
+            await fetchData(selectedTournament.id);
+            showToast("Đã xóa toàn bộ đội bóng thành công!");
+          }
+        } catch (err: any) {
+          showToast(`❌ Lỗi khi xóa: ${err.message}`);
         }
       }
     );
@@ -1116,9 +993,10 @@ export default function QuanTriPage() {
     }
   };
 
-  const handleActionSelect = async (type: string, subType?: string) => {
-    if (!activePlayerParams || !selectedMatch) return;
-    const { teamId, matchId, player } = activePlayerParams;
+  const handleActionSelect = async (type: string, subType?: string, overrideParams?: any) => {
+    const params = overrideParams || activePlayerParams;
+    if (!params || !selectedMatch) return;
+    const { teamId, matchId, player } = params;
     let typeLabel = '';
     let eventType = type.toUpperCase();
     let increment = 0;
@@ -1763,13 +1641,13 @@ export default function QuanTriPage() {
           {activeTab === 'doi' && (
             <TeamsTab
               styles={styles}
-              setImportTeamsPreview={setImportTeamsPreview}
-              setIsImportTeamsOpen={setIsImportTeamsOpen}
+              setIsBulkImportOpen={setIsBulkImportOpen}
               handleAddTeam={handleAddTeam}
               teams={teams}
               setViewingTeam={setViewingTeam}
               handleEditTeam={handleEditTeam}
               handleDeleteTeam={handleDeleteTeam}
+              handleDeleteAllTeams={handleDeleteAllTeams}
             />
           )}
 
@@ -1968,17 +1846,6 @@ export default function QuanTriPage() {
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     👥 Danh sách thành viên ({editingTeam.cauThu?.length || 0})
                   </label>
-                  <button
-                    className={styles.editBtnCompact}
-                    style={{ padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', gap: '4px' }}
-                    onClick={() => {
-                      setImportPlayersTargetTeam(editingTeam);
-                      setImportPlayersPreview([]);
-                      setIsImportPlayersOpen(true);
-                    }}
-                  >
-                    Thêm Cầu Thủ từ file Excel
-                  </button>
                 </div>
 
                 <div style={{ maxHeight: '240px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '8px', paddingRight: '4px' }}>
@@ -2295,6 +2162,32 @@ export default function QuanTriPage() {
                       onChange={(e) => setNewTournamentData({ ...newTournamentData, ngayBatDau: e.target.value })}
                     />
                   </div>
+                  </div>
+
+                <div className={styles.formGroup} style={{ marginTop: '0px' }}>
+                  <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Loại giải đấu (Template)</label>
+                  <select
+                    className={styles.modalInput}
+                    value={newTournamentData.templateCode}
+                    onChange={(e) => setNewTournamentData({ ...newTournamentData, templateCode: e.target.value })}
+                  >
+                    {tournamentTemplates.length > 0 ? (
+                      tournamentTemplates.map(t => (
+                        <option key={t.code} value={t.code}>{t.name}</option>
+                      ))
+                    ) : (
+                      <>
+                        <option value="LEAGUE">League (Đấu vòng tròn)</option>
+                        <option value="TOURNAMENT">Tournament (Đấu cúp/Loại trực tiếp)</option>
+                        <option value="MIXED">Tournament (Vòng bảng + Loại trực tiếp)</option>
+                      </>
+                    )}
+                  </select>
+                  {tournamentTemplates.length > 0 && (
+                    <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', fontStyle: 'italic' }}>
+                      {tournamentTemplates.find(t => t.code === newTournamentData.templateCode)?.description}
+                    </p>
+                  )}
                 </div>
               </div>
 
@@ -2324,9 +2217,50 @@ export default function QuanTriPage() {
                     };
                     const { error } = await createTournament(payload);
                     if (!error) {
+                      const selectedTemplate = tournamentTemplates.find(t => t.code === newTournamentData.templateCode);
+                      if (selectedTemplate && selectedTemplate.defaultConfig) {
+                        const config = selectedTemplate.defaultConfig;
+                        
+                        const generalConfig = {
+                          theThuc: config.theThuc,
+                          luotVongBang: config.luotVongBang,
+                          soVongLeague: config.soVongLeague,
+                          maxTeams: config.maxTeams,
+                          maxPlayers: config.maxPlayers,
+                          starterCount: config.starterCount,
+                          benchCount: config.benchCount,
+                          standingsConfig: config.standingsConfig
+                        };
+                        localStorage.setItem(`giai_dau_config_${newId}`, JSON.stringify(generalConfig));
+                        
+                        const schedulerConfigPayload = {
+                          startDate: newTournamentData.ngayBatDau,
+                          endDate: '',
+                          matchDurationMinutes: config.matchDurationMinutes,
+                          breakTimeMinutes: config.breakTimeMinutes,
+                          playDays: [
+                            { dayOfWeek: 1, enabled: true },
+                            { dayOfWeek: 2, enabled: false },
+                            { dayOfWeek: 3, enabled: false },
+                            { dayOfWeek: 4, enabled: false },
+                            { dayOfWeek: 5, enabled: false },
+                            { dayOfWeek: 6, enabled: true },
+                            { dayOfWeek: 0, enabled: true },
+                          ],
+                          timeSlots: [
+                            { id: '1', startTime: '17:00', endTime: '18:30' },
+                            { id: '2', startTime: '19:00', endTime: '20:30' },
+                          ],
+                          pitchesAvailable: config.pitchesAvailable,
+                          minRestHours: config.minRestHours,
+                          matchesPerWeek: config.matchesPerWeek
+                        };
+                        localStorage.setItem(`scheduler_config_${newId}`, JSON.stringify(schedulerConfigPayload));
+                      }
+
                       setIsCreatingTournament(false);
                       showToast(`🏆 Đã khởi tạo thành công giải đấu: ${newTournamentData.ten}!`);
-                      setNewTournamentData({ ten: '', muaGiai: '2025', ngayBatDau: '2025-05-01', venue_type: 'CENTRALIZED' });
+                      setNewTournamentData({ ten: '', muaGiai: '2025', ngayBatDau: '2025-05-01', venue_type: 'CENTRALIZED', templateCode: 'LEAGUE' });
                       await fetchData(newId);
                     } else {
                       showToast(`❌ Lỗi: ${error.message}`);
@@ -2670,493 +2604,144 @@ export default function QuanTriPage() {
         )}
 
         {/* Import Teams from Excel Modal */}
-        {isImportTeamsOpen && (
+        {/* Bulk Import from Excel Modal */}
+        {isBulkImportOpen && (
           <div className={styles.overlay} style={{ zIndex: 9998 }}>
             <div className={styles.modal} style={{ maxWidth: '650px', width: '100%', padding: '30px', position: 'relative' }}>
               {/* Close Button */}
-              <button
-                onClick={() => { setIsImportTeamsOpen(false); handleClearTeamsImport(); }}
-                style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', fontSize: '20px', color: '#94a3b8', cursor: 'pointer', transition: 'color 0.2s' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#1e293b'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
-              >
-                ✕
-              </button>
+              {!bulkImportProgress && (
+                <button
+                  onClick={() => { setIsBulkImportOpen(false); handleClearBulkImport(); }}
+                  style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', fontSize: '20px', color: '#94a3b8', cursor: 'pointer', transition: 'color 0.2s' }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#1e293b'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
+                >
+                  ✕
+                </button>
+              )}
 
               <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>📥</span> IMPORT DANH SÁCH ĐỘI BÓNG
+                <span>📥</span> NHẬP DỮ LIỆU TỔNG HỢP (EXCEL)
               </h3>
               <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
-                Tải lên danh sách câu lạc bộ của bạn để nhanh chóng chuẩn bị lịch đấu và quản lý cầu thủ.
+                Tải lên một file Excel duy nhất chứa cả thông tin <strong>Đội Bóng</strong> và <strong>Cầu Thủ</strong> để thiết lập nhanh chóng.
               </p>
 
               {/* Guide and Download template */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '13px', color: '#475569' }}>
-                  <span style={{ fontWeight: 600 }}>Các cột bắt buộc:</span>
-                  <span style={{ fontSize: '11px', fontWeight: 700, background: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: '4px', border: '1px solid #fecaca', margin: '0 4px' }}>Tên đội</span>
-                  <span style={{ fontWeight: 600, marginLeft: '6px' }}>. Cột tùy chọn:</span>
-                  <span style={{ fontSize: '11px', fontWeight: 600, background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', margin: '0 4px' }}>Logo</span>
-                  <span style={{ fontSize: '11px', fontWeight: 600, background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', margin: '0 4px' }}>Bảng</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={downloadTeamsTemplate}
-                  style={{ background: 'none', border: 'none', color: '#D71920', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#ae0011'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#D71920'}
-                >
-                  ⬇️ Tải file mẫu (.xlsx)
-                </button>
-              </div>
-
-              {/* Upload Dropzone / File Selected State */}
-              {selectedTeamsFile === null ? (
-                <div
-                  onClick={() => fileInputRef.current?.click()}
-                  onDragOver={(e) => { e.preventDefault(); setIsTeamsDragActive(true); }}
-                  onDragLeave={() => setIsTeamsDragActive(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setIsTeamsDragActive(false);
-                    const file = e.dataTransfer.files?.[0];
-                    if (file) processTeamsFile(file);
-                  }}
-                  style={{
-                    background: isTeamsDragActive ? 'rgba(215, 25, 32, 0.04)' : '#fff',
-                    border: isTeamsDragActive ? '2px dashed #D71920' : '2px dashed #cbd5e1',
-                    borderRadius: '12px',
-                    padding: '40px 24px',
-                    textAlign: 'center',
-                    marginBottom: '20px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease-in-out',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: isTeamsDragActive ? '0 0 16px rgba(215, 25, 32, 0.1)' : 'none'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = '#D71920'}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = isTeamsDragActive ? '#D71920' : '#cbd5e1'}
-                >
-                  <input
-                    ref={fileInputRef}
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleImportTeamsFile}
-                    style={{ display: 'none' }}
-                  />
-                  {/* Premium Cloud Upload Icon */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={isTeamsDragActive ? '#D71920' : '#10b981'}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{
-                      width: '56px',
-                      height: '56px',
-                      marginBottom: '16px',
-                      transition: 'all 0.2s ease',
-                      filter: isTeamsDragActive ? 'drop-shadow(0 4px 12px rgba(215, 25, 32, 0.15))' : 'drop-shadow(0 4px 12px rgba(16, 185, 129, 0.15))'
-                    }}
-                  >
-                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
-                    <path d="M12 12v9" />
-                    <path d="m16 16-4-4-4 4" />
-                  </svg>
-                  <p style={{ fontSize: '16px', color: '#1e293b', fontWeight: 600, margin: '0 0 6px 0' }}>
-                    Kéo thả file Excel vào đây
-                  </p>
-                  <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-                    Hoặc bấm để chọn file từ máy tính <span style={{ fontWeight: 600, color: '#475569' }}>(Hỗ trợ .xls, .xlsx)</span>
-                  </p>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    {/* Green Excel File Icon */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e8f5e9', width: '38px', height: '38px', borderRadius: '8px' }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px' }}>
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <line x1="8" y1="13" x2="16" y2="13" />
-                        <line x1="8" y1="17" x2="16" y2="17" />
-                        <line x1="10" y1="9" x2="9" y2="9" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b', wordBreak: 'break-all' }}>{selectedTeamsFile.name}</p>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>Dung lượng: {(selectedTeamsFile.size / 1024).toFixed(1)} KB</p>
-                    </div>
+              {!bulkImportProgress && (
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '13px', color: '#475569' }}>
+                    <span style={{ fontWeight: 600 }}>Lưu ý:</span>
+                    <span>Sử dụng cấu trúc nhiều sheet (Đội Bóng, Cầu Thủ) như trong file mẫu.</span>
                   </div>
                   <button
                     type="button"
-                    onClick={handleClearTeamsImport}
-                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                    title="Xóa file đã chọn"
+                    onClick={handleDownloadBulkTemplate}
+                    style={{ background: 'none', border: 'none', color: '#D71920', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = '#ae0011'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#D71920'}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      <line x1="10" y1="11" x2="10" y2="17" />
-                      <line x1="14" y1="11" x2="14" y2="17" />
-                    </svg>
+                    ⬇️ Tải file mẫu (.xlsx)
                   </button>
                 </div>
               )}
 
-              {/* Preview table */}
-              {importTeamsPreview.length > 0 && (
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                    📋 XEM TRƯỚC DANH SÁCH ({importTeamsPreview.length} đội)
-                  </label>
-                  <div style={{ maxHeight: '180px', overflowY: 'auto', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#fff' }}>
-                    <table className={styles.adminTable} style={{ marginBottom: 0, width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, zIndex: 10 }}>
-                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>#</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Logo</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Tên đội bóng</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Bảng</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {importTeamsPreview.map((t, i) => (
-                          <tr key={t.id} style={{ borderBottom: i === importTeamsPreview.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '8px 12px', fontSize: '13px', color: '#64748b' }}>{i + 1}</td>
-                            <td style={{ padding: '8px 12px', fontSize: '18px', display: 'flex' }}><TeamLogo logo={t.logo} /></td>
-                            <td style={{ padding: '8px 12px', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>{t.ten}</td>
-                            <td style={{ padding: '8px 12px', fontSize: '13px', color: '#475569' }}>
-                              <span style={{ background: '#f1f5f9', color: '#334155', padding: '2px 8px', borderRadius: '4px', fontSize: '12px', fontWeight: 600 }}>
-                                Bảng {t.bang}
-                              </span>
-                            </td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+              {/* Progress Bar Section */}
+              {bulkImportProgress ? (
+                <div style={{ padding: '20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: bulkImportProgress.step === 'error' ? '#ef4444' : '#1e293b' }}>
+                      {bulkImportProgress.message}
+                    </span>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#3b82f6' }}>
+                      {bulkImportProgress.percent}%
+                    </span>
                   </div>
-                </div>
-              )}
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
-                <button
-                  type="button"
-                  style={{
-                    flex: 1,
-                    margin: 0,
-                    height: '44px',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    background: '#fff',
-                    color: '#64748b',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onClick={() => { setIsImportTeamsOpen(false); handleClearTeamsImport(); }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.background = '#f8fafc'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = '#fff'; }}
-                >
-                  HỦY
-                </button>
-                <button
-                  type="button"
-                  style={{
-                    flex: 1,
-                    margin: 0,
-                    height: '44px',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    borderRadius: '8px',
-                    background: importTeamsPreview.length === 0 || importLoading ? '#e2e8f0' : '#D71920',
-                    color: importTeamsPreview.length === 0 || importLoading ? '#94a3b8' : '#fff',
-                    cursor: importTeamsPreview.length === 0 || importLoading ? 'not-allowed' : 'pointer',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    transition: 'all 0.2s ease',
-                    boxShadow: importTeamsPreview.length === 0 || importLoading ? 'none' : '0 4px 14px rgba(215, 25, 32, 0.4)'
-                  }}
-                  disabled={importTeamsPreview.length === 0 || importLoading}
-                  onClick={handleConfirmImportTeams}
-                  onMouseEnter={(e) => {
-                    if (importTeamsPreview.length > 0 && !importLoading) {
-                      e.currentTarget.style.background = '#ae0011';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (importTeamsPreview.length > 0 && !importLoading) {
-                      e.currentTarget.style.background = '#D71920';
-                    }
-                  }}
-                >
-                  {importLoading ? (
-                    <>⏳ Đang import...</>
-                  ) : importTeamsPreview.length === 0 ? (
-                    <>IMPORT ĐỘI</>
-                  ) : (
-                    <>IMPORT {importTeamsPreview.length} ĐỘI</>
+                  <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                    <div 
+                      style={{ 
+                        width: `${bulkImportProgress.percent}%`, 
+                        height: '100%', 
+                        background: bulkImportProgress.step === 'error' ? '#ef4444' : (bulkImportProgress.step === 'done' ? '#10b981' : '#3b82f6'),
+                        transition: 'width 0.3s ease-out, background-color 0.3s ease'
+                      }} 
+                    />
+                  </div>
+                  {bulkImportProgress.step === 'error' && (
+                    <button 
+                      onClick={handleClearBulkImport}
+                      style={{ marginTop: '16px', padding: '8px 16px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}
+                    >
+                      Thử lại
+                    </button>
                   )}
-                </button>
-              </div>
-            </div>
-          </div>
-        )}
-
-        {/* Import Players from Excel Modal */}
-        {isImportPlayersOpen && (
-          <div className={styles.overlay} style={{ zIndex: 9998 }}>
-            <div className={styles.modal} style={{ maxWidth: '650px', width: '100%', padding: '30px', position: 'relative' }}>
-              {/* Close Button */}
-              <button
-                onClick={() => { setIsImportPlayersOpen(false); handleClearPlayersImport(); setImportPlayersTargetTeam(null); }}
-                style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', fontSize: '20px', color: '#94a3b8', cursor: 'pointer', transition: 'color 0.2s' }}
-                onMouseEnter={(e) => e.currentTarget.style.color = '#1e293b'}
-                onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
-              >
-                ✕
-              </button>
-
-              <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span>📥</span> IMPORT DANH SÁCH CẦU THỦ
-              </h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
-                Tải lên danh sách cầu thủ cho đội <strong style={{ color: '#1e293b' }}>{importPlayersTargetTeam?.ten || '...'}</strong> để theo dõi kiến tạo và bàn thắng.
-              </p>
-
-              {/* Guide and Download template */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '13px', color: '#475569' }}>
-                  <span style={{ fontWeight: 600 }}>Các cột bắt buộc:</span>
-                  <span style={{ fontSize: '11px', fontWeight: 700, background: '#fee2e2', color: '#dc2626', padding: '2px 8px', borderRadius: '4px', border: '1px solid #fecaca', margin: '0 4px' }}>Tên cầu thủ</span>
-                  <span style={{ fontWeight: 600, marginLeft: '6px' }}>. Cột tùy chọn:</span>
-                  <span style={{ fontSize: '11px', fontWeight: 600, background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', margin: '0 4px' }}>Số áo</span>
-                  <span style={{ fontSize: '11px', fontWeight: 600, background: '#f1f5f9', color: '#475569', padding: '2px 8px', borderRadius: '4px', border: '1px solid #e2e8f0', margin: '0 4px' }}>Vị trí</span>
-                </div>
-                <button
-                  type="button"
-                  onClick={downloadPlayersTemplate}
-                  style={{ background: 'none', border: 'none', color: '#D71920', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#ae0011'}
-                  onMouseLeave={(e) => e.currentTarget.style.color = '#D71920'}
-                >
-                  ⬇️ Tải file mẫu (.xlsx)
-                </button>
-              </div>
-
-              {/* Upload Dropzone / File Selected State */}
-              {selectedPlayersFile === null ? (
-                <div
-                  onClick={() => playerFileInputRef.current?.click()}
-                  onDragOver={(e) => { e.preventDefault(); setIsPlayersDragActive(true); }}
-                  onDragLeave={() => setIsPlayersDragActive(false)}
-                  onDrop={(e) => {
-                    e.preventDefault();
-                    setIsPlayersDragActive(false);
-                    const file = e.dataTransfer.files?.[0];
-                    if (file) processPlayersFile(file);
-                  }}
-                  style={{
-                    background: isPlayersDragActive ? 'rgba(215, 25, 32, 0.04)' : '#fff',
-                    border: isPlayersDragActive ? '2px dashed #D71920' : '2px dashed #cbd5e1',
-                    borderRadius: '12px',
-                    padding: '40px 24px',
-                    textAlign: 'center',
-                    marginBottom: '20px',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease-in-out',
-                    display: 'flex',
-                    flexDirection: 'column',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    boxShadow: isPlayersDragActive ? '0 0 16px rgba(215, 25, 32, 0.1)' : 'none'
-                  }}
-                  onMouseEnter={(e) => e.currentTarget.style.borderColor = '#D71920'}
-                  onMouseLeave={(e) => e.currentTarget.style.borderColor = isPlayersDragActive ? '#D71920' : '#cbd5e1'}
-                >
-                  <input
-                    ref={playerFileInputRef}
-                    type="file"
-                    accept=".xlsx,.xls"
-                    onChange={handleImportPlayersFile}
-                    style={{ display: 'none' }}
-                  />
-                  {/* Premium Cloud Upload Icon */}
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke={isPlayersDragActive ? '#D71920' : '#10b981'}
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                    style={{
-                      width: '56px',
-                      height: '56px',
-                      marginBottom: '16px',
-                      transition: 'all 0.2s ease',
-                      filter: isPlayersDragActive ? 'drop-shadow(0 4px 12px rgba(215, 25, 32, 0.15))' : 'drop-shadow(0 4px 12px rgba(16, 185, 129, 0.15))'
-                    }}
-                  >
-                    <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
-                    <path d="M12 12v9" />
-                    <path d="m16 16-4-4-4 4" />
-                  </svg>
-                  <p style={{ fontSize: '16px', color: '#1e293b', fontWeight: 600, margin: '0 0 6px 0' }}>
-                    Kéo thả file Excel vào đây
-                  </p>
-                  <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-                    Hoặc bấm để chọn file từ máy tính <span style={{ fontWeight: 600, color: '#475569' }}>(Hỗ trợ .xls, .xlsx)</span>
-                  </p>
                 </div>
               ) : (
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: '10px', padding: '14px 18px', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    {/* Green Excel File Icon */}
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', background: '#e8f5e9', width: '38px', height: '38px', borderRadius: '8px' }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="#2e7d32" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" style={{ width: '20px', height: '20px' }}>
-                        <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z" />
-                        <polyline points="14 2 14 8 20 8" />
-                        <line x1="8" y1="13" x2="16" y2="13" />
-                        <line x1="8" y1="17" x2="16" y2="17" />
-                        <line x1="10" y1="9" x2="9" y2="9" />
-                      </svg>
-                    </div>
-                    <div>
-                      <p style={{ margin: 0, fontSize: '14px', fontWeight: 700, color: '#1e293b', wordBreak: 'break-all' }}>{selectedPlayersFile.name}</p>
-                      <p style={{ margin: '2px 0 0 0', fontSize: '12px', color: '#64748b' }}>Dung lượng: {(selectedPlayersFile.size / 1024).toFixed(1)} KB</p>
-                    </div>
-                  </div>
-                  <button
-                    type="button"
-                    onClick={handleClearPlayersImport}
-                    style={{ background: 'none', border: 'none', color: '#ef4444', cursor: 'pointer', padding: '6px', borderRadius: '6px', display: 'flex', alignItems: 'center', justifyContent: 'center', transition: 'all 0.15s' }}
-                    onMouseEnter={(e) => e.currentTarget.style.background = '#fef2f2'}
-                    onMouseLeave={(e) => e.currentTarget.style.background = 'none'}
-                    title="Xóa file đã chọn"
+                /* Upload Dropzone / File Selected State */
+                selectedBulkFile === null ? (
+                  <div
+                    onClick={() => bulkFileInputRef.current?.click()}
+                    onDragOver={(e) => { e.preventDefault(); setIsBulkDragActive(true); }}
+                    onDragLeave={() => setIsBulkDragActive(false)}
+                    onDrop={(e) => {
+                      e.preventDefault();
+                      setIsBulkDragActive(false);
+                      const file = e.dataTransfer.files?.[0];
+                      if (file) {
+                        const evt = { target: { files: [file] } } as any;
+                        handleImportBulkFile(evt);
+                      }
+                    }}
+                    style={{
+                      background: isBulkDragActive ? 'rgba(59, 130, 246, 0.04)' : '#fff',
+                      border: isBulkDragActive ? '2px dashed #3b82f6' : '2px dashed #cbd5e1',
+                      borderRadius: '12px',
+                      padding: '40px 24px',
+                      textAlign: 'center',
+                      marginBottom: '20px',
+                      cursor: 'pointer',
+                      transition: 'all 0.2s ease-in-out',
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center'
+                    }}
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                      <polyline points="3 6 5 6 21 6" />
-                      <path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2" />
-                      <line x1="10" y1="11" x2="10" y2="17" />
-                      <line x1="14" y1="11" x2="14" y2="17" />
+                    <input
+                      ref={bulkFileInputRef}
+                      type="file"
+                      accept=".xlsx,.xls"
+                      onChange={handleImportBulkFile}
+                      style={{ display: 'none' }}
+                    />
+                    <svg
+                      xmlns="http://www.w3.org/2000/svg"
+                      viewBox="0 0 24 24"
+                      fill="none"
+                      stroke={isBulkDragActive ? '#3b82f6' : '#10b981'}
+                      strokeWidth="2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      style={{
+                        width: '56px',
+                        height: '56px',
+                        marginBottom: '16px',
+                        transition: 'all 0.2s ease'
+                      }}
+                    >
+                      <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242" />
+                      <path d="M12 12v9" />
+                      <path d="m16 16-4-4-4 4" />
                     </svg>
-                  </button>
-                </div>
-              )}
-
-              {/* Preview table */}
-              {importPlayersPreview.length > 0 && (
-                <div style={{ marginBottom: '24px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 800, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
-                    📋 XEM TRƯỚC DANH SÁCH ({importPlayersPreview.length} cầu thủ)
-                  </label>
-                  <div style={{ maxHeight: '180px', overflowY: 'auto', borderRadius: '10px', border: '1px solid #e2e8f0', background: '#fff' }}>
-                    <table className={styles.adminTable} style={{ marginBottom: 0, width: '100%', borderCollapse: 'collapse' }}>
-                      <thead>
-                        <tr style={{ background: '#f8fafc', borderBottom: '1px solid #e2e8f0', position: 'sticky', top: 0, zIndex: 10 }}>
-                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>#</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Số áo</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Tên cầu thủ</th>
-                          <th style={{ padding: '8px 12px', fontSize: '12px', textAlign: 'left', color: '#475569', fontWeight: 700 }}>Vị trí</th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {importPlayersPreview.map((p, i) => (
-                          <tr key={p.id} style={{ borderBottom: i === importPlayersPreview.length - 1 ? 'none' : '1px solid #f1f5f9' }}>
-                            <td style={{ padding: '8px 12px', fontSize: '13px', color: '#64748b' }}>{i + 1}</td>
-                            <td style={{ padding: '8px 12px' }}>
-                              <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', background: '#fee2e2', color: '#ef4444', borderRadius: '50%', fontSize: '11px', fontWeight: 700 }}>
-                                {p.soAo}
-                              </span>
-                            </td>
-                            <td style={{ padding: '8px 12px', fontSize: '13px', fontWeight: 600, color: '#1e293b' }}>{p.ten}</td>
-                            <td style={{ padding: '8px 12px', fontSize: '12px', color: '#64748b' }}>{p.viTri}</td>
-                          </tr>
-                        ))}
-                      </tbody>
-                    </table>
+                    <p style={{ fontSize: '16px', color: '#1e293b', fontWeight: 600, margin: '0 0 6px 0' }}>
+                      Kéo thả file Excel vào đây để tự động import
+                    </p>
+                    <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
+                      Hoặc bấm để chọn file từ máy tính <span style={{ fontWeight: 600, color: '#475569' }}>(Hỗ trợ .xls, .xlsx)</span>
+                    </p>
                   </div>
-                </div>
+                ) : null
               )}
-
-              {/* Action Buttons */}
-              <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
-                <button
-                  type="button"
-                  style={{
-                    flex: 1,
-                    margin: 0,
-                    height: '44px',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    background: '#fff',
-                    color: '#64748b',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease'
-                  }}
-                  onClick={() => { setIsImportPlayersOpen(false); handleClearPlayersImport(); setImportPlayersTargetTeam(null); }}
-                  onMouseEnter={(e) => { e.currentTarget.style.borderColor = '#94a3b8'; e.currentTarget.style.background = '#f8fafc'; }}
-                  onMouseLeave={(e) => { e.currentTarget.style.borderColor = '#cbd5e1'; e.currentTarget.style.background = '#fff'; }}
-                >
-                  HỦY
-                </button>
-                <button
-                  type="button"
-                  style={{
-                    flex: 1,
-                    margin: 0,
-                    height: '44px',
-                    fontWeight: 700,
-                    fontSize: '14px',
-                    borderRadius: '8px',
-                    background: importPlayersPreview.length === 0 || importLoading ? '#e2e8f0' : '#D71920',
-                    color: importPlayersPreview.length === 0 || importLoading ? '#94a3b8' : '#fff',
-                    cursor: importPlayersPreview.length === 0 || importLoading ? 'not-allowed' : 'pointer',
-                    border: 'none',
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                    gap: '8px',
-                    transition: 'all 0.2s ease',
-                    boxShadow: importPlayersPreview.length === 0 || importLoading ? 'none' : '0 4px 14px rgba(215, 25, 32, 0.4)'
-                  }}
-                  disabled={importPlayersPreview.length === 0 || importLoading}
-                  onClick={handleConfirmImportPlayers}
-                  onMouseEnter={(e) => {
-                    if (importPlayersPreview.length > 0 && !importLoading) {
-                      e.currentTarget.style.background = '#ae0011';
-                    }
-                  }}
-                  onMouseLeave={(e) => {
-                    if (importPlayersPreview.length > 0 && !importLoading) {
-                      e.currentTarget.style.background = '#D71920';
-                    }
-                  }}
-                >
-                  {importLoading ? (
-                    <>⏳ Đang import...</>
-                  ) : importPlayersPreview.length === 0 ? (
-                    <>IMPORT CẦU THỦ</>
-                  ) : (
-                    <>IMPORT {importPlayersPreview.length} CẦU THỦ</>
-                  )}
-                </button>
-              </div>
             </div>
           </div>
         )}

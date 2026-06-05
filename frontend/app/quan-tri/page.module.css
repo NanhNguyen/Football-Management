@@ -2517,6 +2517,23 @@
 }
 .consoleBackBtn:hover { background: rgba(255,255,255,0.28); }
 
+.consoleSubCancelBtn {
+  background: rgba(220, 38, 38, 0.1);
+  color: #dc2626;
+  border: 1px solid rgba(220, 38, 38, 0.25);
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 700;
+  cursor: pointer;
+  margin-left: auto;
+  transition: all 0.15s;
+}
+.consoleSubCancelBtn:hover {
+  background: rgba(220, 38, 38, 0.2);
+  border-color: rgba(220, 38, 38, 0.4);
+}
+
 .consoleMatchMeta {
   display: flex;
   align-items: center;
@@ -3738,4 +3755,249 @@
 
 
 
+
+
+/* ==========================================================================
+   MOBILE FIRST REFEREE CONSOLE UI
+   ========================================================================== */
+.stickyScoreboard {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  background: var(--color-card-bg);
+  padding: 12px 16px;
+  margin: -16px -16px 20px -16px;
+  border-bottom: 1px solid var(--color-border);
+  box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+
+.mobileMainActionArea {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.hugeActionBtn {
+  height: 90px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  border-radius: 20px;
+  font-size: 18px;
+  font-weight: 800;
+  text-transform: uppercase;
+  border: none;
+  cursor: pointer;
+  transition: transform 0.2s, filter 0.2s;
+  color: white;
+}
+
+.hugeActionBtn:active {
+  transform: scale(0.98);
+  filter: brightness(0.9);
+}
+
+.hugeActionIcon {
+  font-size: 28px;
+}
+
+.hugeActionGoal {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  box-shadow: 0 8px 20px rgba(16, 185, 129, 0.3);
+}
+
+.hugeActionCard {
+  background: linear-gradient(135deg, #f59e0b 0%, #d97706 100%);
+  box-shadow: 0 8px 20px rgba(245, 158, 11, 0.3);
+}
+
+.hugeActionSub {
+  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
+  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+}
+
+.mobileSecondaryActionArea {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 12px;
+  margin-bottom: 24px;
+}
+
+.secondaryActionBtn {
+  background: var(--color-bg-hover);
+  border: 1px solid var(--color-border);
+  border-radius: 12px;
+  padding: 12px;
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--color-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+}
+
+.mobileBottomSheetOverlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  background: rgba(15, 23, 42, 0.6);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.mobileBottomSheet {
+  width: 100%;
+  height: 75vh;
+  background: var(--color-card-bg);
+  border-radius: 24px 24px 0 0;
+  display: flex;
+  flex-direction: column;
+  animation: slideUp 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  box-shadow: 0 -10px 40px rgba(0,0,0,0.1);
+}
+
+.bottomSheetHandle {
+  width: 40px;
+  height: 5px;
+  background: #cbd5e1;
+  border-radius: 3px;
+  margin: 12px auto;
+}
+
+.bsHeaderTitle {
+  text-align: center;
+  font-size: 16px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin-bottom: 12px;
+}
+
+.segmentedControl {
+  display: flex;
+  background: var(--color-bg-hover);
+  border-radius: 12px;
+  padding: 4px;
+  margin: 0 16px 12px 16px;
+}
+
+.segmentBtn {
+  flex: 1;
+  padding: 10px;
+  text-align: center;
+  font-weight: 700;
+  color: #64748b;
+  border-radius: 8px;
+  font-size: 14px;
+  border: none;
+  background: none;
+  transition: all 0.2s;
+}
+
+.segmentBtnActive {
+  background: var(--color-card-bg);
+  color: var(--color-text);
+  box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+}
+
+.actionOptionsChips {
+  display: flex;
+  gap: 8px;
+  padding: 0 16px 12px;
+  overflow-x: auto;
+}
+
+.actionChip {
+  padding: 6px 16px;
+  border-radius: 20px;
+  background: #f1f5f9;
+  border: 1px solid #e2e8f0;
+  color: #475569;
+  font-size: 13px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.actionChipActive {
+  background: #1e293b;
+  color: white;
+  border-color: #1e293b;
+}
+
+.mobilePlayerList {
+  flex: 1;
+  overflow-y: auto;
+  padding: 0 16px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mobilePlayerItem {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 12px;
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+  min-height: 64px;
+  background: var(--color-card-bg);
+  text-align: left;
+}
+
+.mobilePlayerItem:active {
+  background: var(--color-bg-hover);
+}
+
+.mobilePlayerNo {
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  background: #f1f5f9;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 800;
+  font-size: 18px;
+  color: #334155;
+  border: 2px solid #e2e8f0;
+}
+
+.mobilePlayerInfo {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.mobilePlayerName {
+  font-weight: 700;
+  color: var(--color-text);
+  font-size: 16px;
+}
+
+.mobilePlayerMeta {
+  font-size: 12px;
+  color: #64748b;
+  font-weight: 500;
+}
+
+.mobilePlayerBadges {
+  display: flex;
+  gap: 4px;
+}
 

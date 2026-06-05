@@ -3,24 +3,24 @@ import TeamLogo from '@/components/TeamLogo';
 
 interface TeamsTabProps {
   styles: any;
-  setImportTeamsPreview: (val: any[]) => void;
-  setIsImportTeamsOpen: (val: boolean) => void;
+  setIsBulkImportOpen: (val: boolean) => void;
   handleAddTeam: () => void;
   teams: any[];
   setViewingTeam: (val: any) => void;
   handleEditTeam: (val: any) => void;
   handleDeleteTeam: (id: string) => void;
+  handleDeleteAllTeams: () => void;
 }
 
 export default function TeamsTab({
   styles,
-  setImportTeamsPreview,
-  setIsImportTeamsOpen,
+  setIsBulkImportOpen,
   handleAddTeam,
   teams,
   setViewingTeam,
   handleEditTeam,
-  handleDeleteTeam
+  handleDeleteTeam,
+  handleDeleteAllTeams
 }: TeamsTabProps) {
   return (
     <div className={`${styles.content} animate-fade-in`}>
@@ -30,12 +30,21 @@ export default function TeamsTab({
           <p className={styles.pageDesc}>Danh sách các đội tham gia giải đấu</p>
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
+          {teams.length > 0 && (
+            <button 
+              className={styles.editBtnCompact} 
+              style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', background: '#ef4444', color: 'white', borderColor: '#dc2626' }} 
+              onClick={handleDeleteAllTeams}
+            >
+              🗑️ Xóa tất cả đội
+            </button>
+          )}
           <button 
             className={styles.editBtnCompact} 
-            style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }} 
-            onClick={() => { setImportTeamsPreview([]); setIsImportTeamsOpen(true); }}
+            style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', background: '#3b82f6', color: 'white', borderColor: '#2563eb' }} 
+            onClick={() => setIsBulkImportOpen(true)}
           >
-            Thêm đội từ file Excel
+            📥 Nhập dữ liệu tổng hợp (Excel)
           </button>
           <button className={styles.addBtn} onClick={handleAddTeam}>+ Thêm đội mới</button>
         </div>
