@@ -12,6 +12,10 @@ export default function PublicLayoutWrapper({ children }: { children: React.Reac
   const pathname = usePathname();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
+  const closeSidebar = React.useCallback(() => {
+    setSidebarOpen(false);
+  }, []);
+
   // Exclude Admin dashboard and Login views from public sidebar layout
   const isExcluded = pathname.startsWith('/quan-tri') || pathname.startsWith('/login');
 
@@ -23,7 +27,7 @@ export default function PublicLayoutWrapper({ children }: { children: React.Reac
     <PublicTournamentProvider>
       <div className={styles.layoutContainer}>
         {/* Left Sidebar (Desktop) / Sidebar Drawer (Mobile) */}
-        <PublicSidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+        <PublicSidebar isOpen={sidebarOpen} onClose={closeSidebar} />
         
         {/* Main Content Area */}
         <div className={styles.mainArea}>

@@ -1,42 +1,45 @@
 /* ============================================================
-   SPARTA FOOTBALL LEAGUE — DESIGN SYSTEM
-   Based on Stitch MCP Design Tokens
+   SPARTA FOOTBALL LEAGUE — DESIGN SYSTEM v4.0
+   Light Gradient Glassmorphism
    ============================================================ */
 
 /* ===== CSS VARIABLES ===== */
 :root {
-  /* Brand Colors */
-  --color-primary: #82AAE3;
-  --color-primary-dark: #6A92CD;
-  --color-primary-light: #BFEAF5;
-  --color-primary-dim: #EAFDFC;
+  /* Brand Colors — Solid Modern Theme */
+  --color-primary: #0F766E;
+  --color-primary-dark: #115E59;
+  --color-accent: #14B8A6;
 
   /* Surfaces */
   --color-bg: #F8FAFC;
   --color-surface: #FFFFFF;
-  --color-surface-hover: #F0FBFC; /* Very light, gentle cyan for hover */
-  --color-surface-container: #BFEAF5;
-  --color-surface-high: #91D8E4;
+  --color-surface-sidebar: #F1F5F9;
+  --color-surface-hover: #F1F5F9;
+  --color-surface-container: #F8FAFC;
+  --color-surface-high: #FFFFFF;
 
-  /* Text */
-  --color-text: #0F172A;
-  --color-text-secondary: #1E293B;
-  --color-text-muted: #334155;
+  /* Typography */
+  --color-text-heading: #0F172A;
+  --color-text: #334155;
+  --color-text-secondary: #334155;
+  --color-text-muted: #94A3B8;
 
   /* Borders */
-  --color-border: #91D8E4;
-  --color-border-light: #BFEAF5;
+  --color-border: #E2E8F0;
+  --color-border-light: #F1F5F9;
 
   /* Status */
-  --color-success: #059669;
-  --color-warning: #D97706;
-  --color-live: #F43F5E;
+  --color-success: #22C55E;
+  --color-warning: #F59E0B;
+  --color-danger: #EF4444;
+  --color-live: #EF4444;
 
-  /* Live Screen */
-  --live-bg-start: #EAFDFC;
-  --live-bg-end: #BFEAF5;
-  --glass-fill: rgba(255, 255, 255, 0.4);
-  --glass-border: rgba(145, 216, 228, 0.5);
+  /* Legacy Glass Helpers (Mapped to flat) */
+  --glass-bg: #FFFFFF;
+  --glass-blur: none;
+  --glass-border: 1px solid #E2E8F0;
+  --glass-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  --glass-radius: 12px;
 
   /* Spacing */
   --space-xs: 4px;
@@ -55,10 +58,10 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 3px rgba(0, 0, 0, 0.1);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.07);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.08);
-  --shadow-glow: 0 0 12px rgba(215, 25, 32, 0.4);
+  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
+  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+  --shadow-glow: none;
 }
 
 /* ===== RESET & BASE ===== */
@@ -73,12 +76,15 @@
 html {
   scroll-behavior: smooth;
   overflow-x: hidden;
+  /* Needed so Next.js root div never clips the gradient */
+  background: transparent;
+  min-height: 100%;
 }
 
 body {
-  font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
-  background: linear-gradient(135deg, #F8FAFC 0%, #EAFDFC 100%);
-  background-attachment: fixed;
+  font-family: 'Hanken Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+  background-color: var(--color-bg);
+  min-height: 100vh;
   color: var(--color-text);
   font-size: 14px;
   line-height: 1.5;
@@ -99,13 +105,17 @@ button {
   background: none;
 }
 
-/* ===== TYPOGRAPHY ===== */
+/* ===== TYPOGRAPHY HELPERS ===== */
 .font-display {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
 }
 
 .font-body {
-  font-family: 'Inter', sans-serif;
+  font-family: 'Hanken Grotesk', sans-serif;
+}
+
+.font-mono {
+  font-family: 'JetBrains Mono', monospace;
 }
 
 /* ===== ANIMATIONS ===== */
@@ -130,30 +140,18 @@ button {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(215, 25, 32, 0.3); }
-  50% { box-shadow: 0 0 20px rgba(215, 25, 32, 0.6); }
+  0%, 100% { box-shadow: 0 0 8px rgba(15, 74, 78, 0.2); }
+  50% { box-shadow: 0 0 20px rgba(15, 74, 78, 0.4); }
 }
 
 @keyframes fadeInUp {
-  from {
-    opacity: 0;
-    transform: translateY(20px);
-  }
-  to {
-    opacity: 1;
-    transform: translateY(0);
-  }
+  from { opacity: 0; transform: translateY(20px); }
+  to { opacity: 1; transform: translateY(0); }
 }
 
 @keyframes scaleIn {
-  from {
-    opacity: 0;
-    transform: scale(0.95);
-  }
-  to {
-    opacity: 1;
-    transform: scale(1);
-  }
+  from { opacity: 0; transform: scale(0.95); }
+  to { opacity: 1; transform: scale(1); }
 }
 
 .animate-pulse-live { animation: pulse-live 1.5s ease-in-out infinite; }
@@ -169,29 +167,13 @@ button {
 .stagger-4 { animation-delay: 0.4s; }
 .stagger-5 { animation-delay: 0.5s; }
 
-
 /* ===== SCROLLBAR ===== */
-::-webkit-scrollbar {
-  width: 6px;
-}
+::-webkit-scrollbar { width: 5px; height: 5px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: rgba(15, 74, 78, 0.25); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(15, 74, 78, 0.45); }
 
-::-webkit-scrollbar-track {
-  background: var(--color-bg);
-}
-
-::-webkit-scrollbar-thumb {
-  background: var(--color-border);
-  border-radius: var(--radius-full);
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: var(--color-text-muted);
-}
-
-/* ===== EMOJI NAVY TINT ===== 
-   Turns all emoji icons into Navy Dark to match the Pastel Aqua theme.
-   Ignores elements that contain actual <img> tags (like real team logos).
-*/
+/* ===== EMOJI / ICON TINT — neutral on glass ===== */
 [class*="teamLogo"]:not(:has(img)),
 [class*="entityLogo"]:not(:has(img)),
 [class*="sectionTitleIcon"],
@@ -202,5 +184,5 @@ button {
 [class*="bsActionIcon"],
 [class*="timelineIcon"],
 [class*="calendarBtn"] {
-  filter: brightness(0) saturate(100%) invert(7%) sepia(20%) saturate(1915%) hue-rotate(188deg) brightness(98%) contrast(95%);
+  filter: none;
 }

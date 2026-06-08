@@ -1,7 +1,7 @@
 .card {
   background: var(--color-surface);
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-lg);
+  border: 1px solid var(--color-border);
+  border-radius: 20px;
   padding: var(--space-base);
   box-shadow: var(--shadow-sm);
   transition: all 0.2s ease;
@@ -9,14 +9,15 @@
 }
 
 .card:hover {
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow-sm);
   transform: translateY(-2px);
+  background: var(--color-surface);
 }
 
 .cardLive {
   border-color: var(--color-live);
   border-width: 2px;
-  background: linear-gradient(135deg, #FFFFFF 0%, rgba(244, 63, 94, 0.04) 100%);
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.4) 0%, rgba(225, 29, 72, 0.06) 100%);
 }
 
 /* Status Row */
@@ -33,17 +34,13 @@
   color: var(--color-text-muted);
 }
 
-.badges {
-  display: flex;
-  gap: 8px;
-  align-items: center;
-}
+.badges { display: flex; gap: 8px; align-items: center; }
 
 .liveBadge {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 10px;
+  padding: 4px 12px;
   background: var(--color-live);
   color: white;
   font-size: 11px;
@@ -61,17 +58,17 @@
 }
 
 .upcomingBadge {
-  padding: 4px 10px;
-  background: var(--color-surface-container);
-  color: var(--color-text-secondary);
+  padding: 4px 12px;
+  background: var(--color-primary-light, #E0F2F1);
+  color: var(--color-primary);
   font-size: 11px;
   font-weight: 600;
   border-radius: var(--radius-full);
 }
 
 .endBadge {
-  padding: 4px 10px;
-  background: var(--color-bg);
+  padding: 4px 12px;
+  background: rgba(0, 0, 0, 0.06);
   color: var(--color-text-muted);
   font-size: 11px;
   font-weight: 600;
@@ -99,12 +96,12 @@
   font-size: 36px;
   width: 56px;
   height: 56px;
-  background: var(--color-bg);
+  background: var(--color-surface);
   border-radius: var(--radius-lg);
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
 }
 
 .teamName {
@@ -128,11 +125,11 @@
   background: var(--color-surface);
   padding: var(--space-sm) var(--space-base);
   border-radius: var(--radius-lg);
-  border: 2px solid rgba(130, 170, 227, 0.2);
+  border: 2px solid rgba(15, 74, 78, 0.15);
 }
 
 .scoreNum {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 28px;
   font-weight: 700;
   color: var(--color-primary);
@@ -141,34 +138,29 @@
 }
 
 .scoreSep {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 20px;
   font-weight: 600;
   color: var(--color-text-muted);
 }
 
-.scoreBold {
-  color: var(--color-text); /* Standard black/white text for finished matches */
-}
+.scoreBold { color: var(--color-text); }
 
 .timeOnly {
-  font-family: 'Poppins', sans-serif;
+  font-family: 'JetBrains Mono', monospace;
   font-size: 24px;
   font-weight: 700;
   color: var(--color-text);
   letter-spacing: 1px;
 }
 
-.dealRow {
-  display: flex;
-  gap: var(--space-xl);
-}
+.dealRow { display: flex; gap: var(--space-xl); }
 
 .dealBadge {
   font-size: 11px;
   font-weight: 700;
   color: var(--color-primary);
-  background: var(--color-primary-light);
+  background: var(--color-primary-light, #E0F2F1);
   padding: 2px 8px;
   border-radius: var(--radius-full);
 }
@@ -179,8 +171,8 @@
   justify-content: space-between;
   gap: 16px;
   padding: 8px;
-  background: var(--color-bg);
-  border-radius: 8px;
+  background: var(--color-surface);
+  border-radius: 10px;
   margin-bottom: 16px;
   font-size: 12px;
 }
@@ -192,10 +184,7 @@
   flex: 1;
 }
 
-.scorersAway {
-  align-items: flex-end;
-  text-align: right;
-}
+.scorersAway { align-items: flex-end; text-align: right; }
 
 .scorerItem {
   color: var(--color-text-secondary);
@@ -206,44 +195,16 @@
 }
 
 @media (max-width: 768px) {
-  .teamLogo {
-    font-size: 28px;
-    width: 48px;
-    height: 48px;
-  }
-  .scoreNum {
-    font-size: 24px;
-  }
+  .teamLogo { font-size: 28px; width: 48px; height: 48px; }
+  .scoreNum { font-size: 24px; }
 }
 
 @media (max-width: 480px) {
-  .card {
-    padding: 12px;
-  }
-  .teamLogo {
-    font-size: 24px;
-    width: 40px;
-    height: 40px;
-    border-radius: 8px;
-  }
-  .teamName {
-    font-size: 11px;
-  }
-  .scoreNum {
-    font-size: 20px;
-    min-width: 20px;
-  }
-  .scoreSep {
-    font-size: 16px;
-  }
-  .timeOnly {
-    font-size: 18px;
-  }
-  .scorersList {
-    font-size: 10px;
-    padding: 6px;
-    gap: 8px;
-  }
+  .card { padding: 12px; }
+  .teamLogo { font-size: 24px; width: 40px; height: 40px; border-radius: 8px; }
+  .teamName { font-size: 11px; }
+  .scoreNum { font-size: 20px; min-width: 20px; }
+  .scoreSep { font-size: 16px; }
+  .timeOnly { font-size: 18px; }
+  .scorersList { font-size: 10px; padding: 6px; gap: 8px; }
 }
-
-

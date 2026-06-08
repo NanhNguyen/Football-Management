@@ -10,7 +10,7 @@
   padding: 6px;
   border-radius: 999px;
   gap: 4px;
-  border: 1px solid var(--color-border-light);
+  border: 1px solid var(--color-border);
   box-shadow: var(--shadow-sm);
 }
 
@@ -31,22 +31,22 @@
 
 .tabBtn:hover {
   color: var(--color-primary);
-  background: rgba(215, 25, 32, 0.05);
+  background: var(--color-primary-light, #E0F2F1);
 }
 
 .tabActive {
   background: var(--color-primary) !important;
   color: #ffffff !important;
-  box-shadow: 0 4px 12px rgba(215, 25, 32, 0.25);
+  box-shadow: var(--shadow-sm);
 }
 
 .blinkDot {
   width: 8px;
   height: 8px;
-  background-color: #ef4444;
+  background-color: var(--color-live);
   border-radius: 50%;
   animation: blink 1s infinite;
-  box-shadow: 0 0 8px rgba(239, 68, 68, 0.6);
+  box-shadow: 0 0 8px rgba(225, 29, 72, 0.5);
 }
 
 @keyframes blink {
@@ -65,8 +65,8 @@
   text-align: center;
   padding: 48px;
   background: var(--color-surface);
-  border-radius: 16px;
-  border: 1px dashed var(--color-border);
+  border-radius: 20px;
+  border: 1px dashed rgba(15, 74, 78, 0.25);
   color: var(--color-text-muted);
   font-style: italic;
 }

@@ -4,14 +4,14 @@
   left: 0;
   right: 0;
   height: 65px;
-  background-color: var(--color-surface);
-  border-top: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+  border-top: 1px solid rgba(255, 255, 255, 0.5);
   display: flex;
   justify-content: space-around;
   align-items: center;
   padding-bottom: env(safe-area-inset-bottom);
   z-index: 100;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .navItem {
@@ -26,26 +26,20 @@
   transition: color 0.2s;
 }
 
-.navItemActive {
-  color: var(--color-primary);
-}
+.navItemActive { color: var(--color-primary); }
 
 .icon {
   font-size: 22px;
   margin-bottom: 4px;
-  filter: brightness(0) saturate(100%) invert(16%) sepia(87%) saturate(5838%) hue-rotate(348deg) brightness(87%) contrast(96%);
+  filter: none;
 }
 
 .label {
-  font-size: 10px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 9px;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.06em;
 }
 
-/* Hide on larger screens if desired, but this is a mobile-first app */
-@media (min-width: 768px) {
-  .bottomNav {
-    display: none;
-  }
-}
+@media (min-width: 768px) { .bottomNav { display: none; } }

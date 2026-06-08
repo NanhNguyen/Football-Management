@@ -1,10 +1,10 @@
 .overlayBackdrop {
   position: fixed;
-  top: 60px; /* Below Topbar */
+  top: 60px;
   left: 0;
   width: 100vw;
   height: calc(100vh - 60px);
-  background-color: rgba(0, 0, 0, 0.4);
+  background-color: rgba(21, 60, 63, 0.2);
   z-index: 40;
   animation: fadeIn 0.2s ease-out;
 }
@@ -12,13 +12,13 @@
 .searchPanel {
   position: absolute;
   top: 50px;
-  right: 16px; /* Align to the right side where input is */
+  right: 16px;
   width: 100%;
   max-width: 450px;
-  background-color: var(--color-surface);
-  border-radius: 16px;
-  box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
-  border: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+  border-radius: 20px;
+  box-shadow: var(--shadow-sm), 0 2px 8px rgba(0,0,0,0.06);
+  border: 1px solid var(--color-border);
   overflow: hidden;
   z-index: 50;
   display: flex;
@@ -37,11 +37,12 @@
 
 .panelHeader {
   padding: 16px;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text-secondary);
-  background: var(--color-bg);
+  background: var(--color-surface);
 }
 
 .panelContent {
@@ -51,11 +52,12 @@
 
 .sectionTitle {
   padding: 8px 16px;
-  font-size: 12px;
+  font-family: 'JetBrains Mono', monospace;
+  font-size: 10px;
   font-weight: 700;
   color: var(--color-text-muted);
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 0.08em;
 }
 
 .resultItem {
@@ -68,15 +70,13 @@
   cursor: pointer;
 }
 
-.resultItem:hover {
-  background-color: var(--color-surface-hover);
-}
+.resultItem:hover { background-color: rgba(15, 74, 78, 0.07); }
 
 .itemLogo {
   width: 32px;
   height: 32px;
   border-radius: 50%;
-  background-color: var(--color-bg);
+  background-color: var(--color-surface);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -109,10 +109,7 @@
   gap: 4px;
 }
 
-.matchTitle {
-  font-size: 16px;
-  font-weight: 700;
-}
+.matchTitle { font-size: 16px; font-weight: 700; }
 
 .emptyState {
   padding: 32px 16px;
@@ -120,11 +117,7 @@
   color: var(--color-text-muted);
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
-}
-
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
 @keyframes slideDown {
   from { opacity: 0; transform: translateY(-10px); }
   to { opacity: 1; transform: translateY(0); }

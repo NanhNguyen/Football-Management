@@ -1,10 +1,10 @@
 .dateStripWrapper {
   width: 100%;
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border-light);
+  background: var(--color-surface);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
   margin-bottom: var(--space-md);
   position: sticky;
-  top: 60px; /* Adjust based on TopNav height */
+  top: 60px;
   z-index: 10;
 }
 
@@ -17,15 +17,15 @@
   padding: 8px 16px;
 }
 
-/* Toggle Switch Group (Left Side) */
+/* Toggle Switch Group */
 .toggleGroup {
   display: flex;
-  background-color: #f1f5f9; /* Soft light gray background */
+  background-color: var(--color-surface);
   border-radius: 20px;
   padding: 2px;
   gap: 2px;
   flex-shrink: 0;
-  border: 1px solid rgba(0, 0, 0, 0.03);
+  border: 1px solid var(--color-border);
 }
 
 .toggleBtn {
@@ -47,19 +47,21 @@
 
 .toggleBtn:hover {
   color: var(--color-text);
-  background-color: var(--color-surface-hover);
+  background-color: var(--color-surface);
 }
 
+/* Active "All" — solid dark teal pill */
 .toggleBtnActiveAll {
-  background-color: var(--color-text) !important;
-  color: white !important;
-  box-shadow: 0 2px 6px rgba(15, 23, 42, 0.15);
+  background-color: var(--color-primary) !important;
+  color: #ffffff !important;
+  box-shadow: var(--shadow-sm);
+  font-weight: 700;
 }
 
 .toggleBtnActiveLive {
   background-color: var(--color-live) !important;
   color: white !important;
-  box-shadow: 0 2px 6px rgba(244, 63, 94, 0.25);
+  box-shadow: 0 2px 6px rgba(225, 29, 72, 0.25);
 }
 
 .liveDot {
@@ -80,39 +82,34 @@
 .verticalDivider {
   width: 1px;
   height: 24px;
-  background-color: var(--color-border-light);
+  background-color: var(--color-surface);
   flex-shrink: 0;
 }
 
-/* Date Scroll Container (Right Side) */
+/* Date Scroll */
 .dateStripScroll {
   display: flex;
   align-items: center;
   overflow-x: auto;
   gap: 8px;
   flex: 1;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
   cursor: grab;
   user-select: none;
   padding: 2px 0;
 }
 
-.dateStripScrollActive {
-  cursor: grabbing;
-}
+.dateStripScrollActive { cursor: grabbing; }
+.dateStripScroll::-webkit-scrollbar { display: none; }
 
-.dateStripScroll::-webkit-scrollbar {
-  display: none; /* Chrome, Safari */
-}
-
-/* Date Button standard, hover and active states */
+/* Date Button */
 .dateBtn {
   display: flex;
   align-items: center;
   justify-content: center;
   background: transparent;
-  border: 1px solid transparent; /* Added to prevent layout shift */
-  padding: 7px 15px; /* adjusted for border */
+  border: 1px solid transparent;
+  padding: 7px 15px;
   cursor: pointer;
   white-space: nowrap;
   border-radius: var(--radius-md);
@@ -124,14 +121,15 @@
 }
 
 .dateBtn:hover {
-  background-color: var(--color-surface-hover);
+  background-color: var(--color-surface);
   color: var(--color-primary);
 }
 
+/* Active date — teal border, teal text */
 .dateBtnActive {
-  background-color: var(--color-surface-hover) !important; 
-  color: var(--color-text) !important; /* Navy text */
-  border: 1px solid var(--color-primary) !important; /* Blue border */
+  background-color: rgba(15, 74, 78, 0.1) !important;
+  color: var(--color-primary) !important;
+  border: 1px solid var(--color-primary) !important;
   font-weight: 700;
 }
 
@@ -143,24 +141,25 @@
   margin-left: 4px;
 }
 
+/* Today button — outlined teal */
 .todayBtn {
-  background-color: var(--color-primary-light);
+  background-color: rgba(15, 74, 78, 0.08);
   border: 1px solid var(--color-primary);
-  color: var(--color-text);
+  color: var(--color-primary);
   padding: 6px 14px;
   border-radius: 18px;
+  font-family: 'JetBrains Mono', monospace;
   font-weight: 700;
-  font-size: 12px;
+  font-size: 11px;
   cursor: pointer;
   white-space: nowrap;
   transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
-  box-shadow: 0 1px 3px rgba(130, 170, 227, 0.05);
 }
 
 .todayBtn:hover {
   background-color: var(--color-primary);
-  color: white;
-  box-shadow: 0 2px 6px rgba(130, 170, 227, 0.2);
+  color: #ffffff;
+  box-shadow: var(--shadow-sm);
 }
 
 .calendarWrapper {
@@ -185,13 +184,11 @@
 }
 
 .calendarIcon {
-  color: var(--color-primary, #d71920);
+  color: var(--color-primary);
   transition: transform 0.2s ease;
 }
 
-.calendarBtn:hover .calendarIcon {
-  transform: scale(1.1);
-}
+.calendarBtn:hover .calendarIcon { transform: scale(1.1); }
 
 .calendarInput {
   position: absolute;
@@ -213,35 +210,17 @@
   cursor: pointer;
 }
 
-.calendarBtn:hover {
-  background-color: var(--color-surface-hover);
-}
+.calendarBtn:hover { background-color: var(--color-surface); }
 
-/* Responsive Overrides */
+/* Responsive */
 @media (max-width: 768px) {
-  .container {
-    gap: 12px;
-    padding: 6px 12px;
-  }
+  .container { gap: 12px; padding: 6px 12px; }
 }
 
 @media (max-width: 480px) {
-  .dateStripWrapper {
-    top: 50px;
-  }
-  .container {
-    gap: 8px;
-    padding: 6px 8px;
-  }
-  .toggleBtn {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-  .dateBtn {
-    padding: 6px 10px;
-    font-size: 11px;
-  }
-  .verticalDivider {
-    height: 18px;
-  }
+  .dateStripWrapper { top: 50px; }
+  .container { gap: 8px; padding: 6px 8px; }
+  .toggleBtn { padding: 6px 10px; font-size: 11px; }
+  .dateBtn { padding: 6px 10px; font-size: 11px; }
+  .verticalDivider { height: 18px; }
 }

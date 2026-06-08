@@ -24,8 +24,9 @@ import {
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
-import AdminOnboardingTour from '@/components/AdminOnboardingTour';
-import RefereeGuideOverlay from '@/components/RefereeGuideOverlay';
+import dynamic from 'next/dynamic';
+const AdminOnboardingTour = dynamic(() => import('@/components/AdminOnboardingTour'), { ssr: false });
+const RefereeGuideOverlay = dynamic(() => import('@/components/RefereeGuideOverlay'), { ssr: false });
 import { runAutoSchedule } from '@/lib/auto_schedule';
 
 import SettingsTab from './components/SettingsTab';
@@ -2546,9 +2547,9 @@ export default function QuanTriPage() {
                   <button
                     type="button"
                     onClick={handleDownloadBulkTemplate}
-                    style={{ background: 'none', border: 'none', color: '#D71920', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
+                    style={{ background: 'none', border: 'none', color: '#0F766E', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
                     onMouseEnter={(e) => e.currentTarget.style.color = '#ae0011'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#D71920'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = '#0F766E'}
                   >
                     ⬇️ Tải file mẫu (.xlsx)
                   </button>

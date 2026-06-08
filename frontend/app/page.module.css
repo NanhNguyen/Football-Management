@@ -3,7 +3,7 @@
   max-width: 1200px;
   margin: 0 auto;
   min-height: 100vh;
-  background-color: var(--color-bg); /* Keeping the app's background color */
+  background-color: transparent;
   display: flex;
   flex-direction: column;
 }
@@ -17,6 +17,7 @@
 }
 
 .appName {
+  font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 28px;
   font-weight: 800;
   color: var(--color-text);
@@ -25,6 +26,7 @@
 }
 
 .slogan {
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 14px;
   color: var(--color-text-secondary);
   margin: 0;
@@ -42,21 +44,26 @@
   border-radius: 20px;
   width: fit-content;
   cursor: pointer;
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 14px;
   font-weight: 600;
   color: var(--color-text);
+  transition: all 0.2s ease;
 }
+
+.headerSelect:hover { border-color: var(--color-primary); }
 
 /* Tabs Section */
 .tabsContainer {
   display: flex;
   padding: 0 20px;
   gap: 24px;
-  border-bottom: 1px solid var(--color-border-light);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
   margin-top: 8px;
 }
 
 .tabLink {
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 15px;
   font-weight: 600;
   color: var(--color-text-secondary);
@@ -67,13 +74,11 @@
 }
 
 .tabLinkActive {
-  color: var(--color-text);
-  border-bottom: 2px solid var(--color-text);
+  color: var(--color-primary);
+  border-bottom: 2px solid var(--color-primary);
 }
 
-.tabLink:hover {
-  color: var(--color-text);
-}
+.tabLink:hover { color: var(--color-text); }
 
 /* Filters Section */
 .filtersContainer {
@@ -82,12 +87,10 @@
   gap: 12px;
   padding: 16px 20px;
   overflow-x: auto;
-  scrollbar-width: none; /* Firefox */
+  scrollbar-width: none;
 }
 
-.filtersContainer::-webkit-scrollbar {
-  display: none; /* Chrome/Safari */
-}
+.filtersContainer::-webkit-scrollbar { display: none; }
 
 .filterSelectWrapper {
   position: relative;
@@ -99,12 +102,14 @@
   background: var(--color-surface);
   border: 1px solid var(--color-border);
   padding: 8px 32px 8px 12px;
-  border-radius: 8px;
+  border-radius: var(--radius-full);
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--color-text);
   cursor: pointer;
   min-width: 120px;
+  transition: border-color 0.2s ease;
 }
 
 .filterSelect:focus {
@@ -125,19 +130,23 @@
   flex-shrink: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  padding: 8px 12px;
-  border-radius: 8px;
+  padding: 8px 16px;
+  border-radius: var(--radius-full);
+  font-family: 'Hanken Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
-  color: var(--color-text);
+  color: var(--color-text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
   gap: 6px;
+  transition: all 0.2s ease;
 }
 
 .resetBtn:hover {
-  background: var(--color-surface-hover);
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  color: var(--color-primary);
 }
 
 /* Matchweek Navigator */
@@ -145,31 +154,34 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px 20px;
-  gap: 24px;
+  padding: 24px 20px;
+  gap: 40px;
 }
 
 .navBtn {
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  width: 32px;
-  height: 32px;
+  width: 48px;
+  height: 48px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  color: var(--color-text-secondary);
-  transition: all 0.2s ease;
+  color: var(--color-primary);
+  box-shadow: var(--shadow-sm);
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.navBtn:hover {
-  background: var(--color-surface-hover);
-  color: var(--color-text);
+.navBtn:hover:not(:disabled) {
+  background: var(--color-surface);
+  border-color: var(--color-primary);
+  transform: scale(1.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .navBtn:disabled {
-  opacity: 0.5;
+  opacity: 0.25;
   cursor: not-allowed;
 }
 
@@ -177,19 +189,23 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 150px;
+  min-width: 180px;
 }
 
 .weekTitle {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-text);
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 22px;
+  font-weight: 800;
+  color: var(--color-primary);
+  letter-spacing: -0.5px;
 }
 
 .weekDate {
+  font-family: 'JetBrains Mono', monospace;
   font-size: 13px;
-  color: var(--color-text-secondary);
-  margin-top: 2px;
+  color: #4B5563;
+  margin-top: 4px;
+  font-weight: 500;
 }
 
 /* Main Feed */
@@ -198,8 +214,54 @@
   flex: 1;
 }
 
-@media (min-width: 768px) {
-  .filtersContainer {
-    flex-wrap: wrap;
-  }
+/* Pill Tabs — glass style */
+.pillTabs {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: nowrap;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 8px 20px 16px 20px;
+  width: 100%;
+}
+
+.pillTabs::-webkit-scrollbar { display: none; }
+
+.pillTab {
+  padding: 8px 20px;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: 9999px;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  cursor: pointer;
+  white-space: nowrap;
+  transition: all 0.2s ease;
+}
+
+.pillTab:hover {
+  background: var(--color-surface);
+  color: var(--color-primary);
+}
+
+/* Active pill — solid dark teal, white text */
+.pillTabActive {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: #FFFFFF;
+  font-weight: 700;
+  box-shadow: var(--shadow-sm);
+}
+
+@media (max-width: 768px) {
+  .pillTabs { display: none; }
+  .weekNavigator { display: flex; }
+}
+
+@media (min-width: 769px) {
+  .pillTabs { display: flex; }
+  .weekNavigator { display: none; }
+  .filtersContainer { flex-wrap: wrap; }
 }

@@ -1,8 +1,9 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import styles from '@/app/lich-dau/page.module.css';
 import LiveMatchCard from '@/components/LiveMatchCard';
+import { usePublicTournament } from '@/components/PublicTournamentContext';
 
 interface Props {
   groupedMatches: Record<string, any[]>;
@@ -121,6 +122,7 @@ function compareRoundNames(a: string, b: string): number {
 }
 
 export default function ScheduleClient({ groupedMatches }: Props) {
+  const { selectedTournamentId } = usePublicTournament();
   const rawRoundsSorted = Object.keys(groupedMatches).sort(compareRounds);
 
   const parseRawRound = (raw: string): ParsedRound => {
@@ -178,6 +180,20 @@ export default function ScheduleClient({ groupedMatches }: Props) {
   const [activeRoundName, setActiveRoundName] = useState<string>(roundNames[0] || '');
   const [activeGroup, setActiveGroup] = useState<string>('Tất cả');
 
+  // Sync activeRoundName when tournament changes or on mount
+  useEffect(() => {
+    if (selectedTournamentId && roundNames.length > 0) {
+      const savedRound = localStorage.getItem(`public_selected_round_${selectedTournamentId}`);
+      if (savedRound && roundNames.includes(savedRound)) {
+        setActiveRoundName(savedRound);
+      } else {
+        setActiveRoundName(roundNames[0]);
+      }
+    } else if (roundNames.length > 0) {
+      setActiveRoundName(roundNames[0]);
+    }
+  }, [selectedTournamentId, roundNames]);
+
   // Filter groups available in current active round name
   const targetParsedRounds = parsedRounds.filter(r => r.roundName === activeRoundName);
   const groupsInRound = Array.from(
@@ -191,6 +207,46 @@ export default function ScheduleClient({ groupedMatches }: Props) {
   const handleRoundChange = (roundName: string) => {
     setActiveRoundName(roundName);
     setActiveGroup('Tất cả');
+    if (selectedTournamentId) {
+      localStorage.setItem(`public_selected_round_${selectedTournamentId}`, roundName);
+    }
+  };
+
+  const currentRoundIndex = roundNames.indexOf(activeRoundName);
+  const handlePrevRound = () => {
+    if (currentRoundIndex > 0) {
+      handleRoundChange(roundNames[currentRoundIndex - 1]);
+    }
+  };
+
+  const handleNextRound = () => {
+    if (currentRoundIndex < roundNames.length - 1 && currentRoundIndex !== -1) {
+      handleRoundChange(roundNames[currentRoundIndex + 1]);
+    }
+  };
+
+  const getActiveRoundDate = () => {
+    const rawRounds = targetParsedRounds.map(r => r.rawRound);
+    const matchesInRound = rawRounds.flatMap(raw => groupedMatches[raw] || []);
+    if (matchesInRound.length === 0) return '';
+
+    matchesInRound.sort((a: any, b: any) => {
+      const tA = new Date(a.batDauLuc || a.date || 0).getTime();
+      const tB = new Date(b.batDauLuc || b.date || 0).getTime();
+      return tA - tB;
+    });
+
+    const firstMatch = matchesInRound[0];
+    const dateStr = firstMatch.date || firstMatch.batDauLuc;
+    if (!dateStr) return '';
+
+    try {
+      const dateObj = new Date(dateStr);
+      const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+      return `${dayNames[dateObj.getDay()]}, ${dateObj.getDate()} Thg ${dateObj.getMonth() + 1}`;
+    } catch (e) {
+      return dateStr;
+    }
   };
 
   // Get selected raw round keys
@@ -217,6 +273,34 @@ export default function ScheduleClient({ groupedMatches }: Props) {
             </button>
           ))}
         </div>
+
+        {/* Round Switcher / Navigator (Mobile only) */}
+        {roundNames.length > 0 && (
+          <div className={styles.weekNavigator}>
+            <button 
+              className={styles.navBtn} 
+              onClick={handlePrevRound}
+              disabled={currentRoundIndex <= 0}
+              aria-label="Vòng trước"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+            </button>
+
+            <div className={styles.weekInfo}>
+              <span className={styles.weekTitle}>{activeRoundName}</span>
+              <span className={styles.weekDate}>{getActiveRoundDate()}</span>
+            </div>
+
+            <button 
+              className={styles.navBtn} 
+              onClick={handleNextRound}
+              disabled={currentRoundIndex >= roundNames.length - 1}
+              aria-label="Vòng sau"
+            >
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+            </button>
+          </div>
+        )}
 
         {/* Secondary group filter pills (if groups exist) */}
         {groupsInRound.length > 0 && (

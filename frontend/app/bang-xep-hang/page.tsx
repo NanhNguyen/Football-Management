@@ -14,6 +14,20 @@ export default function BangXepHangPage() {
   const [loading, setLoading] = useState(true);
   const [customEvents, setCustomEvents] = useState<any[]>([]);
   const [standingsConfig, setStandingsConfig] = useState({ phongDo: true, thePhat: false });
+  const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
+
+  // Load viewMode from localStorage on mount
+  useEffect(() => {
+    const savedMode = localStorage.getItem('standings_view_mode') as 'overview' | 'detailed';
+    if (savedMode && (savedMode === 'overview' || savedMode === 'detailed')) {
+      setViewMode(savedMode);
+    }
+  }, []);
+
+  const handleSetViewMode = (mode: 'overview' | 'detailed') => {
+    setViewMode(mode);
+    localStorage.setItem('standings_view_mode', mode);
+  };
 
   useEffect(() => {
     if (selectedTournamentId) {
@@ -73,27 +87,42 @@ export default function BangXepHangPage() {
         <p className={styles.subtitle}>{selectedTournament?.ten || 'Giải đấu'} — Vòng bảng {selectedTournament?.mua_giai || ''}</p>
       </div>
 
+      <div className={styles.tabContainer}>
+        <button 
+          className={`${styles.tabBtn} ${viewMode === 'overview' ? styles.tabActive : ''}`}
+          onClick={() => handleSetViewMode('overview')}
+        >
+          Tổng quan
+        </button>
+        <button 
+          className={`${styles.tabBtn} ${viewMode === 'detailed' ? styles.tabActive : ''}`}
+          onClick={() => handleSetViewMode('detailed')}
+        >
+          Chi tiết
+        </button>
+      </div>
+
       <div className={styles.groupGrid}>
         {groups.map((groupName, idx) => (
           <div key={groupName} className={`${styles.groupSection} animate-fade-up stagger-${(idx % 5) + 1}`}>
             <h3 className={styles.groupTitle}>Bảng {groupName}</h3>
-            <div className={styles.tableWrap}>
+            <div className={`${styles.tableWrap} ${styles[viewMode]}`}>
               <table className={styles.table}>
                 <thead>
                   <tr>
-                    <th className={styles.thCenter}>#</th>
-                    <th>ĐỘI</th>
+                    <th className={`${styles.thCenter} ${styles.colRank}`}>#</th>
+                    <th className={styles.colTeam}>ĐỘI</th>
                     <th className={styles.thCenter}>TRẬN</th>
-                    <th className={styles.thCenter}>T</th>
-                    <th className={styles.thCenter}>H</th>
-                    <th className={styles.thCenter}>B</th>
-                    <th className={styles.thCenter}>BT - BB</th>
+                    <th className={`${styles.thCenter} ${styles.hideOnOverview}`}>T</th>
+                    <th className={`${styles.thCenter} ${styles.hideOnOverview}`}>H</th>
+                    <th className={`${styles.thCenter} ${styles.hideOnOverview}`}>B</th>
+                    <th className={`${styles.thCenter} ${styles.hideOnOverview}`}>BT - BB</th>
                     <th className={styles.thCenter}>HS</th>
                     <th className={styles.thCenter}>ĐIỂM</th>
                     {customEvents.map((evt) => (
-                      <th key={evt.id} className={styles.thCenter} title={evt.name}>{evt.icon}</th>
+                      <th key={evt.id} className={`${styles.thCenter} ${styles.hideOnOverview}`} title={evt.name}>{evt.icon}</th>
                     ))}
-                    {standingsConfig.phongDo && <th className={styles.thCenter}>PĐ</th>}
+                    {standingsConfig.phongDo && <th className={`${styles.thCenter} ${styles.hideOnOverview}`}>PĐ</th>}
                   </tr>
                 </thead>
                 <tbody>
@@ -104,20 +133,20 @@ export default function BangXepHangPage() {
                         key={i}
                         className={`${styles.row} ${i < 2 ? styles.rowQualified : styles.rowEliminated} ${i % 2 === 1 ? styles.rowZebra : ''}`}
                       >
-                        <td className={styles.tdCenter}>
+                        <td className={`${styles.tdCenter} ${styles.colRank}`}>
                           <span className={styles.rank}>{i + 1}</span>
                         </td>
-                        <td>
+                        <td className={styles.colTeam}>
                           <div className={styles.teamCell}>
                             <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={row.doi?.logo} fallback="⚽" /></span>
                             <span className={styles.teamName}>{row.doi?.ten}</span>
                           </div>
                         </td>
                         <td className={styles.tdCenter}>{row.soTran}</td>
-                        <td className={styles.tdCenter}>{row.thang || 0}</td>
-                        <td className={styles.tdCenter}>{row.hoa || 0}</td>
-                        <td className={styles.tdCenter}>{row.thua || 0}</td>
-                        <td className={styles.tdCenter}>
+                        <td className={`${styles.tdCenter} ${styles.hideOnOverview}`}>{row.thang || 0}</td>
+                        <td className={`${styles.tdCenter} ${styles.hideOnOverview}`}>{row.hoa || 0}</td>
+                        <td className={`${styles.tdCenter} ${styles.hideOnOverview}`}>{row.thua || 0}</td>
+                        <td className={`${styles.tdCenter} ${styles.hideOnOverview}`}>
                           {row.banThang || 0} - {row.banThua || 0}
                         </td>
                         <td className={styles.tdCenter}>
@@ -134,12 +163,12 @@ export default function BangXepHangPage() {
                           <span className={`${styles.points} ${i < 2 ? styles.pointsQualified : ''}`}>{row.diem}</span>
                         </td>
                         {customEvents.map((evt) => (
-                          <td key={evt.id} className={styles.tdCenter} style={{ fontWeight: 600, color: '#f59e0b' }}>
+                          <td key={evt.id} className={`${styles.tdCenter} ${styles.hideOnOverview}`} style={{ fontWeight: 600, color: '#f59e0b' }}>
                             {row.customStats?.[evt.id] || 0}
                           </td>
                         ))}
                         {standingsConfig.phongDo && (
-                          <td className={styles.tdCenter}>
+                          <td className={`${styles.tdCenter} ${styles.hideOnOverview}`}>
                             <div className={styles.formRow}>
                               {row.soTran > 0 ? (
                                 (row.phongDo || []).map((p: string, idx: number) => (

@@ -62,7 +62,7 @@ export default function AdminOnboardingTour({ run, setRun }: AdminOnboardingTour
       steps={steps}
       options={{
         zIndex: 10000,
-        primaryColor: '#D71920', // var(--color-primary)
+        primaryColor: '#0F766E', // var(--color-primary)
         backgroundColor: '#ffffff',
         textColor: '#1F2937',
         showProgress: true,
@@ -76,7 +76,7 @@ export default function AdminOnboardingTour({ run, setRun }: AdminOnboardingTour
           textAlign: 'left',
         },
         buttonPrimary: {
-          backgroundColor: '#D71920',
+          backgroundColor: '#0F766E',
           fontSize: '14px',
           fontWeight: 'bold',
           padding: '8px 16px',

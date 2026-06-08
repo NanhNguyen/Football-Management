@@ -196,7 +196,7 @@
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  box-shadow: inset 0 1px 3px rgba(0,0,0,0.05);
+  box-shadow: var(--shadow-sm);
 }
 
 .matchName {
@@ -384,8 +384,6 @@
 /* Glassmorphic Lock Banner */
 .lockBanner {
   background: rgba(255, 179, 0, 0.05);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
   border: 1px solid rgba(255, 179, 0, 0.15);
   border-radius: 20px;
   padding: 16px 24px;

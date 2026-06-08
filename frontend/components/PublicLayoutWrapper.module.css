@@ -1,7 +1,12 @@
+/* ============================================================
+   Every wrapper must be TRANSPARENT so the fixed body gradient
+   shows through all glass (backdrop-filter) elements.
+   ============================================================ */
+
 .layoutContainer {
   display: flex;
   min-height: 100vh;
-  background-color: var(--color-bg);
+  background: transparent; /* MUST be transparent — gradient lives on <body> */
   width: 100%;
 }
 
@@ -9,27 +14,29 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  min-width: 0; /* Important: prevents content from overflowing flex parent */
+  min-width: 0;
   position: relative;
   width: 100%;
+  background: transparent; /* No background — show body gradient */
 }
 
 .contentBody {
   flex: 1;
-  padding-top: 80px; /* Account for sticky Topbar (64px + 16px gap) */
-  padding-bottom: 80px; /* Account for sticky bottom nav on mobile */
+  padding-top: 80px;  /* Account for sticky Topbar */
+  padding-bottom: 80px; /* Account for mobile bottom nav */
   width: 100%;
   box-sizing: border-box;
+  background: transparent; /* No background — show body gradient */
 }
 
-/* Adjust paddings for desktop screens */
+/* Desktop: sidebar offset */
 @media (min-width: 1024px) {
   .layoutContainer {
-    padding-left: 260px; /* Make space for fixed Left Sidebar */
+    padding-left: 260px;
   }
 
   .contentBody {
-    padding-bottom: var(--space-xl); /* No mobile bottom nav space needed on desktop */
+    padding-bottom: var(--space-xl);
   }
 }
 

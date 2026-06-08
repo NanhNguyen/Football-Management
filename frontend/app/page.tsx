@@ -29,8 +29,27 @@ export default function TongQuanPage() {
   const [loading, setLoading] = useState(true);
 
   // Filters state
-  const [selectedMatchweek, setSelectedMatchweek] = useState<string>('ALL');
+  const [selectedMatchweek, setSelectedMatchweek] = useState<string>('DEFAULT');
   const [selectedTeamId, setSelectedTeamId] = useState<string>('ALL');
+
+  // Load selectedMatchweek from localStorage when tournament changes
+  useEffect(() => {
+    if (selectedTournamentId) {
+      const savedVal = localStorage.getItem(`public_selected_matchweek_${selectedTournamentId}`);
+      setSelectedMatchweek(savedVal || 'DEFAULT');
+    } else {
+      setSelectedMatchweek('DEFAULT');
+    }
+    // Also reset team selection when tournament changes, as team lists will change
+    setSelectedTeamId('ALL');
+  }, [selectedTournamentId]);
+
+  // Save selectedMatchweek to localStorage when it changes (excluding 'DEFAULT')
+  useEffect(() => {
+    if (selectedTournamentId && selectedMatchweek !== 'DEFAULT') {
+      localStorage.setItem(`public_selected_matchweek_${selectedTournamentId}`, selectedMatchweek);
+    }
+  }, [selectedMatchweek, selectedTournamentId]);
 
   useEffect(() => {
     const loadData = async () => {
@@ -64,34 +83,33 @@ export default function TongQuanPage() {
     const genericRounds = allMatchesList.map((m: any) => getGenericRoundKey(m.vong)).filter(Boolean);
     const rounds = Array.from(new Set(genericRounds)) as string[];
     
-    const knockoutOrder: Record<string, number> = {
-      'vòng bảng': 1,
-      'vòng 1/16': 2,
-      'vòng 1/8': 3,
-      'tứ kết': 4,
-      'bán kết': 5,
-      'chung kết & tranh hạng ba': 6,
-      'chung kết': 6,
-    };
-
     return rounds.sort((a, b) => {
-      const aLower = a.toLowerCase();
-      const bLower = b.toLowerCase();
-      
-      const orderA = knockoutOrder[aLower];
-      const orderB = knockoutOrder[bLower];
-      
-      if (orderA && orderB) return orderA - orderB;
-      if (orderA) return -1;
-      if (orderB) return 1;
+      const parseRoundName = (name: string) => {
+        const nameLower = name.toLowerCase();
+        if (nameLower.includes("chung kết") && nameLower.includes("tranh hạng ba")) return { type: 5, num: 6 };
+        if (nameLower.includes("chung kết")) return { type: 5, num: 5 };
+        if (nameLower.includes("tranh hạng ba") || nameLower.includes("hạng ba")) return { type: 5, num: 4 };
+        if (nameLower.includes("bán kết")) return { type: 5, num: 3 };
+        if (nameLower.includes("tứ kết")) return { type: 5, num: 2 };
+        if (nameLower.includes("1/8") || nameLower.includes("1/16") || nameLower.includes("16")) return { type: 5, num: 1 };
 
-      const numA = a.match(/\d+/);
-      const numB = b.match(/\d+/);
-      if (numA && numB) {
-        return parseInt(numA[0], 10) - parseInt(numB[0], 10);
+        const roundMatch = name.match(/Vòng\s+(\d+)/i);
+        if (roundMatch) {
+          return { type: 1, num: parseInt(roundMatch[1], 10) };
+        }
+
+        return { type: 9, num: 999 };
+      };
+
+      const infoA = parseRoundName(a);
+      const infoB = parseRoundName(b);
+
+      if (infoA.type !== infoB.type) {
+        return infoA.type - infoB.type;
       }
-      if (numA) return -1;
-      if (numB) return 1;
+      if (infoA.num !== infoB.num) {
+        return infoA.num - infoB.num;
+      }
       return a.localeCompare(b);
     });
   }, [allMatchesList]);
@@ -120,36 +138,65 @@ export default function TongQuanPage() {
 
   // Set default active matchweek and fix sync
   useEffect(() => {
+    if (loading) return;
+
     if (uniqueRounds.length === 0) {
       if (selectedMatchweek !== 'ALL') setSelectedMatchweek('ALL');
       return;
     }
 
-    if (selectedMatchweek === 'ALL' || !uniqueRounds.includes(selectedMatchweek)) {
-      // Find the nearest upcoming/live match's round
-      const upcomingMatches = allMatchesList.filter((m: any) => m.trangThai === 'DANG_DIEN_RA' || m.trangThai === 'SAP_DIEN_RA');
-      // Sort upcoming by date ascending
-      upcomingMatches.sort((a: any, b: any) => {
-        const tA = new Date(a.batDauLuc || a.date).getTime();
-        const tB = new Date(b.batDauLuc || b.date).getTime();
-        return tA - tB;
-      });
+    if (selectedMatchweek === 'DEFAULT' || (selectedMatchweek !== 'ALL' && !uniqueRounds.includes(selectedMatchweek))) {
+      if (tournamentType === 'league') {
+        // League format: display matches in the week corresponding to the match day (closest match day to today)
+        const todayMs = new Date().getTime();
+        let closestMatch = null;
+        let minDiff = Infinity;
+        
+        for (const m of allMatchesList) {
+          const mDateStr = m.date || m.batDauLuc;
+          if (!mDateStr) continue;
+          try {
+            const mTime = new Date(mDateStr).getTime();
+            if (isNaN(mTime)) continue;
+            const diff = Math.abs(mTime - todayMs);
+            if (diff < minDiff) {
+              minDiff = diff;
+              closestMatch = m;
+            }
+          } catch (e) {}
+        }
 
-      if (upcomingMatches.length > 0 && upcomingMatches[0].vong) {
-        const genRound = getGenericRoundKey(upcomingMatches[0].vong);
-        setSelectedMatchweek(genRound);
-      } else {
-        // Fallback to the last round or first round if all finished
-        const lastMatch = allMatchesList.filter((m: any) => m.trangThai === 'KET_THUC').pop();
-        if (lastMatch && lastMatch.vong) {
-          const genRound = getGenericRoundKey(lastMatch.vong);
+        if (closestMatch && closestMatch.vong) {
+          const genRound = getGenericRoundKey(closestMatch.vong);
           setSelectedMatchweek(genRound);
         } else {
           setSelectedMatchweek(uniqueRounds[0]);
         }
+      } else {
+        // Tournament format: find the nearest date with the next match (live or upcoming)
+        const upcomingMatches = allMatchesList.filter((m: any) => m.trangThai === 'DANG_DIEN_RA' || m.trangThai === 'SAP_DIEN_RA');
+        upcomingMatches.sort((a: any, b: any) => {
+          const tA = new Date(a.batDauLuc || a.date).getTime();
+          const tB = new Date(b.batDauLuc || b.date).getTime();
+          return tA - tB;
+        });
+
+        if (upcomingMatches.length > 0 && upcomingMatches[0].vong) {
+          const genRound = getGenericRoundKey(upcomingMatches[0].vong);
+          setSelectedMatchweek(genRound);
+        } else {
+          // Fallback to the last finished match
+          const lastMatch = allMatchesList.filter((m: any) => m.trangThai === 'KET_THUC').pop();
+          if (lastMatch && lastMatch.vong) {
+            const genRound = getGenericRoundKey(lastMatch.vong);
+            setSelectedMatchweek(genRound);
+          } else {
+            setSelectedMatchweek(uniqueRounds[0]);
+          }
+        }
       }
     }
-  }, [uniqueRounds, allMatchesList, selectedMatchweek]);
+  }, [uniqueRounds, allMatchesList, selectedMatchweek, loading, tournamentType]);
 
   if (loading) {
     return <GlobalSkeletonLoader />;
@@ -163,7 +210,7 @@ export default function TongQuanPage() {
     if (!data) return null;
     let filtered = allMatchesList;
 
-    if (selectedMatchweek !== 'ALL') {
+    if (selectedMatchweek !== 'ALL' && selectedMatchweek !== 'DEFAULT') {
       filtered = filtered.filter((m: any) => getGenericRoundKey(m.vong) === selectedMatchweek);
     }
 
@@ -178,21 +225,20 @@ export default function TongQuanPage() {
     };
   };
 
+  const navigationSequence = ['ALL', ...uniqueRounds];
+  const currentMatchweekIndex = navigationSequence.indexOf(selectedMatchweek);
+
   const handlePrevWeek = () => {
-    const idx = uniqueRounds.indexOf(selectedMatchweek);
-    if (idx > 0) {
-      setSelectedMatchweek(uniqueRounds[idx - 1]);
+    if (currentMatchweekIndex > 0) {
+      setSelectedMatchweek(navigationSequence[currentMatchweekIndex - 1]);
     }
   };
 
   const handleNextWeek = () => {
-    const idx = uniqueRounds.indexOf(selectedMatchweek);
-    if (idx < uniqueRounds.length - 1 && idx !== -1) {
-      setSelectedMatchweek(uniqueRounds[idx + 1]);
+    if (currentMatchweekIndex < navigationSequence.length - 1 && currentMatchweekIndex !== -1) {
+      setSelectedMatchweek(navigationSequence[currentMatchweekIndex + 1]);
     }
   };
-
-  const currentMatchweekIndex = uniqueRounds.indexOf(selectedMatchweek);
   
   // Find the closest date to display below matchweek if available
   const getActiveWeekDate = () => {
@@ -249,19 +295,7 @@ export default function TongQuanPage() {
           <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
         </div>
 
-        <div className={styles.filterSelectWrapper}>
-          <select 
-            className={styles.filterSelect}
-            value={selectedMatchweek}
-            onChange={(e) => setSelectedMatchweek(e.target.value)}
-          >
-            <option value="ALL">Tất cả Vòng đấu</option>
-            {uniqueRounds.map((round) => (
-              <option key={round} value={round}>{round}</option>
-            ))}
-          </select>
-          <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </div>
+
 
         <div className={styles.filterSelectWrapper}>
           <select 
@@ -288,26 +322,53 @@ export default function TongQuanPage() {
         </button>
       </div>
 
-      {/* Matchweek Navigator */}
-      {selectedMatchweek !== 'ALL' && (
+      {/* Pill Tabs for Desktop view */}
+      {uniqueRounds.length > 0 && (
+        <div className={styles.pillTabs}>
+          <button
+            className={`${styles.pillTab} ${selectedMatchweek === 'ALL' ? styles.pillTabActive : ''}`}
+            onClick={() => setSelectedMatchweek('ALL')}
+          >
+            Tất cả vòng đấu
+          </button>
+          {uniqueRounds.map((rn) => (
+            <button
+              key={rn}
+              className={`${styles.pillTab} ${selectedMatchweek === rn ? styles.pillTabActive : ''}`}
+              onClick={() => setSelectedMatchweek(rn)}
+            >
+              {rn}
+            </button>
+          ))}
+        </div>
+      )}
+
+      {/* Matchweek Navigator for Mobile view (responsive via CSS) */}
+      {uniqueRounds.length > 0 && (
         <div className={styles.weekNavigator}>
           <button 
             className={styles.navBtn} 
             onClick={handlePrevWeek}
             disabled={currentMatchweekIndex <= 0}
+            aria-label="Vòng trước"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
           </button>
 
           <div className={styles.weekInfo}>
-            <span className={styles.weekTitle}>{selectedMatchweek}</span>
-            <span className={styles.weekDate}>{getActiveWeekDate()}</span>
+            <span className={styles.weekTitle}>
+              {selectedMatchweek === 'ALL' ? 'Tất cả vòng đấu' : selectedMatchweek}
+            </span>
+            <span className={styles.weekDate}>
+              {selectedMatchweek === 'ALL' ? 'Hiển thị tất cả trận đấu' : getActiveWeekDate()}
+            </span>
           </div>
 
           <button 
             className={styles.navBtn} 
             onClick={handleNextWeek}
-            disabled={currentMatchweekIndex >= uniqueRounds.length - 1}
+            disabled={currentMatchweekIndex >= navigationSequence.length - 1}
+            aria-label="Vòng sau"
           >
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
           </button>
