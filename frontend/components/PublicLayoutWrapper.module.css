@@ -22,7 +22,7 @@
 
 .contentBody {
   flex: 1;
-  padding-top: 80px;  /* Account for sticky Topbar */
+  padding-top: var(--space-lg);
   padding-bottom: 80px; /* Account for mobile bottom nav */
   width: 100%;
   box-sizing: border-box;
@@ -36,12 +36,93 @@
   }
 
   .contentBody {
+    padding-top: var(--space-xl);
     padding-bottom: var(--space-xl);
   }
 }
 
-@media (max-width: 768px) {
-  .contentBody {
-    padding-top: 76px;
-  }
+/* Bottom Sheet Backdrop */
+.bottomSheetBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.4);
+  backdrop-filter: blur(4px);
+  z-index: 1000;
+  animation: fadeIn 0.2s ease-out;
+}
+
+/* Bottom Sheet Container */
+.bottomSheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  max-height: 80vh;
+  background-color: var(--color-surface);
+  border-top-left-radius: 24px;
+  border-top-right-radius: 24px;
+  border: 1px solid var(--color-border);
+  border-bottom: none;
+  z-index: 1001;
+  display: flex;
+  flex-direction: column;
+  box-shadow: 0 -10px 30px rgba(0, 0, 0, 0.15);
+  animation: slideUp 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+  padding-bottom: 24px; /* safe area padding */
+}
+
+/* Bottom Sheet Drag Indicator / Handle */
+.bottomSheetHandle {
+  width: 40px;
+  height: 4px;
+  background-color: var(--color-border);
+  border-radius: 2px;
+  margin: 12px auto var(--space-md) auto;
+  flex-shrink: 0;
+}
+
+/* Bottom Sheet Header */
+.bottomSheetHeader {
+  padding: 0 var(--space-lg) var(--space-sm) var(--space-lg);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  border-bottom: 1px solid var(--color-border-light);
+  flex-shrink: 0;
+}
+
+.bottomSheetTitle {
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.bottomSheetClose {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--color-text-muted);
+  cursor: pointer;
+  padding: 4px;
+}
+
+/* Bottom Sheet Scrollable List */
+.bottomSheetContent {
+  flex: 1;
+  overflow-y: auto;
+  padding: var(--space-md) var(--space-lg);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
 }

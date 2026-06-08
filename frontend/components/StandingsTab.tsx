@@ -161,7 +161,7 @@ export default function StandingsTab() {
                         </td>
                         <td className={styles.colTeam}>
                           <div className={styles.teamCell}>
-                            <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={row.doi?.logo} fallback="⚽" /></span>
+                            <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={row.doi?.logo} /></span>
                             <span className={styles.teamName}>{row.doi?.ten}</span>
                           </div>
                         </td>

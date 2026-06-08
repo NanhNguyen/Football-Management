@@ -1,0 +1,1382 @@
+[
+  {
+    "file": "app/ca-nhan/page.tsx",
+    "line": 67,
+    "char": "⚙",
+    "content": "<span className={styles.actionIcon}>⚙️</span>"
+  },
+  {
+    "file": "app/ca-nhan/page.tsx",
+    "line": 72,
+    "char": "→",
+    "content": "<span className={styles.actionArrow}>→</span>"
+  },
+  {
+    "file": "app/ca-nhan/page.tsx",
+    "line": 76,
+    "char": "🚪",
+    "content": "<span className={styles.actionIcon}>🚪</span>"
+  },
+  {
+    "file": "app/ca-nhan/page.tsx",
+    "line": 81,
+    "char": "→",
+    "content": "<span className={styles.actionArrow}>→</span>"
+  },
+  {
+    "file": "app/ca-nhan/page.tsx",
+    "line": 87,
+    "char": "🔒",
+    "content": "<div className={styles.lockIcon}>🔒</div>"
+  },
+  {
+    "file": "app/doi-bong/[id]/page.tsx",
+    "line": 102,
+    "char": "⚠",
+    "content": "<div className={styles.errorIcon}>⚠️</div>"
+  },
+  {
+    "file": "app/doi-bong/[id]/page.tsx",
+    "line": 144,
+    "char": "🛡",
+    "content": "<span className={styles.teamLogoSm} style={{ display: 'flex' }}><TeamLogo logo={tranDauSapToi.doiNha?.logo} fallback=\"🛡️\" /></span>"
+  },
+  {
+    "file": "app/doi-bong/[id]/page.tsx",
+    "line": 154,
+    "char": "🛡",
+    "content": "<span className={styles.teamLogoSm} style={{ display: 'flex' }}><TeamLogo logo={tranDauSapToi.doiKhach?.logo} fallback=\"🛡️\" /></span>"
+  },
+  {
+    "file": "app/doi-bong/[id]/page.tsx",
+    "line": 236,
+    "char": "⚽",
+    "content": "<div className={styles.playerStat}>⚽ {ct.banThang || 0} Bàn thắng</div>"
+  },
+  {
+    "file": "app/doi-bong/[id]/page.tsx",
+    "line": 256,
+    "char": "←",
+    "content": "← Quay lại"
+  },
+  {
+    "file": "app/doi-bong/[id]/page.tsx",
+    "line": 266,
+    "char": "🛡",
+    "content": "<TeamLogo logo={data.doi.logo} fallback=\"🛡️\" />"
+  },
+  {
+    "file": "app/doi-bong/[id]/page.tsx",
+    "line": 276,
+    "char": "⭐",
+    "content": "{isFollowed ? '⭐' : '☆'}"
+  },
+  {
+    "file": "app/doi-bong/[id]/page.tsx",
+    "line": 276,
+    "char": "☆",
+    "content": "{isFollowed ? '⭐' : '☆'}"
+  },
+  {
+    "file": "app/knock-out/page.tsx",
+    "line": 29,
+    "char": "•",
+    "content": "// Extract start time, e.g. \"12/05 • 18:00\" -> \"18:00\""
+  },
+  {
+    "file": "app/knock-out/page.tsx",
+    "line": 30,
+    "char": "•",
+    "content": "const startHour = match.ngayGio ? match.ngayGio.split('•')[1]?.trim() : '--:--';"
+  },
+  {
+    "file": "app/knock-out/page.tsx",
+    "line": 31,
+    "char": "•",
+    "content": "const matchDate = match.ngayGio ? match.ngayGio.split('•')[0]?.trim() : '—';"
+  },
+  {
+    "file": "app/knock-out/page.tsx",
+    "line": 37,
+    "char": "🔴",
+    "content": "{isLive && <span className={styles.liveIndicatorMini}>🔴 LIVE</span>}"
+  },
+  {
+    "file": "app/knock-out/page.tsx",
+    "line": 198,
+    "char": "🔒",
+    "content": "<div className={styles.lockIcon}>🔒</div>"
+  },
+  {
+    "file": "app/login/page.tsx",
+    "line": 62,
+    "char": "•",
+    "content": "placeholder=\"••••••••\""
+  },
+  {
+    "file": "app/login/page.tsx",
+    "line": 62,
+    "char": "•",
+    "content": "placeholder=\"••••••••\""
+  },
+  {
+    "file": "app/login/page.tsx",
+    "line": 62,
+    "char": "•",
+    "content": "placeholder=\"••••••••\""
+  },
+  {
+    "file": "app/login/page.tsx",
+    "line": 62,
+    "char": "•",
+    "content": "placeholder=\"••••••••\""
+  },
+  {
+    "file": "app/login/page.tsx",
+    "line": 62,
+    "char": "•",
+    "content": "placeholder=\"••••••••\""
+  },
+  {
+    "file": "app/login/page.tsx",
+    "line": 62,
+    "char": "•",
+    "content": "placeholder=\"••••••••\""
+  },
+  {
+    "file": "app/login/page.tsx",
+    "line": 62,
+    "char": "•",
+    "content": "placeholder=\"••••••••\""
+  },
+  {
+    "file": "app/login/page.tsx",
+    "line": 62,
+    "char": "•",
+    "content": "placeholder=\"••••••••\""
+  },
+  {
+    "file": "app/page.tsx",
+    "line": 411,
+    "char": "↺",
+    "content": "Đặt lại <span>↺</span>"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 215,
+    "char": "➜",
+    "content": "<span style={{ color: '#cbd5e1' }}>➜</span>"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 231,
+    "char": "←",
+    "content": "← Trở về"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 271,
+    "char": "⏱",
+    "content": "⏱️ {formatMatchTime(selectedMatch)}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 286,
+    "char": "🟢",
+    "content": "🟢 BẮT ĐẦU HIỆP 1"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 293,
+    "char": "▶",
+    "content": "{selectedMatch.dangTamDung ? '▶ TIẾP TỤC' : '⏸ TẠM DỪNG'}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 293,
+    "char": "⏸",
+    "content": "{selectedMatch.dangTamDung ? '▶ TIẾP TỤC' : '⏸ TẠM DỪNG'}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 296,
+    "char": "⏸",
+    "content": "⏸ HẾT H1"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 305,
+    "char": "🟢",
+    "content": "🟢 BẮT ĐẦU HIỆP 2"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 313,
+    "char": "▶",
+    "content": "{selectedMatch.dangTamDung ? '▶ TIẾP TỤC' : '⏸ TẠM DỪNG'}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 313,
+    "char": "⏸",
+    "content": "{selectedMatch.dangTamDung ? '▶ TIẾP TỤC' : '⏸ TẠM DỪNG'}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 316,
+    "char": "🟥",
+    "content": "🟥 KẾT THÚC"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 323,
+    "char": "🔄",
+    "content": "🔄 THIẾT LẬP LẠI"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 336,
+    "char": "⚽",
+    "content": "<span className={styles.hugeActionIcon}>⚽</span>"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 347,
+    "char": "🟨",
+    "content": "<span className={styles.hugeActionIcon}>🟨/🟥</span>"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 347,
+    "char": "🟥",
+    "content": "<span className={styles.hugeActionIcon}>🟨/🟥</span>"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 357,
+    "char": "🔄",
+    "content": "<span className={styles.hugeActionIcon}>🔄</span>"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 372,
+    "char": "🏅",
+    "content": "🏅 Bầu xuất sắc nhất (MOTM)"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 401,
+    "char": "🏠",
+    "content": "{ev.teamId === selectedMatch.doiNha?.id ? '🏠 ' : '✈️ '}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 401,
+    "char": "✈",
+    "content": "{ev.teamId === selectedMatch.doiNha?.id ? '🏠 ' : '✈️ '}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 408,
+    "char": "✕",
+    "content": "✕"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 432,
+    "char": "⚽",
+    "content": "{wizardState.action === 'goal' && '⚽ XÁC NHẬN BÀN THẮNG'}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 433,
+    "char": "🟨",
+    "content": "{wizardState.action === 'card' && '🟨/🟥 XÁC NHẬN THẺ PHẠT'}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 433,
+    "char": "🟥",
+    "content": "{wizardState.action === 'card' && '🟨/🟥 XÁC NHẬN THẺ PHẠT'}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 434,
+    "char": "🔄",
+    "content": "{wizardState.action === 'sub' && (wizardState.step === 1 ? '🔄 CHỌN NGƯỜI RA SÂN' : '🔄 CHỌN NGƯỜI VÀO SÂN')}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 434,
+    "char": "🔄",
+    "content": "{wizardState.action === 'sub' && (wizardState.step === 1 ? '🔄 CHỌN NGƯỜI RA SÂN' : '🔄 CHỌN NGƯỜI VÀO SÂN')}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 435,
+    "char": "✨",
+    "content": "{wizardState.action === 'custom' && '✨ GHI NHẬN SỰ KIỆN'}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 436,
+    "char": "🏅",
+    "content": "{wizardState.action === 'motm' && '🏅 BẦU MVP'}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 446,
+    "char": "🏠",
+    "content": "🏠 {selectedMatch.doiNha?.ten}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 452,
+    "char": "✈",
+    "content": "✈️ {selectedMatch.doiKhach?.ten}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 481,
+    "char": "🟨",
+    "content": ">🟨 Thẻ Vàng</button>"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 486,
+    "char": "🟥",
+    "content": ">🟥 Thẻ Đỏ</button>"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 540,
+    "char": "⚽",
+    "content": "{goalCount > 0 && <span>{goalCount > 1 ? goalCount : ''}⚽</span>}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 541,
+    "char": "🟨",
+    "content": "{yellowCount > 0 && <span>{yellowCount > 1 ? yellowCount : ''}🟨</span>}"
+  },
+  {
+    "file": "app/quan-tri/components/RefereeTab.tsx",
+    "line": 542,
+    "char": "🟥",
+    "content": "{hasRedCard && <span>🟥</span>}"
+  },
+  {
+    "file": "app/quan-tri/components/SchedulerTab.tsx",
+    "line": 46,
+    "char": "🗑",
+    "content": "🗑️ Xóa lịch"
+  },
+  {
+    "file": "app/quan-tri/components/SchedulerTab.tsx",
+    "line": 54,
+    "char": "⚙",
+    "content": "⚙️ Cấu hình & Sinh lịch"
+  },
+  {
+    "file": "app/quan-tri/components/SchedulerTab.tsx",
+    "line": 188,
+    "char": "✏",
+    "content": "✏️"
+  },
+  {
+    "file": "app/quan-tri/components/SchedulerTab.tsx",
+    "line": 196,
+    "char": "❌",
+    "content": "❌"
+  },
+  {
+    "file": "app/quan-tri/components/SettingsTab.tsx",
+    "line": 225,
+    "char": "⚽",
+    "content": "placeholder=\"⚽\""
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 59,
+    "char": "←",
+    "content": "← Quay lại danh sách đội"
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 67,
+    "char": "✏",
+    "content": "✏️ Chỉnh sửa thành viên"
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 107,
+    "char": "•",
+    "content": "•"
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 113,
+    "char": "•",
+    "content": "•"
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 116,
+    "char": "🛡",
+    "content": "🛡️ Chính thức: {chinhThuc.length}"
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 119,
+    "char": "•",
+    "content": "•"
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 122,
+    "char": "📋",
+    "content": "📋 Dự bị: {duBi.length}"
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 148,
+    "char": "🛡",
+    "content": "🛡️ Đội hình chính thức ({chinhThuc.length})"
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 196,
+    "char": "⚽",
+    "content": "⚽ {p.banThang || 0} bàn"
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 221,
+    "char": "📋",
+    "content": "📋 Danh sách dự bị ({duBi.length})"
+  },
+  {
+    "file": "app/quan-tri/components/TeamDetailView.tsx",
+    "line": 269,
+    "char": "⚽",
+    "content": "⚽ {p.banThang || 0} bàn"
+  },
+  {
+    "file": "app/quan-tri/components/TeamsTab.tsx",
+    "line": 39,
+    "char": "🗑",
+    "content": "🗑️ Xóa tất cả đội"
+  },
+  {
+    "file": "app/quan-tri/components/TeamsTab.tsx",
+    "line": 47,
+    "char": "📥",
+    "content": "📥 Nhập dữ liệu tổng hợp (Excel)"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 122,
+    "char": "✅",
+    "content": "showToast(\"✅ Đã tạo Logo Avatar cực chất!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 124,
+    "char": "❌",
+    "content": "showToast(\"❌ Có lỗi khi tạo logo\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 130,
+    "char": "⚽",
+    "content": "const [newTeamData, setNewTeamData] = useState({ ten: '', logo: '⚽', bang: 'A' });"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 193,
+    "char": "⭐",
+    "content": "setCustomEvents([...customEvents, { id: `event_custom_${Date.now()}`, name: 'Sự kiện mới', icon: '⭐', points: 0, isIndividual: false }]);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 260,
+    "char": "📥",
+    "content": "showToast(\"📥 Đã tải file mẫu: Template_Nhap_Du_Lieu_Tong_Hop.xlsx!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 262,
+    "char": "❌",
+    "content": "showToast(`❌ Lỗi tải template: ${err.message}`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 276,
+    "char": "⚠",
+    "content": "showToast(\"⚠️ Vui lòng chọn một giải đấu trước khi import.\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 290,
+    "char": "✅",
+    "content": "showToast(\"✅ Import dữ liệu tổng hợp thành công!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 294,
+    "char": "❌",
+    "content": "showToast(`❌ Lỗi Import: ${error.message}`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 496,
+    "char": "⚠",
+    "content": "showToast(\"⚠️ Vui lòng nhập tên đội bóng!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 500,
+    "char": "⚠",
+    "content": "showToast(`⚠️ [Lỗi] Vượt quá số lượng đội quy định! Giải đấu này chỉ cho phép tối đa ${maxTeams} đội.`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 517,
+    "char": "⚽",
+    "content": "setNewTeamData({ ten: '', logo: '⚽', bang: 'A' });"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 581,
+    "char": "⚠",
+    "content": "\"⚠️ Bạn có chắc chắn muốn xóa TẤT CẢ đội bóng (và toàn bộ cầu thủ của họ) khỏi giải đấu này không? Hành động này không thể hoàn tác!\","
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 584,
+    "char": "🧹",
+    "content": "showToast(\"🧹 Đang xóa tất cả đội bóng...\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 588,
+    "char": "❌",
+    "content": "showToast(\"❌ Không thể xóa! Một số đội đã được xếp lịch đấu. Hãy xóa lịch trước.\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 590,
+    "char": "❌",
+    "content": "showToast(`❌ Lỗi khi xóa: ${error.message}`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 597,
+    "char": "❌",
+    "content": "showToast(`❌ Lỗi khi xóa: ${err.message}`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 606,
+    "char": "⏳",
+    "content": "showToast(\"⏳ Đang lưu cấu hình giải đấu...\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 636,
+    "char": "✨",
+    "content": "showToast(\"✨ Đã lưu cấu hình giải đấu thành công!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 640,
+    "char": "❌",
+    "content": "showToast(`❌ Lỗi khi lưu cấu hình: ${err.message}`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 647,
+    "char": "⚠",
+    "content": "showToast(\"⚠️ Cần tối thiểu 2 đội bóng để sinh lịch!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 652,
+    "char": "⚠",
+    "content": "showToast(\"⚠️ Vui lòng nhập Ngày kết thúc dự kiến!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 658,
+    "char": "⚠",
+    "content": "showToast(\"⚠️ Ngày kết thúc dự kiến không được trước Ngày bắt đầu!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 664,
+    "char": "🔄",
+    "content": "\"🔄 Xếp lịch tự động sẽ XÓA TOÀN BỘ lịch thi đấu nháp của giải đấu hiện tại và ghi đè lịch mới. Bạn có chắc chắn muốn tiếp tục?\","
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 667,
+    "char": "⏳",
+    "content": "showToast(\"⏳ Đang xếp lịch thi đấu tự động (CSP)...\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 718,
+    "char": "✨",
+    "content": "showToast(`✨ Đã tự động xếp ${count} trận đấu thành công!`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 721,
+    "char": "❌",
+    "content": "showToast(`❌ Lỗi khi sinh lịch: ${err.message}`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 904,
+    "char": "▶",
+    "content": "showToast(\"▶ Trận đấu tiếp tục!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 918,
+    "char": "⏸",
+    "content": "showToast(\"⏸ Trận đấu đã tạm dừng!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 946,
+    "char": "🔄",
+    "content": "\"🔄 Bạn có chắc muốn RESET trận đấu này về trạng thái chưa diễn ra? Tất cả sự kiện sẽ bị xóa và tỷ số sẽ quay về 0-0.\","
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1011,
+    "char": "🔄",
+    "content": "showToast(`🔄 Đã thay người: ${inPlayer.ten} vào thay ${outPlayer.ten}`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1018,
+    "char": "❌",
+    "content": "showToast(\"❌ Lỗi khi thay người!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1042,
+    "char": "🟨",
+    "content": "typeLabel = subType === 'yellow' ? 'Phạt thẻ vàng 🟨' : subType === 'red' ? 'Phạt thẻ đỏ 🟥' : 'Án phạt';"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1042,
+    "char": "🟥",
+    "content": "typeLabel = subType === 'yellow' ? 'Phạt thẻ vàng 🟨' : subType === 'red' ? 'Phạt thẻ đỏ 🟥' : 'Án phạt';"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1045,
+    "char": "🏅",
+    "content": "typeLabel = 'Xuất sắc nhất trận 🏅';"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1077,
+    "char": "🔥",
+    "content": "showToast(`🔥 ${typeLabel} cho ${player.ten}!`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1270,
+    "char": "🔄",
+    "content": "\"🔄 Bạn có chắc muốn xóa lịch? Tất cả các trận đấu nháp hoặc chưa diễn ra của giải đấu hiện tại sẽ bị xóa.\","
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1273,
+    "char": "🧹",
+    "content": "showToast(\"🧹 Đang dọn dẹp lịch cũ...\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1290,
+    "char": "❌",
+    "content": "showToast(\"❌ Lỗi khi xóa lịch: \" + err.message);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1320,
+    "char": "⚡",
+    "content": "showToast(\"⚡ Đã cập nhật trực tiếp trận đấu!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1322,
+    "char": "❌",
+    "content": "showToast(`❌ Lỗi cập nhật: ${error.message}`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1325,
+    "char": "❌",
+    "content": "showToast(`❌ Lỗi: ${err.message}`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1372,
+    "char": "🏆",
+    "content": "🏆 <span className={styles.tournamentSwitcherText}>{selectedTournament?.ten || 'Chọn giải đấu...'}</span>"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1388,
+    "char": "🏆",
+    "content": "🏆 {t.ten}"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1522,
+    "char": "🏠",
+    "content": "15 <span style={{ fontSize: '14px', fontWeight: 500 }}>🏠 Nhà</span>"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1598,
+    "char": "💡",
+    "content": "💡 Kéo thả để điều chỉnh thứ hạng thủ công trong trường hợp các đội bằng điểm/chỉ số phụ."
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1764,
+    "char": "🏆",
+    "content": "<h3>🏆 KHỞI TẠO ĐỘI BÓNG</h3>"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1776,
+    "char": "⌛",
+    "content": "{fetchingLogo ? '⌛' : '⚡ Tự tìm'}"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1776,
+    "char": "⚡",
+    "content": "{fetchingLogo ? '⌛' : '⚡ Tự tìm'}"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1799,
+    "char": "⚙",
+    "content": "⚙️ CHỈNH SỬA ĐỘI BÓNG"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1807,
+    "char": "📛",
+    "content": "📛 Tên đội bóng"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1820,
+    "char": "🖼",
+    "content": "🖼️ Logo đội bóng"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1836,
+    "char": "⚡",
+    "content": "{fetchingLogo ? 'Đang tìm...' : '⚡ Tìm Logo Tự Động'}"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1844,
+    "char": "➕",
+    "content": "➕ Thêm cầu thủ mới"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 1888,
+    "char": "👥",
+    "content": "👥 Danh sách thành viên ({editingTeam.cauThu?.length || 0})"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2017,
+    "char": "🏆",
+    "content": "🏆 TẠO GIẢI ĐẤU MỚI"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2100,
+    "char": "⚠",
+    "content": "showToast(\"⚠️ Vui lòng nhập tên giải đấu!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2104,
+    "char": "⚠",
+    "content": "showToast(\"⚠️ Vui lòng chọn loại giải đấu!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2200,
+    "char": "🏆",
+    "content": "showToast(`🏆 Đã khởi tạo thành công giải đấu: ${newTournamentData.ten}!`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2204,
+    "char": "❌",
+    "content": "showToast(`❌ Lỗi: ${error.message}`);"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2220,
+    "char": "⚙",
+    "content": "⚙️ CẤU HÌNH SMART SCHEDULER"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2404,
+    "char": "🏠",
+    "content": "🏠 Thể thức Sân nhà - Sân khách: Các trận đấu sẽ được xếp tự động tại sân nhà của Đội Nhà (Đội 1)."
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2424,
+    "char": "⚠",
+    "content": "showToast(\"⚠️ Ngày nghỉ này đã được cấu hình!\");"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2439,
+    "char": "📅",
+    "content": "<span>📅 {date}</span>"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2468,
+    "char": "✨",
+    "content": "✨ SINH LỊCH ĐỀ XUẤT"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2489,
+    "char": "❓",
+    "content": "<div style={{ fontSize: '48px', marginBottom: '16px' }}>❓</div>"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2529,
+    "char": "✕",
+    "content": "✕"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2534,
+    "char": "📥",
+    "content": "<span>📥</span> NHẬP DỮ LIỆU TỔNG HỢP (EXCEL)"
+  },
+  {
+    "file": "app/quan-tri/page.tsx",
+    "line": 2554,
+    "char": "⬇",
+    "content": "⬇️ Tải file mẫu (.xlsx)"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 107,
+    "char": "⚽",
+    "content": "doiNha: { ten: 'Đội nhà', logo: '⚽' },"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 108,
+    "char": "⚽",
+    "content": "doiKhach: { ten: 'Đội khách', logo: '⚽' },"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 114,
+    "char": "⚽",
+    "content": "'BAN_THANG': '⚽',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 115,
+    "char": "⚽",
+    "content": "'GOAL_NORMAL': '⚽',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 116,
+    "char": "⚽",
+    "content": "'GOAL_PEN': '⚽',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 117,
+    "char": "⚽",
+    "content": "'GOAL_OG': '⚽',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 118,
+    "char": "🟨",
+    "content": "'THE_VANG': '🟨',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 119,
+    "char": "🟥",
+    "content": "'THE_DO': '🟥',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 120,
+    "char": "🔄",
+    "content": "'THAY_NGUOI': '🔄',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 121,
+    "char": "🔄",
+    "content": "'SUB': '🔄',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 122,
+    "char": "⚡",
+    "content": "'CHOT': '⚡',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 123,
+    "char": "🏅",
+    "content": "'MOTM': '🏅',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 124,
+    "char": "🟨",
+    "content": "'CARD': '🟨',"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 152,
+    "char": "←",
+    "content": "← Quay lại"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 195,
+    "char": "🏟",
+    "content": "🏟️ Sân {matchData.san}"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 200,
+    "char": "📅",
+    "content": "📅 {matchData.date} {matchData.time ? `• ${matchData.time}` : ''}"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 200,
+    "char": "•",
+    "content": "📅 {matchData.date} {matchData.time ? `• ${matchData.time}` : ''}"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 217,
+    "char": "⏱",
+    "content": "<span style={{ fontSize: '32px', display: 'block', marginBottom: '12px' }}>⏱️</span>"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 227,
+    "char": "📌",
+    "content": "<span className={styles.timelineIcon}>{eventIcons[sk.loai] ?? '📌'}</span>"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 242,
+    "char": "▲",
+    "content": "<span style={{ color: '#10b981', fontWeight: 900, fontSize: '13px' }}>▲</span>"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 246,
+    "char": "▼",
+    "content": "<span style={{ color: '#ef4444', fontWeight: 900, fontSize: '13px' }}>▼</span>"
+  },
+  {
+    "file": "app/tran-dau/[id]/page.tsx",
+    "line": 287,
+    "char": "🔥",
+    "content": "label: 'Siêu Chốt 🔥',"
+  },
+  {
+    "file": "components/AdminOnboardingTour.tsx",
+    "line": 16,
+    "char": "🏆",
+    "content": "title: '🏆 Chọn Giải Đấu',"
+  },
+  {
+    "file": "components/LiveMatchCard.tsx",
+    "line": 106,
+    "char": "•",
+    "content": "{match.date ? `${match.date}` : ''} {match.time ? `• ${match.time}` : ''} {match.san ? `• Sân ${match.san}` : ''}"
+  },
+  {
+    "file": "components/LiveMatchCard.tsx",
+    "line": 106,
+    "char": "•",
+    "content": "{match.date ? `${match.date}` : ''} {match.time ? `• ${match.time}` : ''} {match.san ? `• Sân ${match.san}` : ''}"
+  },
+  {
+    "file": "components/LiveMatchCard.tsx",
+    "line": 166,
+    "char": "⚽",
+    "content": "{g.phut}&apos;{g.loai === 'GOAL_OG' ? ' (OG)' : ''} ⚽"
+  },
+  {
+    "file": "components/LiveMatchCard.tsx",
+    "line": 175,
+    "char": "⚽",
+    "content": "⚽ {g.phut}&apos;{g.loai === 'GOAL_OG' ? ' (OG)' : ''}"
+  },
+  {
+    "file": "components/MatchListFeed.tsx",
+    "line": 202,
+    "char": "•",
+    "content": "const datePart = shortDate ? ` • ${shortDate}` : '';"
+  },
+  {
+    "file": "components/MatchListFeed.tsx",
+    "line": 203,
+    "char": "•",
+    "content": "matchStatus = koLabel ? `${koLabel} • FT${datePart}` : `FT${datePart}`;"
+  },
+  {
+    "file": "components/MatchListFeed.tsx",
+    "line": 213,
+    "char": "•",
+    "content": "const datePart = shortDate ? `${shortDate} • ` : '';"
+  },
+  {
+    "file": "components/MatchListFeed.tsx",
+    "line": 214,
+    "char": "•",
+    "content": "matchStatus = koLabel ? `${koLabel} • ${datePart}${timeStr}` : `${datePart}${timeStr}`;"
+  },
+  {
+    "file": "components/MatchListFeed.tsx",
+    "line": 228,
+    "char": "🛡",
+    "content": "<span className={styles.teamLogo}><TeamLogo logo={match.doiNha?.logo} fallback=\"🛡️\" /></span>"
+  },
+  {
+    "file": "components/MatchListFeed.tsx",
+    "line": 249,
+    "char": "🛡",
+    "content": "<span className={styles.teamLogo}><TeamLogo logo={match.doiKhach?.logo} fallback=\"🛡️\" /></span>"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 117,
+    "char": "⭐",
+    "content": "{/* Section 1: ⭐ ĐANG THEO DÕI */}"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 120,
+    "char": "★",
+    "content": "<span className={sidebarStyles.sectionTitleIcon} style={{ color: 'var(--color-primary)' }}>★</span>"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 147,
+    "char": "🏆",
+    "content": "<span className={sidebarStyles.entityLogo}>🏆</span>"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 157,
+    "char": "★",
+    "content": "<span style={{ color: 'var(--color-primary)' }}>★</span>"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 178,
+    "char": "⚽",
+    "content": "team.logo || '⚽'"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 190,
+    "char": "★",
+    "content": "<span style={{ color: 'var(--color-primary)' }}>★</span>"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 199,
+    "char": "🏆",
+    "content": "{/* Section 2: 🏆 CÁC GIẢI ĐẤU */}"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 202,
+    "char": "🏆",
+    "content": "<span className={sidebarStyles.sectionTitleIcon}>🏆</span>"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 227,
+    "char": "🏆",
+    "content": "<span className={sidebarStyles.entityLogo}>🏆</span>"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 237,
+    "char": "★",
+    "content": "{isFollowed ? <span style={{ color: 'var(--color-primary)' }}>★</span> : '☆'}"
+  },
+  {
+    "file": "components/PublicLayoutWrapper.tsx",
+    "line": 237,
+    "char": "☆",
+    "content": "{isFollowed ? <span style={{ color: 'var(--color-primary)' }}>★</span> : '☆'}"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 166,
+    "char": "⭐",
+    "content": "// Determine if Section \"⭐ ĐANG THEO DÕI\" should be shown or show a muted placeholder"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 187,
+    "char": "⭐",
+    "content": "{/* Section 1: ⭐ ĐANG THEO DÕI (Consumes Global State `favoriteTeams`) */}"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 190,
+    "char": "★",
+    "content": "<span className={styles.sectionTitleIcon} style={{ color: 'var(--color-primary)' }}>★</span>"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 216,
+    "char": "🏆",
+    "content": "<span className={styles.entityLogo}>🏆</span>"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 226,
+    "char": "★",
+    "content": "<span style={{ color: 'var(--color-primary)' }}>★</span>"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 244,
+    "char": "⚽",
+    "content": "team.logo || '⚽'"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 256,
+    "char": "★",
+    "content": "<span style={{ color: 'var(--color-primary)' }}>★</span>"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 266,
+    "char": "🏆",
+    "content": "{/* Section 2: 🏆 CÁC GIẢI ĐẤU */}"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 269,
+    "char": "🏆",
+    "content": "<span className={styles.sectionTitleIcon}>🏆</span>"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 293,
+    "char": "🏆",
+    "content": "<span className={styles.entityLogo}>🏆</span>"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 303,
+    "char": "★",
+    "content": "{isFollowed ? <span style={{ color: 'var(--color-primary)' }}>★</span> : '☆'}"
+  },
+  {
+    "file": "components/PublicSidebar.tsx",
+    "line": 303,
+    "char": "☆",
+    "content": "{isFollowed ? <span style={{ color: 'var(--color-primary)' }}>★</span> : '☆'}"
+  },
+  {
+    "file": "components/RefereeGuideOverlay.tsx",
+    "line": 22,
+    "char": "⬇",
+    "content": "<div className={`${styles.emojiArrow} ${styles.arrowDown}`}>⬇️</div>"
+  },
+  {
+    "file": "components/RefereeGuideOverlay.tsx",
+    "line": 35,
+    "char": "⬅",
+    "content": "<div className={`${styles.emojiArrow} ${styles.arrowLeft}`}>⬅️</div>"
+  },
+  {
+    "file": "components/RefereeGuideOverlay.tsx",
+    "line": 44,
+    "char": "➡",
+    "content": "<div className={`${styles.emojiArrow} ${styles.arrowRight}`}>➡️</div>"
+  },
+  {
+    "file": "components/SearchOverlay.tsx",
+    "line": 70,
+    "char": "🔥",
+    "content": "<div className={styles.panelHeader}>🔥 GỢI Ý TÌM KIẾM</div>"
+  },
+  {
+    "file": "components/SearchOverlay.tsx",
+    "line": 73,
+    "char": "🔴",
+    "content": "<div className={styles.itemLogo}>🔴</div>"
+  },
+  {
+    "file": "components/SearchOverlay.tsx",
+    "line": 79,
+    "char": "🔵",
+    "content": "<div className={styles.itemLogo}>🔵</div>"
+  },
+  {
+    "file": "components/SearchOverlay.tsx",
+    "line": 85,
+    "char": "🏆",
+    "content": "<div className={styles.itemLogo}>🏆</div>"
+  },
+  {
+    "file": "components/SearchOverlay.tsx",
+    "line": 104,
+    "char": "🏆",
+    "content": "<div className={styles.itemLogo}>🏆</div>"
+  },
+  {
+    "file": "components/SearchOverlay.tsx",
+    "line": 118,
+    "char": "⚽",
+    "content": "<div className={styles.itemLogo}>{t.logo || '⚽'}</div>"
+  },
+  {
+    "file": "components/SearchOverlay.tsx",
+    "line": 134,
+    "char": "🏆",
+    "content": "🏆 {m.giai_dau?.ten || 'Giao Hữu'}"
+  },
+  {
+    "file": "components/StandingsTab.tsx",
+    "line": 164,
+    "char": "⚽",
+    "content": "<span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={row.doi?.logo} fallback=\"⚽\" /></span>"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 56,
+    "char": "⚽",
+    "content": "icon: '⚽',"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 63,
+    "char": "🎯",
+    "content": "icon: '🎯',"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 70,
+    "char": "🧤",
+    "content": "icon: '🧤',"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 76,
+    "char": "🟨",
+    "content": "sub: worstDiscipline ? `${worstDiscipline.theVang} 🟨 - ${worstDiscipline.theDo} 🟥` : '0 🟨 - 0 🟥',"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 76,
+    "char": "🟥",
+    "content": "sub: worstDiscipline ? `${worstDiscipline.theVang} 🟨 - ${worstDiscipline.theDo} 🟥` : '0 🟨 - 0 🟥',"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 76,
+    "char": "🟨",
+    "content": "sub: worstDiscipline ? `${worstDiscipline.theVang} 🟨 - ${worstDiscipline.theDo} 🟥` : '0 🟨 - 0 🟥',"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 76,
+    "char": "🟥",
+    "content": "sub: worstDiscipline ? `${worstDiscipline.theVang} 🟨 - ${worstDiscipline.theDo} 🟥` : '0 🟨 - 0 🟥',"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 77,
+    "char": "🟨",
+    "content": "icon: '🟨',"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 112,
+    "char": "⚽",
+    "content": "<span className={styles.cardIcon}>⚽</span>"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 122,
+    "char": "🏃",
+    "content": "<div className={styles.leaderAvatar}>🏃</div>"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 128,
+    "char": "⚽",
+    "content": "{ct.ban_thang} <span className={styles.statIcon}>⚽</span>"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 139,
+    "char": "🎯",
+    "content": "<span className={styles.cardIcon}>🎯</span>"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 149,
+    "char": "🎯",
+    "content": "<div className={styles.leaderAvatar}>🎯</div>"
+  },
+  {
+    "file": "components/StatsTab.tsx",
+    "line": 155,
+    "char": "🎯",
+    "content": "{nv.kienTao} <span className={styles.statIcon}>🎯</span>"
+  },
+  {
+    "file": "components/TeamLogo.tsx",
+    "line": 3,
+    "char": "⚽",
+    "content": "export default function TeamLogo({ logo, className, alt = 'Logo', fallback = '⚽', style }: { logo?: string, className?: string, alt?: string, fallback?: string, style?: React.CSSProperties }) {"
+  }
+]

@@ -6,6 +6,13 @@ import { usePathname, useRouter } from 'next/navigation';
 import { usePublicTournament } from './PublicTournamentContext';
 import { layDanhSachDoi } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
+import { 
+  TrophyIcon, 
+  SoccerBallIcon, 
+  StarIcon, 
+  ChevronRightIcon, 
+  LogoutIcon 
+} from '@/components/AppIcons';
 import styles from './PublicSidebar.module.css';
 
 interface PublicSidebarProps {
@@ -21,12 +28,13 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
     tournaments,
     setSelectedTournamentId,
     favoriteTeams,
-    toggleFollowTeam
+    toggleFollowTeam,
+    followedTournaments,
+    toggleFollowTournament
   } = usePublicTournament();
 
   const [teams, setTeams] = useState<any[]>([]);
   const [loadingTeams, setLoadingTeams] = useState(true);
-  const [followedTournaments, setFollowedTournaments] = useState<string[]>([]);
   const [user, setUser] = useState<any>(null);
 
   // Authentication status effect
@@ -81,82 +89,24 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
     fetchTeams();
   }, []);
 
-  // Synchronize followed tournaments list from localStorage on mount and when custom events fire
+  // Close sidebar on path change
   useEffect(() => {
-    const syncFollowed = () => {
-      const savedTourneysStr = localStorage.getItem('followedTournaments');
-      const tourneys = savedTourneysStr ? JSON.parse(savedTourneysStr) : [];
-      setFollowedTournaments(tourneys);
-    };
+    onClose();
+  }, [pathname, onClose]);
 
-    syncFollowed();
-    window.addEventListener('storage', syncFollowed);
-    window.addEventListener('follow-update', syncFollowed);
-    return () => {
-      window.removeEventListener('storage', syncFollowed);
-      window.removeEventListener('follow-update', syncFollowed);
-    };
-  }, []);
-
-  // Seed default follow items if completely empty on first initialization
-  useEffect(() => {
-    if (loadingTeams || tournaments.length === 0 || teams.length === 0) return;
-
-    const savedTourneysStr = localStorage.getItem('followedTournaments');
-    const savedTeamsStr = localStorage.getItem('followedTeams');
-
-    let updatedTourneys = savedTourneysStr ? JSON.parse(savedTourneysStr) : null;
-    let updatedTeams = savedTeamsStr ? JSON.parse(savedTeamsStr) : null;
-
-    let didUpdate = false;
-
-    if (updatedTourneys === null) {
-      // Seed first tournament as default followed
-      const defaultId = tournaments[0]?.id;
-      updatedTourneys = defaultId ? [defaultId] : [];
-      localStorage.setItem('followedTournaments', JSON.stringify(updatedTourneys));
-      setFollowedTournaments(updatedTourneys);
-      didUpdate = true;
-    }
-
-    if (updatedTeams === null) {
-      // Seed first 2 teams as default followed in the global store
-      const defaultIds = teams.slice(0, 2).map((t: any) => t.id);
-      localStorage.setItem('followedTeams', JSON.stringify(defaultIds));
-      didUpdate = true;
-    }
-
-    if (didUpdate) {
-      window.dispatchEvent(new Event('follow-update'));
-    }
-  }, [loadingTeams, tournaments, teams]);
-
-  // Toggle follow status for Tournament
-  const toggleFollowTournament = (id: string, e: React.MouseEvent) => {
+  const handleToggleFollowTournament = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const updated = followedTournaments.includes(id)
-      ? followedTournaments.filter(x => x !== id)
-      : [...followedTournaments, id];
-
-    localStorage.setItem('followedTournaments', JSON.stringify(updated));
-    setFollowedTournaments(updated);
-    window.dispatchEvent(new Event('follow-update'));
+    toggleFollowTournament(id);
   };
 
-  // Toggle follow status for Team consuming global store action
   const handleToggleFollowTeam = (id: string, e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     toggleFollowTeam(id);
   };
 
-  // Close sidebar on path change
-  useEffect(() => {
-    onClose();
-  }, [pathname, onClose]);
-
-  // Show all tournaments regardless of whether they have teams yet
+  // Show all tournaments
   const activeTournaments = tournaments;
 
   // Filter out followed objects to render from the active list
@@ -186,9 +136,14 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
 
           {/* Section 1: ⭐ ĐANG THEO DÕI (Consumes Global State `favoriteTeams`) */}
           <section className={styles.sectionWrapper}>
-            <div className={styles.sectionHeader}>
-              <span className={styles.sectionTitleIcon} style={{ color: 'var(--color-primary)' }}>★</span>
-              <span className={styles.sectionTitleText}>ĐANG THEO DÕI</span>
+            <div className={styles.sectionHeader} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', width: '100%' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                <StarIcon size={14} filled />
+                <span className={styles.sectionTitleText}>ĐANG THEO DÕI</span>
+              </div>
+              <Link href="/dang-theo-doi" className={styles.sectionHeaderArrow} title="Xem tất cả" style={{ display: 'flex', alignItems: 'center' }}>
+                <ChevronRightIcon size={14} style={{ color: 'var(--color-text-muted)' }} />
+              </Link>
             </div>
 
             <div className={styles.sectionContent}>
@@ -213,17 +168,19 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                         }}
                         className={`${styles.navEntityLink} ${isActive ? styles.navEntityLinkActive : ''}`}
                       >
-                        <span className={styles.entityLogo}>🏆</span>
+                        <span className={styles.entityLogo}>
+                          <TrophyIcon size={16} />
+                        </span>
                         <div className={styles.entityInfo}>
                           <span className={styles.entityName}>{t.ten}</span>
                           <span className={styles.entitySub}>{t.mua_giai}</span>
                         </div>
                         <button
                           className={styles.starBtnActive}
-                          onClick={(e) => toggleFollowTournament(t.id, e)}
+                          onClick={(e) => handleToggleFollowTournament(t.id, e)}
                           title="Bỏ theo dõi"
                         >
-                          <span style={{ color: 'var(--color-primary)' }}>★</span>
+                          <StarIcon size={16} filled color={isActive ? "#FFFFFF" : "var(--color-primary)"} />
                         </button>
                       </div>
                     );
@@ -231,17 +188,18 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
 
                   {/* Followed Teams (Subscribes to favoriteTeams) */}
                   {followedTeamsList.map(team => {
+                    const isTeamActive = pathname === `/doi-bong/${team.id}`;
                     return (
                       <Link
                         key={`fav-team-${team.id}`}
                         href={`/doi-bong/${team.id}`}
-                        className={styles.navEntityLink}
+                        className={`${styles.navEntityLink} ${isTeamActive ? styles.navEntityLinkActive : ''}`}
                       >
                         <span className={styles.entityLogo}>
                           {team.logo && (team.logo.startsWith('http') || team.logo.startsWith('/')) ? (
                             <img src={team.logo} alt={team.ten} className={styles.teamLogoImgMini} />
                           ) : (
-                            team.logo || '⚽'
+                            <SoccerBallIcon size={16} />
                           )}
                         </span>
                         <div className={styles.entityInfo}>
@@ -253,7 +211,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                           onClick={(e) => handleToggleFollowTeam(team.id, e)}
                           title="Bỏ theo dõi"
                         >
-                          <span style={{ color: 'var(--color-primary)' }}>★</span>
+                          <StarIcon size={16} filled color={isTeamActive ? "#FFFFFF" : "var(--color-primary)"} />
                         </button>
                       </Link>
                     );
@@ -265,8 +223,8 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
 
           {/* Section 2: 🏆 CÁC GIẢI ĐẤU */}
           <section className={styles.sectionWrapper}>
-            <div className={styles.sectionHeader}>
-              <span className={styles.sectionTitleIcon}>🏆</span>
+            <div className={styles.sectionHeader} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <TrophyIcon size={14} />
               <span className={styles.sectionTitleText}>CÁC GIẢI ĐẤU</span>
             </div>
 
@@ -290,17 +248,19 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                         }}
                         className={`${styles.navEntityLink} ${isActive ? styles.navEntityLinkActive : ''}`}
                       >
-                        <span className={styles.entityLogo}>🏆</span>
+                        <span className={styles.entityLogo}>
+                          <TrophyIcon size={16} />
+                        </span>
                         <div className={styles.entityInfo}>
                           <span className={styles.entityName}>{t.ten}</span>
                           <span className={styles.entitySub}>{t.mua_giai}</span>
                         </div>
                         <button
                           className={isFollowed ? styles.starBtnActive : styles.starBtnInactive}
-                          onClick={(e) => toggleFollowTournament(t.id, e)}
+                          onClick={(e) => handleToggleFollowTournament(t.id, e)}
                           title={isFollowed ? "Bỏ theo dõi" : "Theo dõi"}
                         >
-                          {isFollowed ? <span style={{ color: 'var(--color-primary)' }}>★</span> : '☆'}
+                          <StarIcon size={16} filled={isFollowed} color={isActive ? "#FFFFFF" : "var(--color-primary)"} />
                         </button>
                       </div>
                     );
@@ -312,8 +272,43 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
 
         </div>
 
+        {/* Auth / Profile Section at the bottom of the sidebar */}
+        <div className={styles.authSection}>
+          {user ? (
+            <div className={styles.userProfile}>
+              <div className={styles.userInfoWrapper}>
+                <div className={styles.avatar}>
+                  {user.email ? user.email[0].toUpperCase() : 'U'}
+                  <span className={styles.onlineBadge} />
+                </div>
+                <div className={styles.userDetails}>
+                  <span className={styles.userName}>{user.email}</span>
+                  <span className={styles.userRole}>Cầu thủ</span>
+                </div>
+              </div>
+              <div className={styles.profileActions}>
+                <Link href="/ca-nhan" className={styles.actionBtn}>
+                  Cá nhân
+                </Link>
+                <button onClick={handleLogout} className={`${styles.actionBtn} ${styles.logoutBtn}`}>
+                  <LogoutIcon size={14} className={styles.logoutIcon} />
+                  <span>Đăng xuất</span>
+                </button>
+              </div>
+            </div>
+          ) : (
+            <Link href="/login" className={styles.loginBtn}>
+              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+                <polyline points="10 17 15 12 10 7" />
+                <line x1="15" y1="12" x2="3" y2="12" />
+              </svg>
+              <span>Đăng nhập</span>
+            </Link>
+          )}
+        </div>
+
       </aside>
     </>
   );
 }
-

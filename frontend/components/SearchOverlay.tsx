@@ -5,6 +5,13 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import styles from './SearchOverlay.module.css';
 import { layDanhSachDoi, layDanhSachGiaiDau, layDanhSachTranDau } from '@/lib/api';
+import { 
+  TrophyIcon, 
+  SoccerBallIcon, 
+  FlameIcon, 
+  LiveDotIcon, 
+  BlueDotIcon 
+} from './AppIcons';
 
 interface SearchOverlayProps {
   isOpen: boolean;
@@ -67,22 +74,31 @@ export default function SearchOverlay({ isOpen, onClose, searchQuery }: SearchOv
         {query === '' ? (
           // EMPTY STATE
           <>
-            <div className={styles.panelHeader}>🔥 GỢI Ý TÌM KIẾM</div>
+            <div className={styles.panelHeader} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+              <FlameIcon size={16} />
+              <span>GỢI Ý TÌM KIẾM</span>
+            </div>
             <div className={styles.panelContent}>
               <Link href="/doi-bong/arsenal-id" className={styles.resultItem} onClick={handleResultClick}>
-                <div className={styles.itemLogo}>🔴</div>
+                <div className={styles.itemLogo} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <LiveDotIcon size={12} />
+                </div>
                 <div className={styles.itemInfo}>
                   <div className={styles.itemTitle}>Arsenal</div>
                 </div>
               </Link>
               <Link href="/doi-bong/mc-id" className={styles.resultItem} onClick={handleResultClick}>
-                <div className={styles.itemLogo}>🔵</div>
+                <div className={styles.itemLogo} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <BlueDotIcon size={12} />
+                </div>
                 <div className={styles.itemInfo}>
                   <div className={styles.itemTitle}>Manchester City</div>
                 </div>
               </Link>
-              <div className={styles.resultItem} onClick={handleResultClick}>
-                <div className={styles.itemLogo}>🏆</div>
+              <div className={styles.resultItem} onClick={handleResultClick} style={{ cursor: 'pointer' }}>
+                <div className={styles.itemLogo} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                  <TrophyIcon size={16} />
+                </div>
                 <div className={styles.itemInfo}>
                   <div className={styles.itemTitle}>English Premier League</div>
                 </div>
@@ -100,8 +116,10 @@ export default function SearchOverlay({ isOpen, onClose, searchQuery }: SearchOv
                   <div className={styles.section}>
                     <div className={styles.sectionTitle}>Giải Đấu</div>
                     {filteredTournaments.slice(0, 3).map(t => (
-                      <div key={t.id} className={styles.resultItem} onClick={handleResultClick}>
-                        <div className={styles.itemLogo}>🏆</div>
+                      <div key={t.id} className={styles.resultItem} onClick={handleResultClick} style={{ cursor: 'pointer' }}>
+                        <div className={styles.itemLogo} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          <TrophyIcon size={16} />
+                        </div>
                         <div className={styles.itemInfo}>
                           <div className={styles.itemTitle}>{t.ten}</div>
                         </div>
@@ -115,7 +133,13 @@ export default function SearchOverlay({ isOpen, onClose, searchQuery }: SearchOv
                     <div className={styles.sectionTitle}>Đội Bóng</div>
                     {filteredTeams.slice(0, 5).map(t => (
                       <Link key={t.id} href={`/doi-bong/${t.id}`} className={styles.resultItem} onClick={handleResultClick}>
-                        <div className={styles.itemLogo}>{t.logo || '⚽'}</div>
+                        <div className={styles.itemLogo} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                          {t.logo && (t.logo.startsWith('http') || t.logo.startsWith('/')) ? (
+                            <img src={t.logo} alt={t.ten} style={{ width: '20px', height: '20px', objectFit: 'contain' }} />
+                          ) : (
+                            <SoccerBallIcon size={16} />
+                          )}
+                        </div>
                         <div className={styles.itemInfo}>
                           <div className={styles.itemTitle}>{t.ten}</div>
                         </div>
@@ -128,10 +152,11 @@ export default function SearchOverlay({ isOpen, onClose, searchQuery }: SearchOv
                   <div className={styles.section}>
                     <div className={styles.sectionTitle}>Trận Đấu</div>
                     {filteredMatches.slice(0, 5).map(m => (
-                      <div key={m.id} className={styles.resultItem} onClick={handleResultClick}>
+                      <div key={m.id} className={styles.resultItem} onClick={handleResultClick} style={{ cursor: 'pointer' }}>
                         <div className={styles.itemInfo}>
-                          <div className={styles.matchTournamentContext}>
-                            🏆 {m.giai_dau?.ten || 'Giao Hữu'}
+                          <div className={styles.matchTournamentContext} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                            <TrophyIcon size={12} />
+                            <span>{m.giai_dau?.ten || 'Giao Hữu'}</span>
                           </div>
                           <div className={styles.matchTitle}>
                             {m.doi_nha?.ten || 'Đội nhà'} vs {m.doi_khach?.ten || 'Đội khách'}

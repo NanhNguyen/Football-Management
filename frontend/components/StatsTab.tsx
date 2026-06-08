@@ -5,6 +5,14 @@ import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import styles from '@/app/thong-ke/page.module.css';
 import { layTopGhiBan, layTopKienTao, layTopGangTayVang, layTopThePhat } from '@/lib/api';
 import { usePublicTournament } from '@/components/PublicTournamentContext';
+import { 
+  SoccerBallIcon, 
+  TargetIcon, 
+  GloveIcon, 
+  YellowCardIcon, 
+  RedCardIcon,
+  RunnerIcon 
+} from '@/components/AppIcons';
 
 export default function StatsTab() {
   const { selectedTournamentId } = usePublicTournament();
@@ -53,28 +61,40 @@ export default function StatsTab() {
       label: 'Vua Phá Lưới',
       value: bestScorer?.ten ?? 'Chưa có',
       sub: `${bestScorer?.ban_thang ?? 0} bàn thắng`,
-      icon: '⚽',
+      icon: <SoccerBallIcon size={24} />,
       highlight: false
     },
     {
       label: 'Vua Kiến Tạo',
       value: bestAssister?.ten ?? 'Chưa có',
       sub: `${bestAssister?.kienTao ?? 0} kiến tạo`,
-      icon: '🎯',
+      icon: <TargetIcon size={24} />,
       highlight: true
     },
     {
       label: 'Găng Tay Vàng',
       value: bestGK?.ten ?? 'Chưa có',
       sub: `${bestGK?.sachLuoi ?? 0} trận sạch lưới`,
-      icon: '🧤',
+      icon: <GloveIcon size={24} />,
       highlight: false
     },
     {
       label: 'Vua Thẻ Phạt',
       value: worstDiscipline?.ten ?? 'Chưa có',
-      sub: worstDiscipline ? `${worstDiscipline.theVang} 🟨 - ${worstDiscipline.theDo} 🟥` : '0 🟨 - 0 🟥',
-      icon: '🟨',
+      sub: worstDiscipline ? (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <span>{worstDiscipline.theVang}</span> <YellowCardIcon size={12} />
+          <span>-</span>
+          <span>{worstDiscipline.theDo}</span> <RedCardIcon size={12} />
+        </span>
+      ) : (
+        <span style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+          <span>0</span> <YellowCardIcon size={12} />
+          <span>-</span>
+          <span>0</span> <RedCardIcon size={12} />
+        </span>
+      ),
+      icon: <YellowCardIcon size={24} />,
       highlight: false
     },
   ];
@@ -82,7 +102,6 @@ export default function StatsTab() {
   return (
     <div className={styles.page}>
       <div className={`${styles.header} animate-fade-up`}>
-
         <h2 className={styles.title}>Thống kê giải đấu</h2>
         <p className={styles.subtitle}>Vinh danh những cá nhân xuất sắc nhất trên sân cỏ</p>
       </div>
@@ -95,11 +114,13 @@ export default function StatsTab() {
             className={`${styles.summaryCard} ${s.highlight ? styles.summaryCardHighlight : ''} animate-fade-up`} 
             style={{ animationDelay: `${i * 0.1}s` }}
           >
-            <div className={styles.summaryIcon}>{s.icon}</div>
+            <div className={styles.summaryIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+              {s.icon}
+            </div>
             <div className={styles.summaryContent}>
               <p className={styles.summaryLabel}>{s.label}</p>
               <p className={styles.summaryValue} title={s.value}>{s.value}</p>
-              <p className={styles.summarySub}>{s.sub}</p>
+              <div className={styles.summarySub}>{s.sub}</div>
             </div>
           </div>
         ))}
@@ -108,8 +129,8 @@ export default function StatsTab() {
       <div className={styles.twoCol}>
         {/* Top Cầu Thủ - Chiếc Giày Vàng */}
         <div className={`${styles.card} animate-fade-up`} style={{ animationDelay: '0.4s' }}>
-          <div className={styles.cardHeader}>
-            <span className={styles.cardIcon}>⚽</span>
+          <div className={styles.cardHeader} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className={styles.cardIcon} style={{ display: 'inline-flex' }}><SoccerBallIcon size={18} /></span>
             <h3 className={styles.cardTitle}>Chiếc giày vàng</h3>
           </div>
           <div className={styles.leaderboard}>
@@ -119,13 +140,15 @@ export default function StatsTab() {
               topGhiBan.slice(0, 5).map((ct: any, i: number) => (
                 <div key={i} className={`${styles.leaderRow} ${i === 0 ? styles.leaderRowTop : ''}`}>
                   <span className={styles.leaderRank}>{i + 1}</span>
-                  <div className={styles.leaderAvatar}>🏃</div>
+                  <div className={styles.leaderAvatar} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <RunnerIcon size={16} />
+                  </div>
                   <div className={styles.leaderInfo}>
                     <p className={styles.leaderName}>{ct.ten}</p>
                     <p className={styles.leaderTeam}>{ct.doi?.ten || 'Tự do'}</p>
                   </div>
                   <div className={styles.leaderStat}>
-                    {ct.ban_thang} <span className={styles.statIcon}>⚽</span>
+                    {ct.ban_thang} <span className={styles.statIcon} style={{ display: 'inline-flex' }}><SoccerBallIcon size={14} /></span>
                   </div>
                 </div>
               ))
@@ -135,8 +158,8 @@ export default function StatsTab() {
 
         {/* Top Playmakers - Vua Kiến Tạo */}
         <div className={`${styles.card} animate-fade-up`} style={{ animationDelay: '0.5s' }}>
-          <div className={styles.cardHeader}>
-            <span className={styles.cardIcon}>🎯</span>
+          <div className={styles.cardHeader} style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span className={styles.cardIcon} style={{ display: 'inline-flex' }}><TargetIcon size={18} /></span>
             <h3 className={styles.cardTitle}>Vua kiến tạo</h3>
           </div>
           <div className={styles.leaderboard}>
@@ -146,13 +169,15 @@ export default function StatsTab() {
               topKienTao.slice(0, 5).map((nv: any, i: number) => (
                 <div key={i} className={`${styles.leaderRow} ${i === 0 ? styles.leaderRowTop : ''}`}>
                   <span className={styles.leaderRank}>{i + 1}</span>
-                  <div className={styles.leaderAvatar}>🎯</div>
+                  <div className={styles.leaderAvatar} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <TargetIcon size={16} />
+                  </div>
                   <div className={styles.leaderInfo}>
                     <p className={styles.leaderName}>{nv.ten}</p>
                     <p className={styles.leaderTeam}>{nv.doi?.ten || 'Tự do'}</p>
                   </div>
                   <div className={styles.leaderStat}>
-                    {nv.kienTao} <span className={styles.statIcon}>🎯</span>
+                    {nv.kienTao} <span className={styles.statIcon} style={{ display: 'inline-flex' }}><TargetIcon size={14} /></span>
                   </div>
                 </div>
               ))

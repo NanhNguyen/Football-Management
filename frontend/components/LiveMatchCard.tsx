@@ -6,6 +6,7 @@ import styles from './LiveMatchCard.module.css';
 import { supabase } from '@/lib/supabase';
 import { calculateMatchMinute } from '@/lib/api';
 import TeamLogo from './TeamLogo';
+import { SoccerBallIcon } from './AppIcons';
 
 interface Props {
   tran: any;
@@ -162,8 +163,8 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
             {homeGoals.map((g: any) => (
               <span key={g.id} className={styles.scorerItem}>
                 {g.cauThu?.ten || 'Cầu thủ'}{' '}
-                <span className={styles.scorerMinute} style={{ fontSize: '10px', color: '#94a3b8' }}>
-                  {g.phut}&apos;{g.loai === 'GOAL_OG' ? ' (OG)' : ''} ⚽
+                <span className={styles.scorerMinute} style={{ fontSize: '10px', color: '#94a3b8', display: 'inline-flex', alignItems: 'center' }}>
+                  {g.phut}&apos;{g.loai === 'GOAL_OG' ? ' (OG)' : ''} <SoccerBallIcon size={10} style={{ marginLeft: '3px' }} />
                 </span>
               </span>
             ))}
@@ -171,8 +172,8 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
           <div className={styles.scorersAway}>
             {awayGoals.map((g: any) => (
               <span key={g.id} className={styles.scorerItem}>
-                <span className={styles.scorerMinute} style={{ fontSize: '10px', color: '#94a3b8' }}>
-                  ⚽ {g.phut}&apos;{g.loai === 'GOAL_OG' ? ' (OG)' : ''}
+                <span className={styles.scorerMinute} style={{ fontSize: '10px', color: '#94a3b8', display: 'inline-flex', alignItems: 'center' }}>
+                  <SoccerBallIcon size={10} style={{ marginRight: '3px' }} /> {g.phut}&apos;{g.loai === 'GOAL_OG' ? ' (OG)' : ''}
                 </span>{' '}
                 {g.cauThu?.ten || 'Cầu thủ'}
               </span>

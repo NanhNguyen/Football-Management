@@ -2,6 +2,7 @@
 
 import React from 'react';
 import styles from './RefereeGuideOverlay.module.css';
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from './AppIcons';
 
 interface RefereeGuideOverlayProps {
   isVisible: boolean;
@@ -19,7 +20,9 @@ export default function RefereeGuideOverlay({ isVisible, onClose }: RefereeGuide
         
         {/* 1. Hướng dẫn bấm Bắt đầu */}
         <div className={styles.pointerCenter}>
-          <div className={`${styles.emojiArrow} ${styles.arrowDown}`}>⬇️</div>
+          <div className={`${styles.emojiArrow} ${styles.arrowDown}`} style={{ display: 'flex', justifyContent: 'center' }}>
+            <ChevronDownIcon size={32} />
+          </div>
           <div className={`${styles.titleText} ${styles.titleYellow}`}>
             1. Bấm nút Bắt Đầu ở đây
           </div>
@@ -32,7 +35,9 @@ export default function RefereeGuideOverlay({ isVisible, onClose }: RefereeGuide
             2. Chọn Cầu thủ
           </div>
           <div className={styles.subtitleText}>để ghi Bàn Thắng, Thẻ Phạt hoặc Thay Người</div>
-          <div className={`${styles.emojiArrow} ${styles.arrowLeft}`}>⬅️</div>
+          <div className={`${styles.emojiArrow} ${styles.arrowLeft}`} style={{ display: 'flex', justifyContent: 'center' }}>
+            <ChevronLeftIcon size={32} />
+          </div>
         </div>
 
         {/* 3. Hướng dẫn chọn cầu thủ bên phải */}
@@ -41,7 +46,9 @@ export default function RefereeGuideOverlay({ isVisible, onClose }: RefereeGuide
             2. Chọn Cầu thủ
           </div>
           <div className={styles.subtitleText}>để thao tác sự kiện cho Đội Khách</div>
-          <div className={`${styles.emojiArrow} ${styles.arrowRight}`}>➡️</div>
+          <div className={`${styles.emojiArrow} ${styles.arrowRight}`} style={{ display: 'flex', justifyContent: 'center' }}>
+            <ChevronRightIcon size={32} />
+          </div>
         </div>
 
       </div>

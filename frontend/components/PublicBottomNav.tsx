@@ -3,6 +3,7 @@
 import React, { Suspense } from 'react';
 import Link from 'next/link';
 import { usePathname, useSearchParams } from 'next/navigation';
+import { usePublicTournament } from './PublicTournamentContext';
 import styles from './PublicBottomNav.module.css';
 
 const MatchesIcon = ({ active }: { active: boolean }) => (
@@ -70,45 +71,98 @@ const ProfileIcon = ({ active }: { active: boolean }) => (
   </svg>
 );
 
+const StatsIcon = ({ active }: { active: boolean }) => (
+  <svg 
+    xmlns="http://www.w3.org/2000/svg" 
+    width="20" 
+    height="20" 
+    viewBox="0 0 24 24" 
+    fill={active ? "var(--color-primary)" : "none"} 
+    stroke={active ? "var(--color-primary)" : "currentColor"} 
+    strokeWidth="2.2" 
+    strokeLinecap="round" 
+    strokeLinejoin="round"
+    style={{ transition: 'all 0.2s ease' }}
+  >
+    <line x1="18" y1="20" x2="18" y2="10" />
+    <line x1="12" y1="20" x2="12" y2="4" />
+    <line x1="6" y1="20" x2="6" y2="14" />
+  </svg>
+);
+
 function BottomNavContent() {
   const pathname = usePathname();
   const searchParams = useSearchParams();
   const tab = searchParams.get('tab');
+  const { tournamentsSheetOpen, setTournamentsSheetOpen } = usePublicTournament();
 
   const bottomMenuItems = [
     { 
       label: 'Trận đấu', 
       href: '/?tab=matches', 
-      isActive: pathname === '/' && (tab === 'matches' || !tab),
-      renderIcon: (active: boolean) => <MatchesIcon active={active} /> 
+      isActive: pathname === '/' && (tab === 'matches' || !tab) && !tournamentsSheetOpen,
+      renderIcon: (active: boolean) => <MatchesIcon active={active} />,
+      onClick: () => setTournamentsSheetOpen(false)
     },
     { 
-      label: 'Số liệu', 
+      label: 'Giải đấu', 
+      href: '#', 
+      isActive: tournamentsSheetOpen,
+      renderIcon: (active: boolean) => <TrophyIcon active={active} />,
+      onClick: (e: React.MouseEvent) => {
+        e.preventDefault();
+        setTournamentsSheetOpen(!tournamentsSheetOpen);
+      }
+    },
+    { 
+      label: 'Thống kê', 
       href: '/?tab=standings', 
-      isActive: pathname === '/' && (tab === 'standings' || tab === 'stats'),
-      renderIcon: (active: boolean) => <TrophyIcon active={active} /> 
+      isActive: pathname === '/' && (tab === 'standings' || tab === 'stats') && !tournamentsSheetOpen,
+      renderIcon: (active: boolean) => <StatsIcon active={active} />,
+      onClick: () => setTournamentsSheetOpen(false)
     },
     { 
       label: 'Cá nhân', 
       href: '/ca-nhan', 
-      isActive: pathname === '/ca-nhan',
-      renderIcon: (active: boolean) => <ProfileIcon active={active} /> 
+      isActive: pathname === '/ca-nhan' && !tournamentsSheetOpen,
+      renderIcon: (active: boolean) => <ProfileIcon active={active} />,
+      onClick: () => setTournamentsSheetOpen(false)
     },
   ];
 
   return (
     <nav className={styles.bottomNav}>
       {bottomMenuItems.map((item) => {
-        return (
-          <Link
-            key={item.href}
-            href={item.href}
-            className={`${styles.navItem} ${item.isActive ? styles.navItemActive : ''}`}
-          >
+        const content = (
+          <>
             <span className={styles.icon}>
               {item.renderIcon(item.isActive)}
             </span>
             <span className={styles.label}>{item.label}</span>
+          </>
+        );
+
+        if (item.href === '#') {
+          return (
+            <button
+              key={item.label}
+              onClick={item.onClick}
+              className={`${styles.navItem} ${item.isActive ? styles.navItemActive : ''}`}
+              style={{ background: 'none', border: 'none', outline: 'none', cursor: 'pointer', padding: 0 }}
+            >
+              {content}
+            </button>
+          );
+        }
+
+        return (
+          <Link
+            key={item.href}
+            href={item.href}
+            onClick={item.onClick}
+            className={`${styles.navItem} ${item.isActive ? styles.navItemActive : ''}`}
+          >
+            {content}
           </Link>
         );
       })}

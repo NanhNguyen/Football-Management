@@ -21,6 +21,14 @@ interface PublicTournamentContextType {
   // Global Favorite / Followed Teams State
   favoriteTeams: string[];
   toggleFollowTeam: (teamId: string) => Promise<void>;
+
+  // Global Followed Tournaments State
+  followedTournaments: string[];
+  toggleFollowTournament: (id: string) => void;
+
+  // Mobile Bottom Sheet state for tournaments list
+  tournamentsSheetOpen: boolean;
+  setTournamentsSheetOpen: (open: boolean) => void;
 }
 
 const PublicTournamentContext = createContext<PublicTournamentContextType | undefined>(undefined);
@@ -29,9 +37,11 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [selectedTournamentId, setSelectedTournamentIdState] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [tournamentsSheetOpen, setTournamentsSheetOpen] = useState(false);
   
   // Follow State
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>([]);
+  const [followedTournaments, setFollowedTournaments] = useState<string[]>([]);
   const [session, setSession] = useState<any>(null);
 
   // Sync Supabase Auth Session
@@ -47,12 +57,16 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
     return () => subscription.unsubscribe();
   }, []);
 
-  // Sync favorites on load
+  // Sync favorites and followed tournaments on load
   useEffect(() => {
     const syncFollowed = () => {
       const savedTeamsStr = localStorage.getItem('followedTeams');
       const teamsList = savedTeamsStr ? JSON.parse(savedTeamsStr) : [];
       setFavoriteTeams(teamsList);
+
+      const savedTourneysStr = localStorage.getItem('followedTournaments');
+      const tourneysList = savedTourneysStr ? JSON.parse(savedTourneysStr) : [];
+      setFollowedTournaments(tourneysList);
     };
 
     syncFollowed();
@@ -132,6 +146,17 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
     }
   };
 
+  const toggleFollowTournament = (id: string) => {
+    setFollowedTournaments((prev) => {
+      const updated = prev.includes(id)
+        ? prev.filter((x) => x !== id)
+        : [...prev, id];
+      localStorage.setItem('followedTournaments', JSON.stringify(updated));
+      return updated;
+    });
+    window.dispatchEvent(new Event('follow-update'));
+  };
+
   const selectedTournament = tournaments.find(t => t.id === selectedTournamentId) || null;
 
   return (
@@ -143,7 +168,11 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
         setSelectedTournamentId,
         loading,
         favoriteTeams,
-        toggleFollowTeam
+        toggleFollowTeam,
+        followedTournaments,
+        toggleFollowTournament,
+        tournamentsSheetOpen,
+        setTournamentsSheetOpen
       }}
     >
       {children}
