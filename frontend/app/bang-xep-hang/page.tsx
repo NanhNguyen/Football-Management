@@ -1,5 +1,6 @@
-import TeamLogo from '@/components/TeamLogo';
 'use client';
+
+import TeamLogo from '@/components/TeamLogo';
 
 import { useState, useEffect } from 'react';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';

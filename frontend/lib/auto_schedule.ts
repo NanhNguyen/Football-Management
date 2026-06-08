@@ -52,12 +52,20 @@ export const runAutoSchedule = async (
     });
 
     const groupRounds: { [gName: string]: MatchPair[] } = {};
-    let maxRounds = 0;
     Object.keys(groups).forEach(gName => {
       // Map to IDs
       const teamIds = groups[gName].map(t => t.id);
-      const generatedRounds = generateRoundRobin(teamIds, tournamentGroupLegs || 1, `Bảng ${gName} - Vòng`);
-      groupRounds[gName] = generatedRounds;
+      const generatedRounds = generateRoundRobin(teamIds, tournamentGroupLegs || 1, 'VONG_PLACEHOLDER');
+      
+      // Rename roundName from "VONG_PLACEHOLDER 1" to "Vòng 1 - Bảng A"
+      const renamedRounds = generatedRounds.map(pair => {
+        const vongNum = pair.roundName.replace('VONG_PLACEHOLDER ', '');
+        return {
+          ...pair,
+          roundName: `Vòng ${vongNum} - Bảng ${gName}`
+        };
+      });
+      groupRounds[gName] = renamedRounds;
     });
     
     // Sort by Vòng number
@@ -66,17 +74,32 @@ export const runAutoSchedule = async (
     allGroupPairs.sort((a, b) => {
       const vA = parseInt(a.roundName.match(/Vòng (\d+)/)?.[1] || '0');
       const vB = parseInt(b.roundName.match(/Vòng (\d+)/)?.[1] || '0');
-      return vA - vB;
+      if (vA !== vB) return vA - vB;
+      const bA = a.roundName.match(/Bảng\s+([A-Z])/i)?.[1] || '';
+      const bB = b.roundName.match(/Bảng\s+([A-Z])/i)?.[1] || '';
+      return bA.localeCompare(bB);
     });
 
     pairs.push(...allGroupPairs);
 
     // 2C. Knockout Stages
+    // Calculate the number of teams entering the knockout stage based on groups
+    const groupNames = Object.keys(groups);
+    const hasGroupStage = teams.some(t => t.bang);
+    const numGroups = hasGroupStage ? groupNames.length : 0;
+    
+    let knockoutTeamsCount = teams.length;
+    if (numGroups > 1) {
+      knockoutTeamsCount = numGroups * 2; // Top 2 of each group
+    } else if (numGroups === 1) {
+      knockoutTeamsCount = teams.length >= 8 ? 4 : 2; // Top 4 or Top 2 qualify
+    }
+
     const stagesToProcess = [
-      { key: 'Vòng 1/8', matchKeys: Array.from({ length: 8 }, (_, idx) => `Trận ${idx + 1}`), condition: teams.length >= 16 },
-      { key: 'Tứ kết', matchKeys: Array.from({ length: 4 }, (_, idx) => `Trận ${idx + 1}`), condition: teams.length >= 8 },
-      { key: 'Bán kết', matchKeys: Array.from({ length: 2 }, (_, idx) => `Trận ${idx + 1}`), condition: teams.length >= 4 },
-      { key: 'Chung kết & Tranh hạng ba', matchKeys: ['Tranh hạng ba', 'Chung kết'], condition: teams.length >= 2 }
+      { key: 'Vòng 1/8', matchKeys: Array.from({ length: 8 }, (_, idx) => `Trận ${idx + 1}`), condition: knockoutTeamsCount >= 16 },
+      { key: 'Tứ kết', matchKeys: Array.from({ length: 4 }, (_, idx) => `Trận ${idx + 1}`), condition: knockoutTeamsCount >= 8 },
+      { key: 'Bán kết', matchKeys: Array.from({ length: 2 }, (_, idx) => `Trận ${idx + 1}`), condition: knockoutTeamsCount >= 4 },
+      { key: 'Chung kết & Tranh hạng ba', matchKeys: ['Tranh hạng ba', 'Chung kết'], condition: knockoutTeamsCount >= 2 }
     ];
 
     stagesToProcess.forEach(stage => {
@@ -127,8 +150,33 @@ export const runAutoSchedule = async (
       }
     }
 
+    // Determine ID: stable IDs for knockout matches to sync with visual bracket
+    let matchId = `match-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 9)}`;
+    const roundNameLower = (m.roundName || '').toLowerCase();
+    
+    if (roundNameLower.includes('vòng 1/8')) {
+      const trMatch = roundNameLower.match(/trận\s+(\d+)/);
+      if (trMatch) {
+        matchId = `match-k16-${trMatch[1]}`;
+      }
+    } else if (roundNameLower.includes('tứ kết')) {
+      const trMatch = roundNameLower.match(/trận\s+(\d+)/);
+      if (trMatch) {
+        matchId = `match-tk-${trMatch[1]}`;
+      }
+    } else if (roundNameLower.includes('bán kết')) {
+      const trMatch = roundNameLower.match(/trận\s+(\d+)/);
+      if (trMatch) {
+        matchId = `match-bk-${trMatch[1]}`;
+      }
+    } else if (roundNameLower.includes('chung kết') && !roundNameLower.includes('tranh hạng ba') && !roundNameLower.includes('hạng ba')) {
+      matchId = `match-ck-1`;
+    } else if (roundNameLower.includes('tranh hạng ba') || roundNameLower.includes('hạng ba')) {
+      matchId = `match-th3-1`;
+    }
+
     return {
-      id: `match-${Date.now()}-${idx}-${Math.random().toString(36).substr(2, 9)}`,
+      id: matchId,
       doi_nha_id: m.homeId,
       doi_khach_id: m.awayId,
       vong: m.roundName,

@@ -1,180 +1,130 @@
 .feedContainer {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  margin-bottom: var(--space-xl);
+  gap: 24px;
+  margin-bottom: 32px;
 }
 
 .matchGroup {
   background-color: transparent;
   overflow: visible;
-  margin-bottom: var(--space-md);
 }
 
 .groupHeader {
   background-color: transparent;
   padding: 8px 4px;
-  font-size: 13px;
+  font-size: 15px;
   font-weight: 700;
-  color: var(--color-text-secondary);
-  text-transform: uppercase;
-  margin-bottom: 8px;
+  color: var(--color-text);
+  margin-bottom: 12px;
 }
 
 .groupContent {
   display: flex;
   flex-direction: column;
-  gap: 10px; /* Separates the cards nicely */
 }
 
+/* Match Row */
 .matchRow {
   display: flex;
   align-items: center;
-  padding: 10px 16px;
-  background-color: var(--color-surface); /* White card background */
-  border-radius: var(--radius-md); /* 8px rounded corners */
-  border: 1px solid var(--color-border-light);
-  box-shadow: var(--shadow-sm); /* Soft shadow to lift card */
-  cursor: pointer;
-  transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
-  border-left: 4px solid transparent; /* Prepare for active state */
-}
-
-.matchRow:hover {
-  background: linear-gradient(90deg, var(--color-surface-hover) 0%, #FFFFFF 100%);
-  transform: translateY(-2px); /* Modern floating micro-lift */
-  box-shadow: var(--shadow-md); /* Deeper shadow on lift */
-  border-left-color: var(--color-primary); /* Blue active border */
-}
-
-.colTime {
-  width: 15%;
-  font-size: 13px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.timeLive {
-  color: var(--color-live); /* Red */
-  font-weight: 700;
-  animation: pulse-live 1.5s infinite;
-}
-
-.timeHalftime {
-  font-size: 10px;
-  text-align: center;
-  line-height: 1.2;
-}
-
-@keyframes pulse-live {
-  0% { opacity: 0.8; }
-  50% { opacity: 1; text-shadow: 0 0 8px rgba(220, 20, 60, 0.4); }
-  100% { opacity: 0.8; }
-}
-
-.timeFinished {
-  color: var(--color-text-muted);
-}
-
-.timeUpcoming {
-  color: var(--color-text-muted);
-}
-
-.colMain {
-  width: 70%;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  padding: 4px 0;
-}
-
-.teamRow {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-}
-
-.teamInfo {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.teamInfoClickable {
-  display: flex;
-  align-items: center;
-  gap: 8px;
+  padding: 16px 0;
+  background-color: var(--color-surface);
+  border-bottom: 1px solid var(--color-border-light);
   cursor: pointer;
   transition: all 0.2s ease;
 }
 
-.teamInfoClickable:hover .teamName {
-  text-decoration: underline;
-  color: var(--color-primary);
+.matchRow:hover {
+  background-color: var(--color-surface-hover);
+}
+
+.matchRow:last-child {
+  border-bottom: none;
+}
+
+/* Team Columns */
+.teamA, .teamB {
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.teamA {
+  justify-content: flex-end;
+}
+
+.teamB {
+  justify-content: flex-start;
 }
 
 .teamName {
   font-size: 14px;
-  font-weight: 500;
+  font-weight: 600;
   color: var(--color-text);
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+  max-width: 120px;
 }
 
 .teamLogo {
-  font-size: 20px;
-  width: 24px;
   display: flex;
   align-items: center;
   justify-content: center;
+  width: 28px;
+  height: 28px;
+  font-size: 20px;
+}
+
+/* Score Column */
+.scoreCol {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  width: 80px;
+  flex-shrink: 0;
 }
 
 .scoreBox {
   display: flex;
   align-items: center;
-  justify-content: flex-end;
-  min-width: 30px;
-}
-
-.scoreText {
+  justify-content: center;
+  gap: 6px;
   font-size: 16px;
   font-weight: 700;
   color: var(--color-text);
+  background: var(--color-bg);
+  padding: 4px 12px;
+  border-radius: 4px;
 }
 
 .scoreLive {
-  color: var(--color-live); /* Coral Red */
+  color: var(--color-live);
 }
 
 .scoreDash {
-  font-size: 16px;
+  color: var(--color-text-muted);
+}
+
+.matchStatus {
+  font-size: 11px;
   font-weight: 600;
-  color: var(--color-text-muted);
+  color: var(--color-text-secondary);
+  margin-top: 6px;
 }
 
-.colAction {
-  width: 15%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.statusLive {
+  color: var(--color-live);
+  animation: pulse-live 1.5s infinite;
 }
 
-.starBtn {
-  background: transparent;
-  border: none;
-  font-size: 18px;
-  color: var(--color-text-muted);
-  cursor: pointer;
-  transition: transform 0.2s ease;
-  opacity: 0.6;
-}
-
-.starBtn:hover {
-  transform: scale(1.1);
-  opacity: 1;
+@keyframes pulse-live {
+  0% { opacity: 0.8; }
+  50% { opacity: 1; }
+  100% { opacity: 0.8; }
 }
 
 .emptyState {
@@ -183,55 +133,20 @@
   color: var(--color-text-muted);
   font-size: 14px;
   background-color: var(--color-surface);
-  border-top: 1px solid #f1f5f9;
-}
-
-@media (max-width: 768px) {
-  .colTime {
-    width: 15%;
-  }
-  .colMain {
-    width: 75%;
-    gap: 8px;
-  }
-  .colAction {
-    width: 10%;
-  }
-  .teamName {
-    font-size: 14px;
-  }
-  .scoreText {
-    font-size: 16px;
-  }
-  .matchRow {
-    padding: 12px 8px;
-  }
+  border-radius: 8px;
 }
 
 @media (max-width: 480px) {
-  .colTime {
-    width: 20%;
-    font-size: 11px;
-  }
-  .colMain {
-    width: 70%;
-  }
-  .colAction {
-    width: 10%;
-  }
   .teamName {
     font-size: 13px;
-    max-width: 110px; /* prevent text overflow on very narrow screens */
+    max-width: 90px;
+  }
+  .scoreCol {
+    width: 70px;
   }
   .teamLogo {
-    font-size: 16px;
-    width: 18px;
-  }
-  .scoreText {
-    font-size: 14px;
-  }
-  .matchRow {
-    padding: 10px 6px;
+    width: 24px;
+    height: 24px;
+    font-size: 18px;
   }
 }
-

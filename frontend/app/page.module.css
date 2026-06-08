@@ -3,87 +3,203 @@
   max-width: 1200px;
   margin: 0 auto;
   min-height: 100vh;
-  background-color: var(--color-bg); /* Use off-white or white background */
+  background-color: var(--color-bg); /* Keeping the app's background color */
+  display: flex;
+  flex-direction: column;
 }
 
-.mainFeedWrapper {
-  padding: 0 var(--space-md);
-  margin-top: var(--space-md);
+/* Header Section */
+.header {
+  padding: 24px 20px 16px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
 }
 
-.roundFilterContainer {
+.appName {
+  font-size: 28px;
+  font-weight: 800;
+  color: var(--color-text);
+  margin: 0;
+  line-height: 1.2;
+}
+
+.slogan {
+  font-size: 14px;
+  color: var(--color-text-secondary);
+  margin: 0;
+  font-weight: 500;
+}
+
+.headerSelect {
   display: flex;
   align-items: center;
-  gap: var(--space-md);
-  padding: var(--space-sm) var(--space-md);
-  background-color: var(--color-surface);
-  border-bottom: 1px solid var(--color-border-light);
-  margin: var(--space-md) var(--space-md) 0 var(--space-md);
-  border-radius: var(--radius-md);
-  box-shadow: var(--shadow-sm);
-}
-
-.filterLabel {
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  font-size: 13px;
-  white-space: nowrap;
-}
-
-.roundSelectWrapper {
-  position: relative;
-  display: inline-block;
-  min-width: 180px;
-}
-
-.roundSelect {
-  width: 100%;
-  padding: 8px 36px 8px 16px;
-  border-radius: var(--radius-md);
-  font-size: 13px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  background-color: var(--color-bg);
+  gap: 8px;
+  margin-top: 8px;
+  background: var(--color-surface);
   border: 1px solid var(--color-border);
+  padding: 8px 12px;
+  border-radius: 20px;
+  width: fit-content;
   cursor: pointer;
-  outline: none;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--color-text);
+}
+
+/* Tabs Section */
+.tabsContainer {
+  display: flex;
+  padding: 0 20px;
+  gap: 24px;
+  border-bottom: 1px solid var(--color-border-light);
+  margin-top: 8px;
+}
+
+.tabLink {
+  font-size: 15px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  padding: 12px 0;
+  text-decoration: none;
+  border-bottom: 2px solid transparent;
   transition: all 0.2s ease;
+}
+
+.tabLinkActive {
+  color: var(--color-text);
+  border-bottom: 2px solid var(--color-text);
+}
+
+.tabLink:hover {
+  color: var(--color-text);
+}
+
+/* Filters Section */
+.filtersContainer {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px 20px;
+  overflow-x: auto;
+  scrollbar-width: none; /* Firefox */
+}
+
+.filtersContainer::-webkit-scrollbar {
+  display: none; /* Chrome/Safari */
+}
+
+.filterSelectWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.filterSelect {
   appearance: none;
-  -webkit-appearance: none;
-  -moz-appearance: none;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 8px 32px 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  min-width: 120px;
 }
 
-.roundSelect:hover {
+.filterSelect:focus {
+  outline: none;
   border-color: var(--color-primary);
-  background-color: var(--color-surface-hover);
-  color: var(--color-primary);
-}
-
-.roundSelect:focus {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .selectChevron {
   position: absolute;
-  right: 12px;
+  right: 10px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
-  color: var(--color-text-muted);
-  transition: color 0.2s ease;
+  color: var(--color-text-secondary);
 }
 
-.roundSelectWrapper:hover .selectChevron {
-  color: var(--color-primary);
+.resetBtn {
+  flex-shrink: 0;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
 }
 
-@media (max-width: 768px) {
-  .mainFeedWrapper {
-    padding: 0;
-  }
-  .roundFilterContainer {
-    margin: var(--space-sm) 0 0 0;
-    border-radius: 0;
+.resetBtn:hover {
+  background: var(--color-surface-hover);
+}
+
+/* Matchweek Navigator */
+.weekNavigator {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px 20px;
+  gap: 24px;
+}
+
+.navBtn {
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+}
+
+.navBtn:hover {
+  background: var(--color-surface-hover);
+  color: var(--color-text);
+}
+
+.navBtn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.weekInfo {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  min-width: 150px;
+}
+
+.weekTitle {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.weekDate {
+  font-size: 13px;
+  color: var(--color-text-secondary);
+  margin-top: 2px;
+}
+
+/* Main Feed */
+.mainFeedWrapper {
+  padding: 0 16px 24px 16px;
+  flex: 1;
+}
+
+@media (min-width: 768px) {
+  .filtersContainer {
+    flex-wrap: wrap;
   }
 }

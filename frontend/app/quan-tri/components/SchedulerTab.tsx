@@ -12,6 +12,7 @@ interface SchedulerTabProps {
   handleDeleteMatch: (id: string) => void;
   handleEditMatch: (match: any) => void;
   liveMatches: any[];
+  handleClearDraftSchedule: () => void;
 }
 
 export default function SchedulerTab({
@@ -25,7 +26,8 @@ export default function SchedulerTab({
   handleInlineUpdateMatch,
   handleDeleteMatch,
   handleEditMatch,
-  liveMatches
+  liveMatches,
+  handleClearDraftSchedule
 }: SchedulerTabProps) {
   return (
     <div className={`${styles.content} animate-fade-in`}>
@@ -35,6 +37,14 @@ export default function SchedulerTab({
           <p className={styles.pageDesc}>Trung tâm điều khiển lịch thông minh tự động</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            className={styles.deleteBtnCompact}
+            style={{ padding: '8px 16px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#fee2e2', color: '#ef4444', border: '1px solid #fca5a5' }}
+            onClick={handleClearDraftSchedule}
+            title="Xóa nhanh toàn bộ các trận đấu nháp/chưa diễn ra của giải đấu này"
+          >
+            🗑️ Xóa lịch
+          </button>
           <button
             className={styles.editBtnCompact}
             style={{ padding: '8px 16px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px' }}

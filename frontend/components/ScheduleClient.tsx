@@ -36,13 +36,16 @@ function compareRounds(a: string, b: string): number {
       };
     }
 
-    // Group stage pattern: "Bảng A - Vòng 1" or similar
-    const groupMatch = s.match(/Bảng\s+([A-H])\s+-\s+Vòng\s+(\d+)/i);
+    // Group stage pattern: "Bảng A - Vòng 1" or "Vòng 1 - Bảng A" or similar
+    const groupMatch = s.match(/Bảng\s+([A-Z])\s+-\s+Vòng\s+(\d+)/i) || s.match(/Vòng\s+(\d+)\s+-\s+Bảng\s+([A-Z])/i);
     if (groupMatch) {
+      const isNewFormat = s.match(/Vòng\s+(\d+)\s+-\s+Bảng\s+([A-Z])/i);
+      const roundNum = isNewFormat ? parseInt(groupMatch[1], 10) : parseInt(groupMatch[2], 10);
+      const groupLetter = isNewFormat ? groupMatch[2] : groupMatch[1];
       return {
         type: 1,
-        num: parseInt(groupMatch[2], 10),
-        sub: groupMatch[1],
+        num: roundNum,
+        sub: groupLetter,
         subNum: 0
       };
     }
@@ -121,13 +124,16 @@ export default function ScheduleClient({ groupedMatches }: Props) {
   const rawRoundsSorted = Object.keys(groupedMatches).sort(compareRounds);
 
   const parseRawRound = (raw: string): ParsedRound => {
-    // Check for group stage pattern: "Bảng A - Vòng 1"
-    const groupMatch = raw.match(/Bảng\s+([A-H])\s+-\s+(Vòng\s+\d+)/i);
+    // Check for group stage pattern: "Bảng A - Vòng 1" or "Vòng 1 - Bảng A"
+    const groupMatch = raw.match(/Bảng\s+([A-Z])\s+-\s+(Vòng\s+\d+)/i) || raw.match(/(Vòng\s+\d+)\s+-\s+Bảng\s+([A-Z])/i);
     if (groupMatch) {
+      const isNewFormat = raw.match(/(Vòng\s+\d+)\s+-\s+Bảng\s+([A-Z])/i);
+      const roundName = isNewFormat ? groupMatch[1] : groupMatch[2];
+      const groupLetter = isNewFormat ? groupMatch[2] : groupMatch[1];
       return {
         rawRound: raw,
-        roundName: groupMatch[2],
-        groupName: `Bảng ${groupMatch[1].toUpperCase()}`
+        roundName: roundName,
+        groupName: `Bảng ${groupLetter.toUpperCase()}`
       };
     }
 

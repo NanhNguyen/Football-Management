@@ -96,7 +96,7 @@ export default function QuanTriPage() {
     muaGiai: '2024',
     ngayBatDau: '2024-05-01',
     venue_type: 'CENTRALIZED',
-    templateCode: 'LEAGUE'
+    templateCode: ''
   });
 
 
@@ -151,7 +151,7 @@ export default function QuanTriPage() {
     matchDurationMinutes: 90,
     breakTimeMinutes: 15,
     playDays: [
-      { dayOfWeek: 1, enabled: true },
+      { dayOfWeek: 1, enabled: false },
       { dayOfWeek: 2, enabled: false },
       { dayOfWeek: 3, enabled: false },
       { dayOfWeek: 4, enabled: false },
@@ -160,8 +160,8 @@ export default function QuanTriPage() {
       { dayOfWeek: 0, enabled: true },
     ],
     timeSlots: [
-      { id: '1', startTime: '17:00', endTime: '18:30' },
-      { id: '2', startTime: '19:00', endTime: '20:30' },
+      { id: '1', startTime: '17:30', endTime: '19:00' },
+      { id: '2', startTime: '19:30', endTime: '21:00' },
     ],
     pitchesAvailable: 2,
     minRestHours: 48,
@@ -423,7 +423,7 @@ export default function QuanTriPage() {
           matchDurationMinutes: 90,
           breakTimeMinutes: 15,
           playDays: [
-            { dayOfWeek: 1, enabled: true },
+            { dayOfWeek: 1, enabled: false },
             { dayOfWeek: 2, enabled: false },
             { dayOfWeek: 3, enabled: false },
             { dayOfWeek: 4, enabled: false },
@@ -432,8 +432,8 @@ export default function QuanTriPage() {
             { dayOfWeek: 0, enabled: true },
           ],
           timeSlots: [
-            { id: '1', startTime: '17:00', endTime: '18:30' },
-            { id: '2', startTime: '19:00', endTime: '20:30' },
+            { id: '1', startTime: '17:30', endTime: '19:00' },
+            { id: '2', startTime: '19:30', endTime: '21:00' },
           ],
           pitchesAvailable: 2,
           minRestHours: 48,
@@ -647,6 +647,17 @@ export default function QuanTriPage() {
       return;
     }
 
+    if (!schedulerConfig.endDate) {
+      showToast("⚠️ Vui lòng nhập Ngày kết thúc dự kiến!");
+      return;
+    }
+
+    const baseStartDate = schedulerConfig.startDate || selectedTournament?.ngay_bat_dau;
+    if (baseStartDate && schedulerConfig.endDate < baseStartDate) {
+      showToast("⚠️ Ngày kết thúc dự kiến không được trước Ngày bắt đầu!");
+      return;
+    }
+
     showConfirm(
       "XÁC NHẬN SINH LỊCH TỰ ĐỘNG",
       "🔄 Xếp lịch tự động sẽ XÓA TOÀN BỘ lịch thi đấu nháp của giải đấu hiện tại và ghi đè lịch mới. Bạn có chắc chắn muốn tiếp tục?",
@@ -654,8 +665,7 @@ export default function QuanTriPage() {
         try {
           showToast("⏳ Đang xếp lịch thi đấu tự động (CSP)...");
 
-          // Auto detect base start date if empty
-          const baseStartDate = schedulerConfig.startDate || selectedTournament?.ngay_bat_dau || '2025-05-01';
+          const actualStartDate = baseStartDate || '2026-05-01';
           
           // Dynamically compute end times for each slot based on start time + match duration + break buffer
           const timeSlotsWithEnd = schedulerConfig.timeSlots.map(slot => {
@@ -672,22 +682,37 @@ export default function QuanTriPage() {
 
           const payloadConfig = {
             ...schedulerConfig,
-            startDate: baseStartDate,
-            endDate: schedulerConfig.endDate || '2025-12-31',
+            startDate: actualStartDate,
+            endDate: schedulerConfig.endDate,
             timeSlots: timeSlotsWithEnd,
             blackoutDates: blackoutDates
           };
 
+          // Load configuration from localStorage as the source of truth
+          const configStr = localStorage.getItem(`giai_dau_config_${selectedTournament.id}`);
+          let activeType = 'tournament';
+          let activeGroupLegs = 1;
+          let activeLeagueRounds = 5;
+          if (configStr) {
+            try {
+              const config = JSON.parse(configStr);
+              activeType = config.theThuc || 'tournament';
+              activeGroupLegs = config.luotVongBang || 1;
+              activeLeagueRounds = config.soVongLeague || 5;
+            } catch (e) {}
+          }
+
           const count = await runAutoSchedule(
             teams,
             selectedTournament,
-            tournamentType,
-            tournamentGroupLegs,
-            tournamentLeagueRounds,
+            activeType,
+            activeGroupLegs,
+            activeLeagueRounds,
             payloadConfig,
             showToast
           );
 
+          setIsSchedulerConfigOpen(false);
           await fetchData(selectedTournament?.id);
           showToast(`✨ Đã tự động xếp ${count} trận đấu thành công!`);
         } catch (err: any) {
@@ -1096,11 +1121,16 @@ export default function QuanTriPage() {
   // Helper to extract round and group from vong string
   const parseVongDetails = (vongStr: string = '') => {
     const str = vongStr.trim();
-    if (str.includes('Bảng') && str.includes(' - ')) {
-      const parts = str.split(' - ');
-      const bang = parts[0].trim(); // e.g. "Bảng A"
-      const vong = parts[1].trim(); // e.g. "Vòng 1"
-      return { bang, vong, isKnockout: false };
+    const matchNew = str.match(/Vòng\s+(\d+)\s+-\s+Bảng\s+([A-Z])/i);
+    if (matchNew) {
+      return { bang: `Bảng ${matchNew[2]}`, vong: `Vòng ${matchNew[1]}`, isKnockout: false };
+    }
+    const matchOld = str.match(/Bảng\s+([A-Z])\s+-\s+Vòng\s+(\d+)/i);
+    if (matchOld) {
+      return { bang: `Bảng ${matchOld[1]}`, vong: `Vòng ${matchOld[2]}`, isKnockout: false };
+    }
+    if (str.toLowerCase().includes('1/16')) {
+      return { bang: '', vong: 'Vòng 1/16', isKnockout: true };
     }
     if (str.toLowerCase().includes('1/8')) {
       return { bang: '', vong: 'Vòng 1/8', isKnockout: true };
@@ -1219,9 +1249,48 @@ export default function QuanTriPage() {
       const pA = getRoundPriority(parseVongDetails(a.vong).vong);
       const pB = getRoundPriority(parseVongDetails(b.vong).vong);
       if (pA !== pB) return pA - pB;
-      return a.id.localeCompare(b.id);
+      
+      const gA = parseVongDetails(a.vong).bang || '';
+      const gB = parseVongDetails(b.vong).bang || '';
+      if (gA !== gB) return gA.localeCompare(gB);
+      
+      const nameA = a.doiNha?.ten || '';
+      const nameB = b.doiNha?.ten || '';
+      if (!nameA || !nameB) {
+        return (a.vong || '').localeCompare(b.vong || '');
+      }
+      return nameA.localeCompare(nameB);
     });
   })();
+
+  const handleClearDraftSchedule = () => {
+    showConfirm(
+      "XÓA LỊCH THI ĐẤU",
+      "🔄 Bạn có chắc muốn xóa lịch? Tất cả các trận đấu nháp hoặc chưa diễn ra của giải đấu hiện tại sẽ bị xóa.",
+      async () => {
+        try {
+          showToast("🧹 Đang dọn dẹp lịch cũ...");
+          const draftMatches = liveMatches.filter(m => m.trangThai === 'DRAFT' || m.trangThai === 'SAP_DIEN_RA');
+          const matchIds = draftMatches.map(m => m.id);
+          if (matchIds.length > 0) {
+            const chunkSize = 100;
+            for (let i = 0; i < matchIds.length; i += chunkSize) {
+              const chunk = matchIds.slice(i, i + chunkSize);
+              const { error: delEventsErr } = await supabase.from('su_kien').delete().in('tran_dau_id', chunk);
+              if (delEventsErr) throw delEventsErr;
+
+              const { error: delMatchesErr } = await supabase.from('tran_dau').delete().in('id', chunk);
+              if (delMatchesErr) throw delMatchesErr;
+            }
+          }
+          await fetchData(selectedTournament?.id);
+          showToast('Đã xóa toàn bộ lịch nháp!');
+        } catch (err: any) {
+          showToast("❌ Lỗi khi xóa lịch: " + err.message);
+        }
+      }
+    );
+  };
 
 
 
@@ -1637,6 +1706,7 @@ export default function QuanTriPage() {
               handleDeleteMatch={handleDeleteMatch}
               handleEditMatch={handleEditMatch}
               liveMatches={liveMatches}
+              handleClearDraftSchedule={handleClearDraftSchedule}
             />
           )}
 
@@ -1984,12 +2054,15 @@ export default function QuanTriPage() {
                   </div>
 
                 <div className={styles.formGroup} style={{ marginTop: '0px' }}>
-                  <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Loại giải đấu (Template)</label>
+                  <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
+                    Loại giải đấu (Template) <span style={{ color: 'red' }}>*</span>
+                  </label>
                   <select
                     className={styles.modalInput}
                     value={newTournamentData.templateCode}
                     onChange={(e) => setNewTournamentData({ ...newTournamentData, templateCode: e.target.value })}
                   >
+                    <option value="">--- Chọn loại giải đấu ---</option>
                     {tournamentTemplates.length > 0 ? (
                       tournamentTemplates.map(t => (
                         <option key={t.code} value={t.code}>{t.name}</option>
@@ -2002,7 +2075,7 @@ export default function QuanTriPage() {
                       </>
                     )}
                   </select>
-                  {tournamentTemplates.length > 0 && (
+                  {tournamentTemplates.length > 0 && newTournamentData.templateCode && (
                     <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', fontStyle: 'italic' }}>
                       {tournamentTemplates.find(t => t.code === newTournamentData.templateCode)?.description}
                     </p>
@@ -2026,6 +2099,10 @@ export default function QuanTriPage() {
                       showToast("⚠️ Vui lòng nhập tên giải đấu!");
                       return;
                     }
+                    if (!newTournamentData.templateCode) {
+                      showToast("⚠️ Vui lòng chọn loại giải đấu!");
+                      return;
+                    }
                     const newId = `giai-${Date.now()}`;
                     const payload = {
                       id: newId,
@@ -2037,10 +2114,13 @@ export default function QuanTriPage() {
                     const { error } = await createTournament(payload);
                     if (!error) {
                       const selectedTemplate = tournamentTemplates.find(t => t.code === newTournamentData.templateCode);
+                      
+                      let generalConfig: any = null;
+                      let schedulerConfigPayload: any = null;
+
                       if (selectedTemplate && selectedTemplate.defaultConfig) {
                         const config = selectedTemplate.defaultConfig;
-                        
-                        const generalConfig = {
+                        generalConfig = {
                           theThuc: config.theThuc,
                           luotVongBang: config.luotVongBang,
                           soVongLeague: config.soVongLeague,
@@ -2050,15 +2130,13 @@ export default function QuanTriPage() {
                           benchCount: config.benchCount,
                           standingsConfig: config.standingsConfig
                         };
-                        localStorage.setItem(`giai_dau_config_${newId}`, JSON.stringify(generalConfig));
-                        
-                        const schedulerConfigPayload = {
+                        schedulerConfigPayload = {
                           startDate: newTournamentData.ngayBatDau,
                           endDate: '',
                           matchDurationMinutes: config.matchDurationMinutes,
                           breakTimeMinutes: config.breakTimeMinutes,
                           playDays: [
-                            { dayOfWeek: 1, enabled: true },
+                            { dayOfWeek: 1, enabled: false },
                             { dayOfWeek: 2, enabled: false },
                             { dayOfWeek: 3, enabled: false },
                             { dayOfWeek: 4, enabled: false },
@@ -2067,19 +2145,59 @@ export default function QuanTriPage() {
                             { dayOfWeek: 0, enabled: true },
                           ],
                           timeSlots: [
-                            { id: '1', startTime: '17:00', endTime: '18:30' },
-                            { id: '2', startTime: '19:00', endTime: '20:30' },
+                            { id: '1', startTime: '17:30', endTime: '19:00' },
+                            { id: '2', startTime: '19:30', endTime: '21:00' },
                           ],
                           pitchesAvailable: config.pitchesAvailable,
                           minRestHours: config.minRestHours,
                           matchesPerWeek: config.matchesPerWeek
                         };
-                        localStorage.setItem(`scheduler_config_${newId}`, JSON.stringify(schedulerConfigPayload));
+                      } else {
+                        // Fallback when template load fails
+                        const theThuc = newTournamentData.templateCode === 'LEAGUE' ? 'league' : 'tournament';
+                        generalConfig = {
+                          theThuc,
+                          luotVongBang: 1,
+                          soVongLeague: 5,
+                          maxTeams: 16,
+                          maxPlayers: 20,
+                          starterCount: 7,
+                          benchCount: 7,
+                          standingsConfig: {
+                            phongDo: theThuc === 'league',
+                            thePhat: false
+                          }
+                        };
+                        schedulerConfigPayload = {
+                          startDate: newTournamentData.ngayBatDau,
+                          endDate: '',
+                          matchDurationMinutes: 90,
+                          breakTimeMinutes: 15,
+                          playDays: [
+                            { dayOfWeek: 1, enabled: false },
+                            { dayOfWeek: 2, enabled: false },
+                            { dayOfWeek: 3, enabled: false },
+                            { dayOfWeek: 4, enabled: false },
+                            { dayOfWeek: 5, enabled: false },
+                            { dayOfWeek: 6, enabled: true },
+                            { dayOfWeek: 0, enabled: true },
+                          ],
+                          timeSlots: [
+                            { id: '1', startTime: '17:30', endTime: '19:00' },
+                            { id: '2', startTime: '19:30', endTime: '21:00' },
+                          ],
+                          pitchesAvailable: 2,
+                          minRestHours: 48,
+                          matchesPerWeek: 8
+                        };
                       }
+
+                      localStorage.setItem(`giai_dau_config_${newId}`, JSON.stringify(generalConfig));
+                      localStorage.setItem(`scheduler_config_${newId}`, JSON.stringify(schedulerConfigPayload));
 
                       setIsCreatingTournament(false);
                       showToast(`🏆 Đã khởi tạo thành công giải đấu: ${newTournamentData.ten}!`);
-                      setNewTournamentData({ ten: '', muaGiai: '2025', ngayBatDau: '2025-05-01', venue_type: 'CENTRALIZED', templateCode: 'LEAGUE' });
+                      setNewTournamentData({ ten: '', muaGiai: '2025', ngayBatDau: '2025-05-01', venue_type: 'CENTRALIZED', templateCode: '' });
                       await fetchData(newId);
                     } else {
                       showToast(`❌ Lỗi: ${error.message}`);
@@ -2198,9 +2316,13 @@ export default function QuanTriPage() {
                           key={dayName}
                           type="button"
                           onClick={() => {
-                            const updatedPlayDays = schedulerConfig.playDays.map(d => 
-                              d.dayOfWeek === dayOfWeek ? { ...d, enabled: !isChecked } : d
-                            );
+                            let updatedPlayDays = [...schedulerConfig.playDays];
+                            const existingIdx = updatedPlayDays.findIndex(d => d.dayOfWeek === dayOfWeek);
+                            if (existingIdx >= 0) {
+                              updatedPlayDays[existingIdx].enabled = !isChecked;
+                            } else {
+                              updatedPlayDays.push({ dayOfWeek, enabled: true });
+                            }
                             updateSchedulerConfig({ playDays: updatedPlayDays });
                           }}
                           style={{
@@ -2340,48 +2462,12 @@ export default function QuanTriPage() {
                   style={{ width: '100%', margin: 0, justifyContent: 'center' }}
                   onClick={async () => {
                     await handleAutoSchedule();
-                    setIsSchedulerConfigOpen(false);
                   }}
                 >
                   ✨ SINH LỊCH ĐỀ XUẤT
                 </button>
 
                 <div style={{ display: 'flex', gap: '10px' }}>
-                  <button
-                    className={styles.undoBtn}
-                    style={{ flex: 1, margin: 0, background: '#fee2e2', color: '#ef4444', borderColor: '#fca5a5' }}
-                    onClick={() => {
-                      showConfirm(
-                        "TẠO LẠI LỊCH THI ĐẤU",
-                        "🔄 Bạn có chắc muốn đập đi tạo lại lịch? Tất cả các trận đấu nháp của giải đấu hiện tại sẽ bị xóa.",
-                        async () => {
-                          try {
-                            showToast("🧹 Đang dọn dẹp lịch cũ...");
-                            const draftMatches = liveMatches.filter(m => m.trangThai === 'DRAFT' || m.trangThai === 'SAP_DIEN_RA');
-                            const matchIds = draftMatches.map(m => m.id);
-                            if (matchIds.length > 0) {
-                              const chunkSize = 100;
-                              for (let i = 0; i < matchIds.length; i += chunkSize) {
-                                const chunk = matchIds.slice(i, i + chunkSize);
-                                const { error: delEventsErr } = await supabase.from('su_kien').delete().in('tran_dau_id', chunk);
-                                if (delEventsErr) throw delEventsErr;
-
-                                const { error: delMatchesErr } = await supabase.from('tran_dau').delete().in('id', chunk);
-                                if (delMatchesErr) throw delMatchesErr;
-                              }
-                            }
-                            await fetchData(selectedTournament?.id);
-                            showToast('Đã xóa toàn bộ lịch nháp!');
-                            setIsSchedulerConfigOpen(false);
-                          } catch (err: any) {
-                            showToast("❌ Lỗi khi xóa lịch: " + err.message);
-                          }
-                        }
-                      );
-                    }}
-                  >
-                    🗑️ TẠO LẠI LỊCH
-                  </button>
                   <button
                     className={styles.undoBtn}
                     style={{ flex: 1, margin: 0 }}
