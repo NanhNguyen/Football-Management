@@ -312,55 +312,8 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
 
         </div>
 
-        {/* User Auth Info Section */}
-        <div className={styles.authSection}>
-          {user ? (
-            <div className={styles.userProfile}>
-              <div className={styles.userInfoWrapper}>
-                <div className={styles.avatar}>
-                  {user.email ? user.email.substring(0, 2).toUpperCase() : 'AD'}
-                  <span className={styles.onlineBadge}></span>
-                </div>
-                <div className={styles.userDetails}>
-                  <p className={styles.userName} title={user.email}>Nguyễn Nam Anh</p>
-                  <p className={styles.userRole}>Ban Tổ Chức</p>
-                </div>
-              </div>
-              <div className={styles.profileActions}>
-                <Link href="/quan-tri" className={styles.actionBtn} title="Trang Quản trị">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <circle cx="12" cy="12" r="3"></circle>
-                    <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                  </svg>
-                  <span>Quản trị</span>
-                </Link>
-                <button onClick={handleLogout} className={`${styles.actionBtn} ${styles.logoutBtn}`} title="Đăng xuất">
-                  <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"></path>
-                    <polyline points="16 17 21 12 16 7"></polyline>
-                    <line x1="21" y1="12" x2="9" y2="12"></line>
-                  </svg>
-                  <span>Đăng xuất</span>
-                </button>
-              </div>
-            </div>
-          ) : (
-            <Link href="/login" className={styles.loginBtn}>
-              <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"></path>
-                <polyline points="10 17 15 12 10 7"></polyline>
-                <line x1="15" y1="12" x2="3" y2="12"></line>
-              </svg>
-              <span>Đăng nhập BTC</span>
-            </Link>
-          )}
-        </div>
-
-        {/* Sidebar Footer */}
-        <div className={styles.sidebarFooter}>
-          <p className={styles.footerBrand}>Sparta Premium v2.0</p>
-        </div>
       </aside>
     </>
   );
 }
+

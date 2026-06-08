@@ -113,6 +113,8 @@
   color: var(--color-text-secondary);
   margin-top: 6px;
   letter-spacing: 0.04em;
+  white-space: nowrap;
+  text-align: center;
 }
 
 .statusLive {
@@ -138,6 +140,7 @@
 
 @media (max-width: 480px) {
   .teamName { font-size: 13px; max-width: 90px; }
-  .scoreCol { width: 70px; }
+  .scoreCol { width: 90px; }
   .teamLogo { width: 24px; height: 24px; font-size: 18px; }
 }
+

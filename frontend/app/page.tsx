@@ -1,13 +1,14 @@
 'use client';
 
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, Suspense } from 'react';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import styles from './page.module.css';
 import { layTongQuan, layDanhSachDoi } from '@/lib/api';
-import { useRouter } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { usePublicTournament } from '@/components/PublicTournamentContext';
 import MatchListFeed from '@/components/MatchListFeed';
-import Link from 'next/link';
+import StandingsTab from '@/components/StandingsTab';
+import StatsTab from '@/components/StatsTab';
 
 function getGenericRoundKey(roundName: string): string {
   if (!roundName) return '';
@@ -21,12 +22,29 @@ function getGenericRoundKey(roundName: string): string {
   return roundName.split(' - ')[0];
 }
 
-export default function TongQuanPage() {
+function TongQuanContent() {
   const router = useRouter();
+  const searchParams = useSearchParams();
+  const tabParam = searchParams.get('tab');
   const { selectedTournamentId, selectedTournament, tournaments, setSelectedTournamentId } = usePublicTournament();
   const [data, setData] = useState<any>(null);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+
+  // Tab State: 'matches' | 'standings' | 'stats'
+  const [activeTab, setActiveTab] = useState<'matches' | 'standings' | 'stats'>('matches');
+
+  // Sync tab from search params
+  useEffect(() => {
+    if (tabParam === 'standings' || tabParam === 'stats' || tabParam === 'matches') {
+      setActiveTab(tabParam);
+    }
+  }, [tabParam]);
+
+  const handleTabChange = (newTab: 'matches' | 'standings' | 'stats') => {
+    setActiveTab(newTab);
+    router.push(`/?tab=${newTab}`);
+  };
 
   // Filters state
   const [selectedMatchweek, setSelectedMatchweek] = useState<string>('DEFAULT');
@@ -136,7 +154,11 @@ export default function TongQuanPage() {
     return 'league';
   }, [selectedTournamentId, selectedTournament]);
 
-  // Set default active matchweek and fix sync
+  // Set default active matchweek based on custom logic sequence:
+  // 1. Matchweek containing matches today
+  // 2. Matchweek containing matches this calendar week (Mon - Sun)
+  // 3. Matchweek containing the nearest upcoming match
+  // 4. Matchweek containing the nearest past match (fallback)
   useEffect(() => {
     if (loading) return;
 
@@ -146,57 +168,90 @@ export default function TongQuanPage() {
     }
 
     if (selectedMatchweek === 'DEFAULT' || (selectedMatchweek !== 'ALL' && !uniqueRounds.includes(selectedMatchweek))) {
-      if (tournamentType === 'league') {
-        // League format: display matches in the week corresponding to the match day (closest match day to today)
-        const todayMs = new Date().getTime();
-        let closestMatch = null;
-        let minDiff = Infinity;
-        
-        for (const m of allMatchesList) {
-          const mDateStr = m.date || m.batDauLuc;
-          if (!mDateStr) continue;
-          try {
-            const mTime = new Date(mDateStr).getTime();
-            if (isNaN(mTime)) continue;
-            const diff = Math.abs(mTime - todayMs);
-            if (diff < minDiff) {
-              minDiff = diff;
-              closestMatch = m;
-            }
-          } catch (e) {}
-        }
+      const today = new Date();
+      const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
+      const todayEnd = todayStart + 24 * 60 * 60 * 1000;
 
-        if (closestMatch && closestMatch.vong) {
-          const genRound = getGenericRoundKey(closestMatch.vong);
-          setSelectedMatchweek(genRound);
-        } else {
-          setSelectedMatchweek(uniqueRounds[0]);
+      // 1. Matches today
+      const matchesToday = allMatchesList.filter((m: any) => {
+        const mDateStr = m.date || m.batDauLuc;
+        if (!mDateStr) return false;
+        try {
+          const mTime = new Date(mDateStr).getTime();
+          return mTime >= todayStart && mTime < todayEnd;
+        } catch (e) {
+          return false;
         }
-      } else {
-        // Tournament format: find the nearest date with the next match (live or upcoming)
-        const upcomingMatches = allMatchesList.filter((m: any) => m.trangThai === 'DANG_DIEN_RA' || m.trangThai === 'SAP_DIEN_RA');
+      });
+
+      if (matchesToday.length > 0 && matchesToday[0].vong) {
+        setSelectedMatchweek(getGenericRoundKey(matchesToday[0].vong));
+        return;
+      }
+
+      // 2. Matches this week (Mon to Sun)
+      const currentDay = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
+      const distanceToMon = currentDay === 0 ? -6 : 1 - currentDay;
+      const monday = new Date(today);
+      monday.setDate(today.getDate() + distanceToMon);
+      monday.setHours(0, 0, 0, 0);
+      const monTime = monday.getTime();
+      const sunTime = monTime + 7 * 24 * 60 * 60 * 1000;
+
+      const matchesThisWeek = allMatchesList.filter((m: any) => {
+        const mDateStr = m.date || m.batDauLuc;
+        if (!mDateStr) return false;
+        try {
+          const mTime = new Date(mDateStr).getTime();
+          return mTime >= monTime && mTime < sunTime;
+        } catch (e) {
+          return false;
+        }
+      });
+
+      if (matchesThisWeek.length > 0 && matchesThisWeek[0].vong) {
+        // Sort by closest date to today within this week
+        matchesThisWeek.sort((a: any, b: any) => {
+          const tA = new Date(a.date || a.batDauLuc).getTime();
+          const tB = new Date(b.date || b.batDauLuc).getTime();
+          return Math.abs(tA - today.getTime()) - Math.abs(tB - today.getTime());
+        });
+        setSelectedMatchweek(getGenericRoundKey(matchesThisWeek[0].vong));
+        return;
+      }
+
+      // 3. Nearest upcoming matches (DANG_DIEN_RA or SAP_DIEN_RA)
+      const upcomingMatches = allMatchesList.filter((m: any) => m.trangThai === 'DANG_DIEN_RA' || m.trangThai === 'SAP_DIEN_RA');
+      if (upcomingMatches.length > 0) {
         upcomingMatches.sort((a: any, b: any) => {
           const tA = new Date(a.batDauLuc || a.date).getTime();
           const tB = new Date(b.batDauLuc || b.date).getTime();
-          return tA - tB;
+          return tA - tB; // Earliest upcoming match first
         });
-
-        if (upcomingMatches.length > 0 && upcomingMatches[0].vong) {
-          const genRound = getGenericRoundKey(upcomingMatches[0].vong);
-          setSelectedMatchweek(genRound);
-        } else {
-          // Fallback to the last finished match
-          const lastMatch = allMatchesList.filter((m: any) => m.trangThai === 'KET_THUC').pop();
-          if (lastMatch && lastMatch.vong) {
-            const genRound = getGenericRoundKey(lastMatch.vong);
-            setSelectedMatchweek(genRound);
-          } else {
-            setSelectedMatchweek(uniqueRounds[0]);
-          }
+        if (upcomingMatches[0].vong) {
+          setSelectedMatchweek(getGenericRoundKey(upcomingMatches[0].vong));
+          return;
         }
       }
+
+      // 4. Fallback to the nearest past match
+      const finishedMatches = allMatchesList.filter((m: any) => m.trangThai === 'KET_THUC');
+      if (finishedMatches.length > 0) {
+        finishedMatches.sort((a: any, b: any) => {
+          const tA = new Date(a.batDauLuc || a.date).getTime();
+          const tB = new Date(b.batDauLuc || b.date).getTime();
+          return tB - tA; // Latest finished match first
+        });
+        if (finishedMatches[0].vong) {
+          setSelectedMatchweek(getGenericRoundKey(finishedMatches[0].vong));
+          return;
+        }
+      }
+
+      // 5. Ultimate fallback
+      setSelectedMatchweek(uniqueRounds[0]);
     }
-  }, [uniqueRounds, allMatchesList, selectedMatchweek, loading, tournamentType]);
+  }, [uniqueRounds, allMatchesList, selectedMatchweek, loading]);
 
   if (loading) {
     return <GlobalSkeletonLoader />;
@@ -210,7 +265,7 @@ export default function TongQuanPage() {
     if (!data) return null;
     let filtered = allMatchesList;
 
-    if (selectedMatchweek !== 'ALL' && selectedMatchweek !== 'DEFAULT') {
+    if (selectedMatchweek !== 'DEFAULT' && selectedMatchweek !== 'ALL') {
       filtered = filtered.filter((m: any) => getGenericRoundKey(m.vong) === selectedMatchweek);
     }
 
@@ -225,7 +280,7 @@ export default function TongQuanPage() {
     };
   };
 
-  const navigationSequence = ['ALL', ...uniqueRounds];
+  const navigationSequence = uniqueRounds;
   const currentMatchweekIndex = navigationSequence.indexOf(selectedMatchweek);
 
   const handlePrevWeek = () => {
@@ -269,121 +324,158 @@ export default function TongQuanPage() {
       
       {/* Header */}
       <div className={styles.header}>
-        <h1 className={styles.appName}>SPARTA</h1>
+        <div className={styles.logoTitleWrapper}>
+          <img src="/logo-premium-transparent.png" alt="Sparta Logo" className={styles.logoImg} />
+          <h1 className={styles.appName}>SPARTA</h1>
+        </div>
         <p className={styles.slogan}>Hệ thống Quản lý Giải đấu Chuyên nghiệp</p>
       </div>
 
+
       {/* Tabs */}
       <div className={styles.tabsContainer}>
-        <Link href="/" className={`${styles.tabLink} ${styles.tabLinkActive}`}>Trận đấu</Link>
-        <Link href="/bang-xep-hang" className={styles.tabLink}>Bảng xếp hạng</Link>
-        <Link href="/thong-ke" className={styles.tabLink}>Thống kê</Link>
-      </div>
-
-      {/* Filters Container */}
-      <div className={styles.filtersContainer}>
-        <div className={styles.filterSelectWrapper}>
-          <select 
-            className={styles.filterSelect}
-            value={selectedTournamentId || ''}
-            onChange={(e) => setSelectedTournamentId(e.target.value)}
-          >
-            {tournaments.map(t => (
-              <option key={t.id} value={t.id}>{t.ten}</option>
-            ))}
-          </select>
-          <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </div>
-
-
-
-        <div className={styles.filterSelectWrapper}>
-          <select 
-            className={styles.filterSelect}
-            value={selectedTeamId}
-            onChange={(e) => setSelectedTeamId(e.target.value)}
-          >
-            <option value="ALL">Tất cả Đội bóng</option>
-            {teams.map((team) => (
-              <option key={team.id} value={team.id}>{team.ten}</option>
-            ))}
-          </select>
-          <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-        </div>
-
         <button 
-          className={styles.resetBtn}
-          onClick={() => {
-            setSelectedMatchweek(uniqueRounds[0] || 'ALL');
-            setSelectedTeamId('ALL');
-          }}
+          onClick={() => handleTabChange('matches')} 
+          className={`${styles.tabLink} ${activeTab === 'matches' ? styles.tabLinkActive : ''}`}
         >
-          Đặt lại <span>↺</span>
+          Trận đấu
+        </button>
+        <button 
+          onClick={() => handleTabChange('standings')} 
+          className={`${styles.tabLink} ${activeTab === 'standings' ? styles.tabLinkActive : ''}`}
+        >
+          Bảng xếp hạng
+        </button>
+        <button 
+          onClick={() => handleTabChange('stats')} 
+          className={`${styles.tabLink} ${activeTab === 'stats' ? styles.tabLinkActive : ''}`}
+        >
+          Thống kê
         </button>
       </div>
 
-      {/* Pill Tabs for Desktop view */}
-      {uniqueRounds.length > 0 && (
-        <div className={styles.pillTabs}>
-          <button
-            className={`${styles.pillTab} ${selectedMatchweek === 'ALL' ? styles.pillTabActive : ''}`}
-            onClick={() => setSelectedMatchweek('ALL')}
-          >
-            Tất cả vòng đấu
-          </button>
-          {uniqueRounds.map((rn) => (
-            <button
-              key={rn}
-              className={`${styles.pillTab} ${selectedMatchweek === rn ? styles.pillTabActive : ''}`}
-              onClick={() => setSelectedMatchweek(rn)}
+      {activeTab === 'matches' && (
+        <>
+          {/* Filters Container */}
+          <div className={styles.filtersContainer}>
+            <div className={styles.filterSelectWrapper}>
+              <select 
+                className={styles.filterSelect}
+                value={selectedTournamentId || ''}
+                onChange={(e) => setSelectedTournamentId(e.target.value)}
+              >
+                {tournaments.map(t => (
+                  <option key={t.id} value={t.id}>{t.ten}</option>
+                ))}
+              </select>
+              <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+
+            {/* Dropdown Matchweek selector to match Premier League filters */}
+            {uniqueRounds.length > 0 && (
+              <div className={styles.filterSelectWrapper}>
+                <select 
+                  className={styles.filterSelect}
+                  value={selectedMatchweek}
+                  onChange={(e) => setSelectedMatchweek(e.target.value)}
+                >
+                  {uniqueRounds.map((rn) => (
+                    <option key={rn} value={rn}>{rn}</option>
+                  ))}
+                </select>
+                <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+            )}
+
+            <div className={styles.filterSelectWrapper}>
+              <select 
+                className={styles.filterSelect}
+                value={selectedTeamId}
+                onChange={(e) => setSelectedTeamId(e.target.value)}
+              >
+                <option value="ALL">Tất cả Đội bóng</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>{team.ten}</option>
+                ))}
+              </select>
+              <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            </div>
+
+            <button 
+              className={styles.resetBtn}
+              onClick={() => {
+                setSelectedMatchweek(uniqueRounds[0] || 'ALL');
+                setSelectedTeamId('ALL');
+              }}
             >
-              {rn}
+              Đặt lại <span>↺</span>
             </button>
-          ))}
-        </div>
-      )}
-
-      {/* Matchweek Navigator for Mobile view (responsive via CSS) */}
-      {uniqueRounds.length > 0 && (
-        <div className={styles.weekNavigator}>
-          <button 
-            className={styles.navBtn} 
-            onClick={handlePrevWeek}
-            disabled={currentMatchweekIndex <= 0}
-            aria-label="Vòng trước"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-          </button>
-
-          <div className={styles.weekInfo}>
-            <span className={styles.weekTitle}>
-              {selectedMatchweek === 'ALL' ? 'Tất cả vòng đấu' : selectedMatchweek}
-            </span>
-            <span className={styles.weekDate}>
-              {selectedMatchweek === 'ALL' ? 'Hiển thị tất cả trận đấu' : getActiveWeekDate()}
-            </span>
           </div>
 
-          <button 
-            className={styles.navBtn} 
-            onClick={handleNextWeek}
-            disabled={currentMatchweekIndex >= navigationSequence.length - 1}
-            aria-label="Vòng sau"
-          >
-            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-          </button>
+          {/* Matchweek Navigator - Always show Premier League-style navigator on all screens */}
+          {uniqueRounds.length > 0 && (
+            <div className={styles.weekNavigator}>
+              <button 
+                className={styles.navBtn} 
+                onClick={handlePrevWeek}
+                disabled={currentMatchweekIndex <= 0}
+                aria-label="Vòng trước"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+              </button>
+
+              <div className={styles.weekInfo}>
+                <span className={styles.weekTitle}>
+                  {selectedMatchweek === 'ALL' ? 'Tất cả vòng đấu' : selectedMatchweek}
+                </span>
+                <span className={styles.weekDate}>
+                  {selectedMatchweek === 'ALL' ? 'Hiển thị tất cả trận đấu' : getActiveWeekDate()}
+                </span>
+              </div>
+
+              <button 
+                className={styles.navBtn} 
+                onClick={handleNextWeek}
+                disabled={currentMatchweekIndex >= navigationSequence.length - 1}
+                aria-label="Vòng sau"
+              >
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+              </button>
+            </div>
+          )}
+
+          {/* Main Feed */}
+          <div className={styles.mainFeedWrapper}>
+            <MatchListFeed 
+              data={getFilteredData()} 
+              onMatchClick={handleMatchClick} 
+              tournamentType={tournamentType}
+            />
+          </div>
+        </>
+      )}
+
+      {activeTab === 'standings' && (
+        <div className={styles.mainFeedWrapper}>
+          <StandingsTab />
         </div>
       )}
 
-      {/* Main Feed */}
-      <div className={styles.mainFeedWrapper}>
-        <MatchListFeed 
-          data={getFilteredData()} 
-          onMatchClick={handleMatchClick} 
-          tournamentType={tournamentType}
-        />
-      </div>
+      {activeTab === 'stats' && (
+        <div className={styles.mainFeedWrapper}>
+          <StatsTab />
+        </div>
+      )}
 
     </div>
   );
 }
+
+export default function TongQuanPage() {
+  return (
+    <Suspense fallback={<GlobalSkeletonLoader />}>
+      <TongQuanContent />
+    </Suspense>
+  );
+}
+

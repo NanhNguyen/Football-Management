@@ -1,0 +1,216 @@
+'use client';
+
+import TeamLogo from '@/components/TeamLogo';
+import { useState, useEffect, useMemo } from 'react';
+import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
+import styles from '@/app/bang-xep-hang/page.module.css';
+import { layBangXepHang } from '@/lib/api';
+import { usePublicTournament } from '@/components/PublicTournamentContext';
+
+export default function StandingsTab() {
+  const { selectedTournamentId, selectedTournament } = usePublicTournament();
+  const [data, setData] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [customEvents, setCustomEvents] = useState<any[]>([]);
+  const [standingsConfig, setStandingsConfig] = useState({ phongDo: true, thePhat: false });
+  const [viewMode, setViewMode] = useState<'overview' | 'detailed'>('overview');
+
+  const tournamentType = useMemo(() => {
+    if (!selectedTournamentId) return 'league';
+    const configStr = localStorage.getItem(`giai_dau_config_${selectedTournamentId}`);
+    if (configStr) {
+      try {
+        const config = JSON.parse(configStr);
+        if (config.theThuc) return config.theThuc;
+      } catch (e) {}
+    }
+    if (selectedTournament) {
+      const nameLower = selectedTournament.ten.toLowerCase();
+      if (nameLower.includes('epl') || nameLower.includes('league') || nameLower.includes('vòng tròn') || nameLower.includes('vđqg')) {
+        return 'league';
+      }
+      if (nameLower.includes('cúp') || nameLower.includes('cup') || nameLower.includes('tournament') || nameLower.includes('knockout') || nameLower.includes('loại trực tiếp')) {
+        return 'tournament';
+      }
+    }
+    return 'league';
+  }, [selectedTournamentId, selectedTournament]);
+
+  // Load viewMode from localStorage on mount
+  useEffect(() => {
+    const savedMode = localStorage.getItem('standings_view_mode') as 'overview' | 'detailed';
+    if (savedMode && (savedMode === 'overview' || savedMode === 'detailed')) {
+      setViewMode(savedMode);
+    }
+  }, []);
+
+  const handleSetViewMode = (mode: 'overview' | 'detailed') => {
+    setViewMode(mode);
+    localStorage.setItem('standings_view_mode', mode);
+  };
+
+  useEffect(() => {
+    if (selectedTournamentId) {
+      const configStr = localStorage.getItem(`giai_dau_config_${selectedTournamentId}`);
+      if (configStr) {
+        try {
+          const config = JSON.parse(configStr);
+          // Only show non-individual events on the team standings
+          setCustomEvents((config.customEvents || []).filter((e: any) => !e.isIndividual));
+          setStandingsConfig(config.standingsConfig || { phongDo: true, thePhat: false });
+        } catch (e) {}
+      }
+    }
+  }, [selectedTournamentId]);
+
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        const res = await layBangXepHang(selectedTournamentId || undefined);
+        setData(res);
+      } catch (error) {
+        console.error("Lỗi lấy dữ liệu bảng xếp hạng:", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    loadData();
+    const interval = setInterval(loadData, 3000); // Poll every 3 seconds for Premier League style live standings
+    return () => clearInterval(interval);
+  }, [selectedTournamentId]);
+
+  if (loading) {
+    return <GlobalSkeletonLoader />;
+  }
+
+  // Group data by 'bang'
+  const groupedData: Record<string, any[]> = data.reduce((acc, curr) => {
+    const bang = curr.bang || 'A';
+    if (!acc[bang]) acc[bang] = [];
+    acc[bang].push(curr);
+    return acc;
+  }, {});
+
+  const groups = Object.keys(groupedData).sort();
+
+  return (
+    <div className={styles.page}>
+      <div className={`${styles.header} animate-fade-up`}>
+
+        <div className={styles.liveBadgeContainer}>
+          <span className={styles.liveIndicator}>
+            <span className={styles.liveDot}></span>
+            Real-time Live (NHA)
+          </span>
+        </div>
+        <h2 className={styles.title}>Bảng Xếp Hạng</h2>
+        <p className={styles.subtitle}>{selectedTournament?.ten || 'Giải đấu'} — Vòng bảng {selectedTournament?.mua_giai || ''}</p>
+      </div>
+
+      <div className={styles.tabContainer}>
+        <button 
+          className={`${styles.tabBtn} ${viewMode === 'overview' ? styles.tabActive : ''}`}
+          onClick={() => handleSetViewMode('overview')}
+        >
+          Tổng quan
+        </button>
+        <button 
+          className={`${styles.tabBtn} ${viewMode === 'detailed' ? styles.tabActive : ''}`}
+          onClick={() => handleSetViewMode('detailed')}
+        >
+          Chi tiết
+        </button>
+      </div>
+
+      <div className={`${styles.groupGrid} ${tournamentType === 'league' ? styles.leagueGrid : ''}`}>
+        {groups.map((groupName, idx) => (
+          <div key={groupName} className={`${styles.groupSection} animate-fade-up stagger-${(idx % 5) + 1}`}>
+            {tournamentType !== 'league' && (
+              <h3 className={styles.groupTitle}>Bảng {groupName}</h3>
+            )}
+            <div className={`${styles.tableWrap} ${styles[viewMode]}`}>
+              <table className={styles.table}>
+                <thead>
+                  <tr>
+                    <th className={`${styles.thCenter} ${styles.colRank}`}>#</th>
+                    <th className={styles.colTeam}>ĐỘI</th>
+                    <th className={styles.thCenter}>TRẬN</th>
+                    <th className={`${styles.thCenter} ${styles.hideOnOverview}`}>T</th>
+                    <th className={`${styles.thCenter} ${styles.hideOnOverview}`}>H</th>
+                    <th className={`${styles.thCenter} ${styles.hideOnOverview}`}>B</th>
+                    <th className={`${styles.thCenter} ${styles.hideOnOverview}`}>BT - BB</th>
+                    <th className={styles.thCenter}>HS</th>
+                    <th className={styles.thCenter}>ĐIỂM</th>
+                    {customEvents.map((evt) => (
+                      <th key={evt.id} className={`${styles.thCenter} ${styles.hideOnOverview}`} title={evt.name}>{evt.icon}</th>
+                    ))}
+                    {standingsConfig.phongDo && <th className={`${styles.thCenter} ${styles.hideOnOverview}`}>PĐ</th>}
+                  </tr>
+                </thead>
+                <tbody>
+                  {groupedData[groupName]
+                    .sort((a, b) => b.diem - a.diem || b.hieuSo - a.hieuSo || b.banThang - a.banThang)
+                    .map((row: any, i: number) => (
+                      <tr
+                        key={i}
+                        className={`${styles.row} ${i < 2 ? styles.rowQualified : styles.rowEliminated} ${i % 2 === 1 ? styles.rowZebra : ''}`}
+                      >
+                        <td className={`${styles.tdCenter} ${styles.colRank}`}>
+                          <span className={styles.rank}>{i + 1}</span>
+                        </td>
+                        <td className={styles.colTeam}>
+                          <div className={styles.teamCell}>
+                            <span className={styles.teamLogo} style={{ display: 'flex' }}><TeamLogo logo={row.doi?.logo} fallback="⚽" /></span>
+                            <span className={styles.teamName}>{row.doi?.ten}</span>
+                          </div>
+                        </td>
+                        <td className={styles.tdCenter}>{row.soTran}</td>
+                        <td className={`${styles.tdCenter} ${styles.hideOnOverview}`}>{row.thang || 0}</td>
+                        <td className={`${styles.tdCenter} ${styles.hideOnOverview}`}>{row.hoa || 0}</td>
+                        <td className={`${styles.tdCenter} ${styles.hideOnOverview}`}>{row.thua || 0}</td>
+                        <td className={`${styles.tdCenter} ${styles.hideOnOverview}`}>
+                          {row.banThang || 0} - {row.banThua || 0}
+                        </td>
+                        <td className={styles.tdCenter}>
+                          {(() => {
+                            const hieuSo = (row.banThang || 0) - (row.banThua || 0);
+                            return (
+                              <span className={hieuSo > 0 ? styles.positive : hieuSo < 0 ? styles.negative : ''}>
+                                {hieuSo > 0 ? '+' : ''}{hieuSo}
+                              </span>
+                            );
+                          })()}
+                        </td>
+                        <td className={styles.tdCenter}>
+                          <span className={`${styles.points} ${i < 2 ? styles.pointsQualified : ''}`}>{row.diem}</span>
+                        </td>
+                        {customEvents.map((evt) => (
+                          <td key={evt.id} className={`${styles.tdCenter} ${styles.hideOnOverview}`} style={{ fontWeight: 600, color: '#f59e0b' }}>
+                            {row.customStats?.[evt.id] || 0}
+                          </td>
+                        ))}
+                        {standingsConfig.phongDo && (
+                          <td className={`${styles.tdCenter} ${styles.hideOnOverview}`}>
+                            <div className={styles.formRow}>
+                              {row.soTran > 0 ? (
+                                (row.phongDo || []).map((p: string, idx: number) => (
+                                  <span key={idx} className={`${styles.formBadge} ${styles['form' + p]}`}>{p}</span>
+                                ))
+                              ) : (
+                                <span className={styles.formEmpty}>—</span>
+                              )}
+                            </div>
+                          </td>
+                        )}
+                      </tr>
+                    ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
