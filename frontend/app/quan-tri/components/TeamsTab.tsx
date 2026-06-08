@@ -1,5 +1,6 @@
 import React from 'react';
 import TeamLogo from '@/components/TeamLogo';
+import { TrashIcon, ImportIcon } from '@/components/AppIcons';
 
 interface TeamsTabProps {
   styles: any;
@@ -36,7 +37,8 @@ export default function TeamsTab({
               style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', background: '#ef4444', color: 'white', borderColor: '#dc2626' }} 
               onClick={handleDeleteAllTeams}
             >
-              🗑️ Xóa tất cả đội
+              <TrashIcon size={14} color="#white" />
+              <span>Xóa tất cả đội</span>
             </button>
           )}
           <button 
@@ -44,7 +46,8 @@ export default function TeamsTab({
             style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', background: '#3b82f6', color: 'white', borderColor: '#2563eb' }} 
             onClick={() => setIsBulkImportOpen(true)}
           >
-            📥 Nhập dữ liệu tổng hợp (Excel)
+            <ImportIcon size={14} color="#white" />
+            <span>Nhập dữ liệu tổng hợp (Excel)</span>
           </button>
           <button className={styles.addBtn} onClick={handleAddTeam}>+ Thêm đội mới</button>
         </div>

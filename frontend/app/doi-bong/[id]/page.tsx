@@ -10,6 +10,13 @@ import { layDanhSachDoi, layDanhSachTranDau, layBangXepHang } from '@/lib/api';
 
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import TeamLogo from '@/components/TeamLogo';
+import { 
+  ArrowLeftIcon, 
+  StarIcon, 
+  SoccerBallIcon, 
+  ShieldIcon, 
+  HelpIcon 
+} from '@/components/AppIcons';
 
 export default function TeamDetailsPage() {
   const params = useParams();
@@ -99,7 +106,9 @@ export default function TeamDetailsPage() {
     return (
       <div className={styles.container} style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '20px' }}>
         <div className={styles.errorCard}>
-          <div className={styles.errorIcon}>⚠️</div>
+          <div className={styles.errorIcon} style={{ display: 'flex', justifyContent: 'center' }}>
+            <HelpIcon size={48} color="var(--color-danger)" />
+          </div>
           <h2 className={styles.errorTitle}>Đã xảy ra lỗi</h2>
           <p className={styles.errorMsg}>{error || 'Không tìm thấy đội bóng trong hệ thống giải đấu'}</p>
           <button className={styles.errorBtn} onClick={() => router.push('/')}>
@@ -114,7 +123,7 @@ export default function TeamDetailsPage() {
 
   const renderOverview = () => (
     <div className={styles.contentArea}>
-      {/* Form Guide */}
+      {/* Phong độ */}
       <h3 className={styles.sectionTitle}>Phong độ</h3>
       <div className={styles.card}>
         <div className={styles.formWrapper}>
@@ -134,14 +143,16 @@ export default function TeamDetailsPage() {
         </div>
       </div>
 
-      {/* Next Match */}
+      {/* Trận tiếp theo */}
       {tranDauSapToi && (
         <>
           <h3 className={styles.sectionTitle}>Trận tiếp theo</h3>
           <div className={styles.card}>
             <div className={styles.nextMatchTeams}>
               <div className={styles.nextMatchTeam}>
-                <span className={styles.teamLogoSm} style={{ display: 'flex' }}><TeamLogo logo={tranDauSapToi.doiNha?.logo} fallback="🛡️" /></span>
+                <span className={styles.teamLogoSm} style={{ display: 'flex' }}>
+                  <TeamLogo logo={tranDauSapToi.doiNha?.logo} fallback={<ShieldIcon size={16} />} />
+                </span>
                 <span className={styles.teamNameSm}>{tranDauSapToi.doiNha?.ten || 'Home'}</span>
               </div>
               <div className={styles.matchCenter}>
@@ -151,7 +162,9 @@ export default function TeamDetailsPage() {
                 </div>
               </div>
               <div className={styles.nextMatchTeam}>
-                <span className={styles.teamLogoSm} style={{ display: 'flex' }}><TeamLogo logo={tranDauSapToi.doiKhach?.logo} fallback="🛡️" /></span>
+                <span className={styles.teamLogoSm} style={{ display: 'flex' }}>
+                  <TeamLogo logo={tranDauSapToi.doiKhach?.logo} fallback={<ShieldIcon size={16} />} />
+                </span>
                 <span className={styles.teamNameSm}>{tranDauSapToi.doiKhach?.ten || 'Away'}</span>
               </div>
             </div>
@@ -159,7 +172,7 @@ export default function TeamDetailsPage() {
         </>
       )}
 
-      {/* Key Stats */}
+      {/* Thống kê chính */}
       {thongKe && (
         <>
           <h3 className={styles.sectionTitle}>Thống kê chính</h3>
@@ -233,7 +246,10 @@ export default function TeamDetailsPage() {
                   <div className={styles.playerNumberBadge}>{ct.soAo || '-'}</div>
                   <div className={styles.playerInfo}>
                     <div className={playerNameClass(ct.ten)}>{ct.ten}</div>
-                    <div className={styles.playerStat}>⚽ {ct.banThang || 0} Bàn thắng</div>
+                    <div className={styles.playerStat} style={{ display: 'flex', alignItems: 'center', gap: '4px' }}>
+                      <SoccerBallIcon size={12} />
+                      <span>{ct.banThang || 0} Bàn thắng</span>
+                    </div>
                   </div>
                 </div>
               ))}
@@ -244,7 +260,6 @@ export default function TeamDetailsPage() {
     );
   };
 
-  // Helper helper to handle position styling or simple text
   const playerNameClass = (name: string) => {
     return styles.playerName;
   };
@@ -253,7 +268,7 @@ export default function TeamDetailsPage() {
     <div className={styles.container}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <button onClick={() => router.back()} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, fontWeight: 600, color: '#334155' }}>
-          ← Quay lại
+          <ArrowLeftIcon size={16} /> Quay lại
         </button>
         <Link href="/" style={{ color: '#64748b', textDecoration: 'none', fontSize: '14px' }}>
           Về Trang chủ
@@ -263,7 +278,7 @@ export default function TeamDetailsPage() {
       {/* Header Section */}
       <div className={styles.headerSection}>
         <div className={styles.logoWrapper}>
-          <TeamLogo logo={data.doi.logo} fallback="🛡️" />
+          <TeamLogo logo={data.doi.logo} fallback={<ShieldIcon size={40} />} />
         </div>
         <div className={styles.headerInfo}>
           <div className={styles.teamNameRow}>
@@ -272,8 +287,9 @@ export default function TeamDetailsPage() {
               className={`${styles.followBtn} ${isFollowed ? styles.followBtnActive : ''}`} 
               onClick={handleFollowToggle}
               title={isFollowed ? "Bỏ theo dõi" : "Theo dõi đội bóng"}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}
             >
-              {isFollowed ? '⭐' : '☆'}
+              <StarIcon size={18} filled={isFollowed} />
             </button>
           </div>
           <div className={styles.teamSubtitle}>

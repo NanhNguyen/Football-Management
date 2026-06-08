@@ -4,6 +4,7 @@ import { useState, useEffect } from 'react';
 import styles from './page.module.css';
 import { layDuLieuKnockout } from '@/lib/api';
 import { usePublicTournament } from '@/components/PublicTournamentContext';
+import { LiveDotIcon, LockIcon } from '@/components/AppIcons';
 
 interface MatchCardProps {
   match: {
@@ -32,9 +33,14 @@ function MatchCard({ match }: MatchCardProps) {
 
   return (
     <div className={styles.matchCardContainer}>
-      <div className={styles.matchTimeHeader}>
-        {matchDate}
-        {isLive && <span className={styles.liveIndicatorMini}>🔴 LIVE</span>}
+      <div className={styles.matchTimeHeader} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+        <span>{matchDate}</span>
+        {isLive && (
+          <span className={styles.liveIndicatorMini} style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+            <LiveDotIcon size={8} />
+            <span>LIVE</span>
+          </span>
+        )}
       </div>
       
       <div className={`${styles.matchCard} ${isFinished ? styles.matchFinished : isLive ? styles.matchLive : styles.matchUpcoming}`}>
@@ -195,7 +201,9 @@ export default function KnockoutPage() {
 
       {!bracketData.allGroupCompleted && (
         <div className={`${styles.lockBanner} animate-fade-up`}>
-          <div className={styles.lockIcon}>🔒</div>
+          <div className={styles.lockIcon} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <LockIcon size={24} color="var(--color-warning)" />
+          </div>
           <div className={styles.lockContent}>
             <div className={styles.lockTitle}>
               SƠ ĐỒ LOẠI TRỰC TIẾP ĐANG KHÓA

@@ -8,6 +8,19 @@ import TeamLogo from '@/components/TeamLogo';
 import styles from './page.module.css';
 import { supabase } from '@/lib/supabase';
 import { layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
+import { 
+  ArrowLeftIcon, 
+  SoccerBallIcon, 
+  YellowCardIcon, 
+  RedCardIcon, 
+  SyncIcon, 
+  ZapIcon, 
+  AwardIcon, 
+  StadiumIcon, 
+  CalendarIcon, 
+  TimerIcon, 
+  FlameIcon 
+} from '@/components/AppIcons';
 
 export default function ChiTietTranDauPage() {
   const params = useParams();
@@ -104,24 +117,24 @@ export default function ChiTietTranDauPage() {
   // Fallback data if match doesn't exist
   const matchData = tran || {
     id, vong: 'Vòng đấu', phut: 0, trangThai: 'SAP_DIEN_RA',
-    doiNha: { ten: 'Đội nhà', logo: '⚽' },
-    doiKhach: { ten: 'Đội khách', logo: '⚽' },
+    doiNha: { ten: 'Đội nhà', logo: '' },
+    doiKhach: { ten: 'Đội khách', logo: '' },
     tyDoiNha: 0, tyDoiKhach: 0,
     suKien: [],
   };
 
-  const eventIcons: Record<string, string> = {
-    'BAN_THANG': '⚽',
-    'GOAL_NORMAL': '⚽',
-    'GOAL_PEN': '⚽',
-    'GOAL_OG': '⚽',
-    'THE_VANG': '🟨',
-    'THE_DO': '🟥',
-    'THAY_NGUOI': '🔄',
-    'SUB': '🔄',
-    'CHOT': '⚡',
-    'MOTM': '🏅',
-    'CARD': '🟨',
+  const eventIcons: Record<string, React.ReactNode> = {
+    'BAN_THANG': <SoccerBallIcon size={14} />,
+    'GOAL_NORMAL': <SoccerBallIcon size={14} />,
+    'GOAL_PEN': <SoccerBallIcon size={14} />,
+    'GOAL_OG': <SoccerBallIcon size={14} />,
+    'THE_VANG': <YellowCardIcon size={14} />,
+    'THE_DO': <RedCardIcon size={14} />,
+    'THAY_NGUOI': <SyncIcon size={14} />,
+    'SUB': <SyncIcon size={14} />,
+    'CHOT': <ZapIcon size={14} />,
+    'MOTM': <AwardIcon size={14} />,
+    'CARD': <YellowCardIcon size={14} />,
   };
 
   const eventLabels: Record<string, string> = {
@@ -149,7 +162,7 @@ export default function ChiTietTranDauPage() {
     <div className={`${styles.page} animate-fade-in`}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <button onClick={() => router.back()} className={styles.backLink} style={{ background: 'none', border: 'none', cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0 }}>
-          ← Quay lại
+          <ArrowLeftIcon size={16} /> Quay lại
         </button>
         <Link href="/" className={styles.backLink} style={{ color: '#64748b' }}>
           Về Trang chủ
@@ -191,13 +204,13 @@ export default function ChiTietTranDauPage() {
               <span className={styles.scoreNum}>{tyDoiKhach}</span>
             </div>
             {matchData.san && (
-              <span style={{ fontSize: '12px', color: '#94a3b8', marginTop: '12px', display: 'block' }}>
-                🏟️ Sân {matchData.san}
+              <span style={{ fontSize: '12px', color: '#94a3b8', marginTop: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                <StadiumIcon size={14} /> Sân {matchData.san}
               </span>
             )}
             {matchData.date && (
-              <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', display: 'block' }}>
-                📅 {matchData.date} {matchData.time ? `• ${matchData.time}` : ''}
+              <span style={{ fontSize: '11px', color: '#94a3b8', marginTop: '4px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}>
+                <CalendarIcon size={12} /> {matchData.date} {matchData.time ? `• ${matchData.time}` : ''}
               </span>
             )}
           </div>
@@ -213,8 +226,8 @@ export default function ChiTietTranDauPage() {
       <div className={`${styles.timelineSection} animate-fade-up`}>
         <h3 className={styles.sectionTitle}>Diễn biến trận đấu</h3>
         {(matchData.suKien || []).length === 0 ? (
-          <div style={{ background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1', padding: '48px', textAlign: 'center' }}>
-            <span style={{ fontSize: '32px', display: 'block', marginBottom: '12px' }}>⏱️</span>
+          <div style={{ background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1', padding: '48px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+            <span style={{ display: 'block', marginBottom: '12px' }}><TimerIcon size={32} /></span>
             <p style={{ color: '#64748b', fontWeight: 500, margin: 0 }}>Chưa có sự kiện nào được ghi nhận cho trận đấu này.</p>
           </div>
         ) : (
@@ -223,8 +236,8 @@ export default function ChiTietTranDauPage() {
               const isHomeTeamEvent = sk.doi?.ten === matchData.doiNha?.ten;
               return (
                 <div key={sk.id} className={`${styles.timelineItem} ${sk.loai === 'CHOT' ? styles.timelineItemDeal : ''}`}>
-                  <div className={styles.timelineDot}>
-                    <span className={styles.timelineIcon}>{eventIcons[sk.loai] ?? '📌'}</span>
+                  <div className={styles.timelineDot} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
+                    <span className={styles.timelineIcon} style={{ display: 'inline-flex' }}>{eventIcons[sk.loai] ?? <ZapIcon size={14} />}</span>
                     <span className={styles.timelineMinute}>{sk.phut}&apos;</span>
                   </div>
                   <div className={styles.timelineContent}>
@@ -284,15 +297,19 @@ export default function ChiTietTranDauPage() {
               away: (matchData.suKien || []).filter((e: any) => (e.loai === 'THE_VANG' || e.loai === 'CARD') && e.doi?.ten === matchData.doiKhach?.ten).length 
             },
             { 
-              label: 'Siêu Chốt 🔥', 
+              label: 'Siêu Chốt', 
+              icon: <FlameIcon size={12} style={{ marginLeft: '4px' }} />,
               home: (matchData.suKien || []).filter((e: any) => e.loai === 'CHOT' && e.doi?.ten === matchData.doiNha?.ten).length, 
               away: (matchData.suKien || []).filter((e: any) => e.loai === 'CHOT' && e.doi?.ten === matchData.doiKhach?.ten).length 
             },
           ].map((stat, i) => (
             <div key={i} className={styles.statRow}>
               <span className={styles.statHome}>{stat.home}</span>
-              <span className={styles.statLabel}>{stat.label}</span>
-              <span className={styles.statAway}>{stat.away}</span>
+              <span className={styles.statLabel} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                <span>{stat.label}</span>
+                {stat.icon}
+              </span>
+              <span className={stat.away !== undefined ? styles.statAway : ''}>{stat.away}</span>
             </div>
           ))}
         </div>

@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { supabase } from '@/lib/supabase';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
+import { SettingsIcon, LogoutIcon, LockIcon } from '@/components/AppIcons';
 import styles from './ca-nhan.module.css';
 
 export default function CaNhanPage() {
@@ -64,7 +65,9 @@ export default function CaNhanPage() {
             {/* Actions list */}
             <div className={styles.actionsList}>
               <Link href="/quan-tri" className={styles.actionBtn}>
-                <span className={styles.actionIcon}>⚙️</span>
+                <span className={styles.actionIcon} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <SettingsIcon size={18} />
+                </span>
                 <div className={styles.actionText}>
                   <span className={styles.actionTitle}>Trang Quản trị</span>
                   <span className={styles.actionDesc}>Quản lý giải đấu, đội bóng, lịch thi đấu</span>
@@ -73,7 +76,9 @@ export default function CaNhanPage() {
               </Link>
 
               <button onClick={handleLogout} className={`${styles.actionBtn} ${styles.logoutBtn}`}>
-                <span className={styles.actionIcon}>🚪</span>
+                <span className={styles.actionIcon} style={{ display: 'inline-flex', alignItems: 'center' }}>
+                  <LogoutIcon size={18} />
+                </span>
                 <div className={styles.actionText}>
                   <span className={styles.actionTitle}>Đăng xuất</span>
                   <span className={styles.actionDesc}>Thoát khỏi phiên làm việc hiện tại</span>
@@ -84,7 +89,9 @@ export default function CaNhanPage() {
           </>
         ) : (
           <div className={styles.loginRequired}>
-            <div className={styles.lockIcon}>🔒</div>
+            <div className={styles.lockIcon} style={{ display: 'flex', justifyContent: 'center' }}>
+              <LockIcon size={48} />
+            </div>
             <h2 className={styles.loginTitle}>Yêu cầu đăng nhập</h2>
             <p className={styles.loginDesc}>Vui lòng đăng nhập với tài khoản Ban tổ chức để truy cập chức năng này.</p>
             <Link href="/login" className={styles.loginBtn}>

@@ -1,5 +1,6 @@
 import React from 'react';
 import TeamLogo from '@/components/TeamLogo';
+import { EditIcon, ShieldIcon, ClipboardIcon, SoccerBallIcon } from '@/components/AppIcons';
 
 interface TeamDetailViewProps {
   team: any;
@@ -62,9 +63,10 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
         <button
           className={styles.addBtn}
           onClick={onEdit}
-          style={{ padding: '8px 16px', fontSize: '14px', background: '#3b82f6', borderColor: '#2563eb' }}
+          style={{ padding: '8px 16px', fontSize: '14px', background: '#3b82f6', borderColor: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
-          ✏️ Chỉnh sửa thành viên
+          <EditIcon size={14} color="white" />
+          <span>Chỉnh sửa thành viên</span>
         </button>
       </div>
 
@@ -112,14 +114,16 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
             <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 600 }}>
               •
             </span>
-            <span style={{ color: '#ef4444', fontSize: '14px', fontWeight: 600 }}>
-              🛡️ Chính thức: {chinhThuc.length}
+            <span style={{ color: '#ef4444', fontSize: '14px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <ShieldIcon size={14} color="#ef4444" />
+              <span>Chính thức: {chinhThuc.length}</span>
             </span>
             <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 600 }}>
               •
             </span>
-            <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 600 }}>
-              📋 Dự bị: {duBi.length}
+            <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 600, display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+              <ClipboardIcon size={14} color="#64748b" />
+              <span>Dự bị: {duBi.length}</span>
             </span>
           </div>
         </div>
@@ -145,7 +149,8 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
               paddingBottom: '8px'
             }}
           >
-            🛡️ Đội hình chính thức ({chinhThuc.length})
+            <ShieldIcon size={16} color="#dc2626" />
+            <span>Đội hình chính thức ({chinhThuc.length})</span>
           </h3>
           {chinhThuc.length === 0 ? (
             <p style={{ color: '#94a3b8', fontSize: '14px', fontStyle: 'italic', padding: '16px 0' }}>
@@ -192,8 +197,9 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
                       </p>
                     </div>
                   </div>
-                  <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600, background: '#f8fafc', padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                    ⚽ {p.banThang || 0} bàn
+                  <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600, background: '#f8fafc', padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <SoccerBallIcon size={12} color="#64748b" />
+                    <span>{p.banThang || 0} bàn</span>
                   </span>
                 </div>
               ))}
@@ -218,7 +224,8 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
               paddingBottom: '8px'
             }}
           >
-            📋 Danh sách dự bị ({duBi.length})
+            <ClipboardIcon size={16} color="#4b5563" />
+            <span>Danh sách dự bị ({duBi.length})</span>
           </h3>
           {duBi.length === 0 ? (
             <p style={{ color: '#94a3b8', fontSize: '14px', fontStyle: 'italic', padding: '16px 0' }}>
@@ -265,8 +272,9 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
                       </p>
                     </div>
                   </div>
-                  <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600, background: '#fff', padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
-                    ⚽ {p.banThang || 0} bàn
+                  <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600, background: '#fff', padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                    <SoccerBallIcon size={12} color="#64748b" />
+                    <span>{p.banThang || 0} bàn</span>
                   </span>
                 </div>
               ))}

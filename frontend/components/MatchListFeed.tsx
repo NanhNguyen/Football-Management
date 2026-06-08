@@ -3,6 +3,7 @@ import React from 'react';
 import styles from './MatchListFeed.module.css';
 import { calculateMatchMinute } from '@/lib/api';
 import TeamLogo from './TeamLogo';
+import { ShieldIcon } from './AppIcons';
 
 interface MatchListFeedProps {
   data: any;
@@ -225,7 +226,7 @@ export default function MatchListFeed({ data, onMatchClick, tournamentType = 'le
                   {/* Team A */}
                   <div className={styles.teamA}>
                     <span className={styles.teamName}>{match.doiNha?.ten || 'TBD'}</span>
-                    <span className={styles.teamLogo}><TeamLogo logo={match.doiNha?.logo} fallback="🛡️" /></span>
+                    <span className={styles.teamLogo}><TeamLogo logo={match.doiNha?.logo} fallback={<ShieldIcon size={16} />} /></span>
                   </div>
 
                   {/* Score */}
@@ -246,7 +247,7 @@ export default function MatchListFeed({ data, onMatchClick, tournamentType = 'le
 
                   {/* Team B */}
                   <div className={styles.teamB}>
-                    <span className={styles.teamLogo}><TeamLogo logo={match.doiKhach?.logo} fallback="🛡️" /></span>
+                    <span className={styles.teamLogo}><TeamLogo logo={match.doiKhach?.logo} fallback={<ShieldIcon size={16} />} /></span>
                     <span className={styles.teamName}>{match.doiKhach?.ten || 'TBD'}</span>
                   </div>
 
