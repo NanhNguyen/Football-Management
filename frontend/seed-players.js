@@ -67,7 +67,11 @@ async function seedPlayers() {
     { vi_tri: 'Tiền vệ', soAoRanges: [6, 8, 14, 16, 17, 19, 22] },
     { vi_tri: 'Tiền vệ', soAoRanges: [6, 8, 14, 16, 17, 19, 22] },
     { vi_tri: 'Tiền đạo', soAoRanges: [7, 9, 10, 11, 18, 20, 99] },
-    { vi_tri: 'Tiền đạo', soAoRanges: [7, 9, 10, 11, 18, 20, 99] }
+    { vi_tri: 'Tiền đạo', soAoRanges: [7, 9, 10, 11, 18, 20, 99] },
+    { vi_tri: 'Dự bị - Thủ môn', soAoRanges: [88, 91] },
+    { vi_tri: 'Dự bị - Hậu vệ', soAoRanges: [13, 24, 25] },
+    { vi_tri: 'Dự bị - Tiền vệ', soAoRanges: [18, 26, 27] },
+    { vi_tri: 'Dự bị - Tiền đạo', soAoRanges: [28, 29, 90] }
   ];
 
   teams.forEach((team) => {

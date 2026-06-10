@@ -163,11 +163,11 @@ function TongQuanContent() {
     if (loading) return;
 
     if (uniqueRounds.length === 0) {
-      if (selectedMatchweek !== 'ALL') setSelectedMatchweek('ALL');
+      if (selectedMatchweek !== 'NONE') setSelectedMatchweek('NONE');
       return;
     }
 
-    if (selectedMatchweek === 'DEFAULT' || (selectedMatchweek !== 'ALL' && !uniqueRounds.includes(selectedMatchweek))) {
+    if (selectedMatchweek === 'DEFAULT' || selectedMatchweek === 'NONE' || !uniqueRounds.includes(selectedMatchweek)) {
       const today = new Date();
       const todayStart = new Date(today.getFullYear(), today.getMonth(), today.getDate()).getTime();
       const todayEnd = todayStart + 24 * 60 * 60 * 1000;
@@ -265,7 +265,7 @@ function TongQuanContent() {
     if (!data) return null;
     let filtered = allMatchesList;
 
-    if (selectedMatchweek !== 'DEFAULT' && selectedMatchweek !== 'ALL') {
+    if (selectedMatchweek !== 'DEFAULT' && selectedMatchweek !== 'NONE') {
       filtered = filtered.filter((m: any) => getGenericRoundKey(m.vong) === selectedMatchweek);
     }
 
@@ -404,7 +404,7 @@ function TongQuanContent() {
             <button 
               className={styles.resetBtn}
               onClick={() => {
-                setSelectedMatchweek(uniqueRounds[0] || 'ALL');
+                setSelectedMatchweek(uniqueRounds[0] || 'NONE');
                 setSelectedTeamId('ALL');
               }}
             >
@@ -426,10 +426,10 @@ function TongQuanContent() {
 
               <div className={styles.weekInfo}>
                 <span className={styles.weekTitle}>
-                  {selectedMatchweek === 'ALL' ? 'Tất cả vòng đấu' : selectedMatchweek}
+                  {selectedMatchweek === 'NONE' ? 'Không có trận đấu' : selectedMatchweek}
                 </span>
                 <span className={styles.weekDate}>
-                  {selectedMatchweek === 'ALL' ? 'Hiển thị tất cả trận đấu' : getActiveWeekDate()}
+                  {selectedMatchweek === 'NONE' ? 'Chưa xếp lịch thi đấu' : getActiveWeekDate()}
                 </span>
               </div>
 
