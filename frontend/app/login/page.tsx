@@ -26,7 +26,7 @@ export default function LoginPage() {
       setError(error.message);
       setLoading(false);
     } else {
-      router.push('/quan-tri');
+      router.push('/');
     }
   };
 

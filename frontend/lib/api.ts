@@ -205,6 +205,7 @@ export async function layDanhSachTranDau(giaiDauId?: string) {
 
   return data.map(m => ({
     id: m.id,
+    giaiDauId: m.giai_dau_id,
     doiNha: parseTeam(m.doi_nha),
     doiKhach: parseTeam(m.doi_khach),
     tyNha: m.ty_doi_nha,

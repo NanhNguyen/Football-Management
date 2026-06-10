@@ -1,7 +1,7 @@
 'use client';
 
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { layDanhSachGiaiDau } from '@/lib/api';
+import { layDanhSachGiaiDau, layDanhSachTranDau } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 
 interface Tournament {
@@ -87,16 +87,65 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
         const list = await layDanhSachGiaiDau();
         setTournaments(list);
         
+        // Fetch all matches to find the closest one to today
+        const allMatches = await layDanhSachTranDau();
+        let defaultId = null;
+
+        if (allMatches && allMatches.length > 0) {
+          const now = new Date().getTime();
+          
+          // Filter upcoming matches (DANG_DIEN_RA or SAP_DIEN_RA)
+          const upcoming = allMatches.filter((m: any) => m.trangThai === 'DANG_DIEN_RA' || m.trangThai === 'SAP_DIEN_RA');
+          if (upcoming.length > 0) {
+            // Sort by time difference to now ascending
+            upcoming.sort((a: any, b: any) => {
+              const tA = new Date(a.date || a.batDauLuc).getTime();
+              const tB = new Date(b.date || b.batDauLuc).getTime();
+              return Math.abs(tA - now) - Math.abs(tB - now);
+            });
+            // Get the tournament of the closest upcoming match
+            const matchTourneyId = upcoming[0].giaiDauId || list.find((t: any) => t.ten === upcoming[0].giaiDauTen)?.id;
+            if (matchTourneyId && list.some((t: Tournament) => t.id === matchTourneyId)) {
+              defaultId = matchTourneyId;
+            }
+          }
+
+          if (!defaultId) {
+            // Fallback to finished matches
+            const finished = allMatches.filter((m: any) => m.trangThai === 'KET_THUC');
+            if (finished.length > 0) {
+              finished.sort((a: any, b: any) => {
+                const tA = new Date(a.date || a.batDauLuc).getTime();
+                const tB = new Date(b.date || b.batDauLuc).getTime();
+                return Math.abs(tA - now) - Math.abs(tB - now);
+              });
+              const matchTourneyId = finished[0].giaiDauId || list.find((t: any) => t.ten === finished[0].giaiDauTen)?.id;
+              if (matchTourneyId && list.some((t: Tournament) => t.id === matchTourneyId)) {
+                defaultId = matchTourneyId;
+              }
+            }
+          }
+        }
+
         // Find default selection
         const savedId = localStorage.getItem('public_selected_tournament_id');
         if (savedId && list.some((t: Tournament) => t.id === savedId)) {
-          setSelectedTournamentIdState(savedId);
-        } else if (list.length > 0) {
-          // Default to first tournament (or Thiên Khôi Cúp if exists)
-          const thienKhoi = list.find((t: Tournament) => t.ten.includes('Thiên Khôi'));
-          const defaultId = thienKhoi ? thienKhoi.id : list[0].id;
-          setSelectedTournamentIdState(defaultId);
-          localStorage.setItem('public_selected_tournament_id', defaultId);
+          // If we have a saved ID, we can use it, but if that tournament has no matches, we override it
+          const tournamentMatches = allMatches.filter((m: any) => m.giaiDauId === savedId);
+          if (tournamentMatches.length > 0) {
+            setSelectedTournamentIdState(savedId);
+          } else if (defaultId) {
+            setSelectedTournamentIdState(defaultId);
+            localStorage.setItem('public_selected_tournament_id', defaultId);
+          } else {
+            setSelectedTournamentIdState(savedId);
+          }
+        } else {
+          const finalId = defaultId || (list.find((t: Tournament) => t.ten.includes('Thiên Khôi'))?.id) || list[0]?.id;
+          if (finalId) {
+            setSelectedTournamentIdState(finalId);
+            localStorage.setItem('public_selected_tournament_id', finalId);
+          }
         }
       } catch (error) {
         console.error('Lỗi lấy danh sách giải đấu cho Public View:', error);

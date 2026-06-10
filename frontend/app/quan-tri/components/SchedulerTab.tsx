@@ -29,6 +29,69 @@ export default function SchedulerTab({
   liveMatches,
   handleClearDraftSchedule
 }: SchedulerTabProps) {
+
+  const parseVongDetails = (vongStr: string = '') => {
+    const str = vongStr.trim();
+    const matchNew = str.match(/Vòng\s+(\d+)\s+-\s+Bảng\s+([A-Z])/i);
+    if (matchNew) return { bang: `Bảng ${matchNew[2]}`, vong: `Vòng ${matchNew[1]}` };
+    const matchOld = str.match(/Bảng\s+([A-Z])\s+-\s+Vòng\s+(\d+)/i);
+    if (matchOld) return { bang: `Bảng ${matchOld[1]}`, vong: `Vòng ${matchOld[2]}` };
+    return { bang: '', vong: str };
+  };
+
+  const formatDateLabel = (dateStr: string) => {
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      if (isNaN(d.getTime())) return dateStr;
+      
+      const day = d.getDate();
+      const month = d.getMonth() + 1;
+      
+      const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+      const dayName = days[d.getDay()];
+      
+      return `${dayName}, ${day} Thg ${month}`;
+    } catch (e) {
+      return dateStr;
+    }
+  };
+
+  const getRoundDateRange = () => {
+    const roundMatches = filteredAndSortedScheduleMatches.filter(m => {
+      if (scheduleFilterVong === 'all') return true;
+      const { vong } = parseVongDetails(m.vong);
+      return vong === scheduleFilterVong;
+    });
+
+    const dates = roundMatches
+      .map(m => m.date)
+      .filter(Boolean)
+      .sort();
+
+    if (dates.length === 0) return 'Chưa xếp lịch';
+    if (dates.length === 1) {
+      return formatDateLabel(dates[0]);
+    }
+    return `${formatDateLabel(dates[0])} - ${formatDateLabel(dates[dates.length - 1])}`;
+  };
+
+  const handlePrevRound = () => {
+    if (scheduleUniqueRounds.length === 0) return;
+    const idx = scheduleUniqueRounds.indexOf(scheduleFilterVong);
+    if (idx > 0) {
+      setScheduleFilterVong(scheduleUniqueRounds[idx - 1]);
+    }
+  };
+
+  const handleNextRound = () => {
+    if (scheduleUniqueRounds.length === 0) return;
+    const idx = scheduleUniqueRounds.indexOf(scheduleFilterVong);
+    if (idx < scheduleUniqueRounds.length - 1 && idx !== -1) {
+      setScheduleFilterVong(scheduleUniqueRounds[idx + 1]);
+    }
+  };
+
   return (
     <div className={`${styles.content} animate-fade-in`}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -57,37 +120,119 @@ export default function SchedulerTab({
       </div>
 
       <div style={{ width: '100%' }}>
+        {/* Round Switcher and Dropdown Strip */}
+        {scheduleUniqueRounds.length > 0 && (
+          <div style={{
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            margin: '0 0 28px 0',
+            padding: '20px',
+            background: 'var(--color-surface, #ffffff)',
+            borderRadius: '16px',
+            border: '1px solid var(--color-border-light, #e2e8f0)',
+            boxShadow: '0 4px 10px rgba(0, 0, 0, 0.03)',
+            gap: '16px'
+          }}>
+            {/* Filter Dropdown on Top */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Chọn nhanh vòng:</span>
+              <select
+                value={scheduleFilterVong}
+                onChange={(e) => setScheduleFilterVong(e.target.value)}
+                style={{
+                  padding: '8px 16px',
+                  borderRadius: '10px',
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  fontSize: '13px',
+                  fontWeight: 600,
+                  color: '#1e293b',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                }}
+              >
+                {scheduleUniqueRounds.map(r => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+
+            {/* Switcher Strip below */}
+            {(() => {
+              const currentIdx = scheduleUniqueRounds.indexOf(scheduleFilterVong);
+              const isFirstRound = currentIdx <= 0;
+              const isLastRound = currentIdx >= scheduleUniqueRounds.length - 1 || currentIdx === -1;
+              return (
+                <div style={{ display: 'flex', alignItems: 'center', gap: '24px' }}>
+                  <button
+                    onClick={handlePrevRound}
+                    disabled={isFirstRound}
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '50%',
+                      border: '1px solid #e2e8f0',
+                      background: '#ffffff',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: isFirstRound ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s',
+                      outline: 'none',
+                      opacity: isFirstRound ? 0.5 : 1
+                    }}
+                    title="Vòng trước"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
+                  </button>
+                  <div style={{ textAlign: 'center', minWidth: '160px' }}>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>
+                      {scheduleFilterVong === 'NONE' ? 'Không có vòng đấu' : scheduleFilterVong}
+                    </div>
+                    <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, marginTop: '4px' }}>
+                      {getRoundDateRange()}
+                    </div>
+                  </div>
+                  <button
+                    onClick={handleNextRound}
+                    disabled={isLastRound}
+                    style={{
+                      width: '44px',
+                      height: '44px',
+                      borderRadius: '50%',
+                      border: '1px solid #e2e8f0',
+                      background: '#ffffff',
+                      boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      cursor: isLastRound ? 'not-allowed' : 'pointer',
+                      transition: 'all 0.2s',
+                      outline: 'none',
+                      opacity: isLastRound ? 0.5 : 1
+                    }}
+                    title="Vòng sau"
+                  >
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
+                  </button>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
         {/* Khu vực Danh sách Lịch */}
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '16px', flexWrap: 'wrap' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-              <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Danh sách Lịch đề xuất</h3>
-              {scheduleUniqueRounds.length > 0 && (
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                  <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Lọc theo vòng:</span>
-                  <select
-                    value={scheduleFilterVong}
-                    onChange={(e) => setScheduleFilterVong(e.target.value)}
-                    style={{
-                      padding: '6px 12px',
-                      borderRadius: '8px',
-                      border: '1px solid #cbd5e1',
-                      background: '#fff',
-                      fontSize: '13px',
-                      fontWeight: 600,
-                      color: '#1e293b',
-                      outline: 'none',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    <option value="all">Tất cả các vòng</option>
-                    {scheduleUniqueRounds.map(r => (
-                      <option key={r} value={r}>{r}</option>
-                    ))}
-                  </select>
-                </div>
-              )}
-            </div>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Danh sách Lịch đề xuất</h3>
             <button
               className={styles.editBtnCompact}
               onClick={() => setIsAddingMatch(true)}
@@ -118,16 +263,17 @@ export default function SchedulerTab({
               ) : (
                 Object.entries(
                   filteredAndSortedScheduleMatches.reduce((acc: any, m: any) => {
-                    const v = m.vong || 'Không rõ vòng';
+                    const { vong } = parseVongDetails(m.vong);
+                    const v = vong || 'Không rõ vòng';
                     if (!acc[v]) acc[v] = [];
                     acc[v].push(m);
                     return acc;
                   }, {})
-                ).map(([vong, matches]: any) => (
-                  <Fragment key={vong}>
+                ).map(([vongName, matches]: any) => (
+                  <Fragment key={vongName}>
                     <tr>
                       <td colSpan={6} style={{ background: '#f8fafc', padding: '12px 16px', fontWeight: 700, color: '#334155', borderBottom: '2px solid #e2e8f0', borderTop: 'none' }}>
-                        {vong}
+                        {vongName}
                       </td>
                     </tr>
                     {matches.map((m: any, idx: number) => (
@@ -158,6 +304,11 @@ export default function SchedulerTab({
                             <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{m.doiNha?.ten || '???'}</span>
                             <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 600 }}>vs</span>
                             <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{m.doiKhach?.ten || '???'}</span>
+                            {m.doiNha?.bang && (
+                              <span style={{ fontSize: '11px', color: 'var(--color-primary, #0f766e)', background: 'var(--color-primary-light, #eff6ff)', padding: '2px 8px', borderRadius: '4px', marginLeft: '8px', fontWeight: 700 }}>
+                                Bảng {m.doiNha.bang}
+                              </span>
+                            )}
                           </div>
                         </td>
                         <td>

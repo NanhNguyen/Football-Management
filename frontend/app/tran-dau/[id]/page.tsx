@@ -18,8 +18,7 @@ import {
   AwardIcon, 
   StadiumIcon, 
   CalendarIcon, 
-  TimerIcon, 
-  FlameIcon 
+  TimerIcon
 } from '@/components/AppIcons';
 
 export default function ChiTietTranDauPage() {
@@ -296,18 +295,11 @@ export default function ChiTietTranDauPage() {
               home: (matchData.suKien || []).filter((e: any) => (e.loai === 'THE_VANG' || e.loai === 'CARD') && e.doi?.ten === matchData.doiNha?.ten).length, 
               away: (matchData.suKien || []).filter((e: any) => (e.loai === 'THE_VANG' || e.loai === 'CARD') && e.doi?.ten === matchData.doiKhach?.ten).length 
             },
-            { 
-              label: 'Siêu Chốt', 
-              icon: <FlameIcon size={12} style={{ marginLeft: '4px' }} />,
-              home: (matchData.suKien || []).filter((e: any) => e.loai === 'CHOT' && e.doi?.ten === matchData.doiNha?.ten).length, 
-              away: (matchData.suKien || []).filter((e: any) => e.loai === 'CHOT' && e.doi?.ten === matchData.doiKhach?.ten).length 
-            },
           ].map((stat, i) => (
             <div key={i} className={styles.statRow}>
               <span className={styles.statHome}>{stat.home}</span>
               <span className={styles.statLabel} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
                 <span>{stat.label}</span>
-                {stat.icon}
               </span>
               <span className={stat.away !== undefined ? styles.statAway : ''}>{stat.away}</span>
             </div>
