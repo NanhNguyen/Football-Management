@@ -47,7 +47,7 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
           style={{
             background: 'none',
             border: 'none',
-            color: '#3b82f6',
+            color: 'var(--color-primary)',
             fontSize: '15px',
             fontWeight: 600,
             cursor: 'pointer',
@@ -63,7 +63,7 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
         <button
           className={styles.addBtn}
           onClick={onEdit}
-          style={{ padding: '8px 16px', fontSize: '14px', background: '#3b82f6', borderColor: '#2563eb', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
+          style={{ padding: '8px 16px', fontSize: '14px', background: 'var(--color-primary)', borderColor: 'var(--color-primary-dark)', display: 'inline-flex', alignItems: 'center', gap: '6px' }}
         >
           <EditIcon size={14} color="white" />
           <span>Chỉnh sửa thành viên</span>
@@ -102,7 +102,7 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
         <div>
           <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: '#0f172a' }}>{team.ten}</h2>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '8px', flexWrap: 'wrap' }}>
-            <span style={{ background: '#3b82f6', color: '#fff', padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 700 }}>
+            <span style={{ background: 'var(--color-primary)', color: '#fff', padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 700 }}>
               Bảng {team.bang || 'A'}
             </span>
             <span style={{ color: '#64748b', fontSize: '14px', fontWeight: 600 }}>
@@ -192,7 +192,7 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
                     </span>
                     <div>
                       <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>{p.ten}</p>
-                      <p style={{ margin: 0, fontSize: '11px', color: '#3b82f6', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginTop: '2px' }}>
+                      <p style={{ margin: 0, fontSize: '11px', color: 'var(--color-primary)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginTop: '2px' }}>
                         {getDisplayPos(p.viTri)}
                       </p>
                     </div>

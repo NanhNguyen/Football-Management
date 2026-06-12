@@ -507,7 +507,7 @@ export default function RefereeTab({
 
   const [activePopover, setActivePopover] = useState<{ playerId: string, teamId: string } | null>(null);
 
-  const handlePlayerActionDesktop = (player: any, teamId: string, action: string) => {
+  const handlePlayerActionDesktop = (player: any, teamId: string, action: string, subType?: string) => {
     if (!selectedMatch) return;
     if (action === 'goal') {
       handleActionSelect('goal', 'normal', { matchId: selectedMatch.id, teamId, player });
@@ -515,6 +515,8 @@ export default function RefereeTab({
       handleActionSelect('card', 'yellow', { matchId: selectedMatch.id, teamId, player });
     } else if (action === 'red') {
       handleActionSelect('card', 'red', { matchId: selectedMatch.id, teamId, player });
+    } else if (action === 'custom' && subType) {
+      handleActionSelect('custom', subType, { matchId: selectedMatch.id, teamId, player });
     }
     setActivePopover(null);
   };
@@ -587,6 +589,17 @@ export default function RefereeTab({
                       >
                         <IconSwap size={14} /> THAY NGƯỜI
                       </button>
+                      
+                      {customEvents?.filter((evt: any) => evt.target_scope !== 'none').map((evt: any) => (
+                        <button
+                          key={evt.code}
+                          className={`desktop-popover-btn-${evt.code.toLowerCase()}`}
+                          style={desktopStyles.popoverActionBtn(evt.color || '#3b82f6', evt.color || '#2563eb')}
+                          onClick={() => handlePlayerActionDesktop(p, team.id, 'custom', evt.code)}
+                        >
+                          <span style={{ marginRight: '4px' }}>{evt.icon}</span> {evt.name.toUpperCase()}
+                        </button>
+                      ))}
                     </div>
                   )}
                 </div>
@@ -894,6 +907,35 @@ export default function RefereeTab({
                         </button>
                       )}
                     </div>
+
+                    {/* CUSTOM TEAM ACTIONS */}
+                    {customEvents?.filter((evt: any) => evt.target_scope === 'none').length > 0 && (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '8px' }}>
+                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-muted)', textAlign: 'center', textTransform: 'uppercase' }}>
+                          Thao tác sự kiện chung (Không gán cầu thủ)
+                        </div>
+                        {customEvents?.filter((evt: any) => evt.target_scope === 'none').map((evt: any) => (
+                          <div key={evt.code} style={{ display: 'flex', gap: '8px' }}>
+                            <button 
+                              className="desktop-cta-btn"
+                              disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
+                              style={{ ...desktopStyles.ctaButton(evt.color || '#3b82f6'), opacity: selectedMatch.trangThai !== 'DANG_DIEN_RA' ? 0.5 : 1 }}
+                              onClick={() => handleActionSelect('custom', evt.code, { matchId: selectedMatch.id, teamId: selectedMatch.doiNha?.id, player: { id: null, ten: 'Toàn Đội' } })}
+                            >
+                              <span style={{ fontSize: '16px' }}>{evt.icon}</span> {evt.name.toUpperCase()} (ĐỘI NHÀ)
+                            </button>
+                            <button 
+                              className="desktop-cta-btn"
+                              disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
+                              style={{ ...desktopStyles.ctaButton(evt.color || '#3b82f6'), opacity: selectedMatch.trangThai !== 'DANG_DIEN_RA' ? 0.5 : 1 }}
+                              onClick={() => handleActionSelect('custom', evt.code, { matchId: selectedMatch.id, teamId: selectedMatch.doiKhach?.id, player: { id: null, ten: 'Toàn Đội' } })}
+                            >
+                              <span style={{ fontSize: '16px' }}>{evt.icon}</span> {evt.name.toUpperCase()} (ĐỘI KHÁCH)
+                            </button>
+                          </div>
+                        ))}
+                      </div>
+                    )}
                   </div>
                 </div>
 

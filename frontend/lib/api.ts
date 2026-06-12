@@ -13,6 +13,34 @@ export async function layDanhSachTournamentTemplates() {
   }
 }
 
+export async function getTournamentRules(tournamentId: string) {
+  try {
+    const response = await fetch(`${NESTJS_API_URL}/tournaments/${tournamentId}/rules`);
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error('Lỗi lấy luật giải đấu:', error);
+    return null;
+  }
+}
+
+export async function updateTournamentRules(tournamentId: string, rules: any) {
+  try {
+    const response = await fetch(`${NESTJS_API_URL}/tournaments/${tournamentId}/rules`, {
+      method: 'PUT',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify(rules),
+    });
+    if (!response.ok) throw new Error('Network response was not ok');
+    return await response.json();
+  } catch (error) {
+    console.error('Lỗi cập nhật luật giải đấu:', error);
+    return null;
+  }
+}
+
 // --- GIẢI ĐẤU (WORKSPACES) ---
 export async function layDanhSachGiaiDau() {
   const { data, error } = await supabase
@@ -965,4 +993,40 @@ export async function layTopThePhat(giaiDauId?: string) {
     theVang: idx === 0 ? 3 : 2,
     theDo: idx === 0 ? 1 : 0
   }));
+}
+
+export async function deleteTournament(id: string) {
+  // Get all teams of the tournament
+  const { data: teams } = await supabase.from('doi_bong').select('id').eq('giai_dau_id', id);
+  const teamIds = teams?.map(t => t.id) || [];
+  
+  // Get all matches of the tournament
+  const { data: matches } = await supabase.from('tran_dau').select('id').eq('giai_dau_id', id);
+  const matchIds = matches?.map(m => m.id) || [];
+
+  // Delete su_kien of matches
+  if (matchIds.length > 0) {
+    await supabase.from('su_kien').delete().in('tran_dau_id', matchIds);
+  }
+  
+  // Delete tran_dau
+  await supabase.from('tran_dau').delete().eq('giai_dau_id', id);
+  
+  // Delete cau_thu
+  if (teamIds.length > 0) {
+    await supabase.from('cau_thu').delete().in('doi_id', teamIds);
+  }
+  
+  // Delete doi_bong
+  await supabase.from('doi_bong').delete().eq('giai_dau_id', id);
+  
+  // Delete local configuration fallbacks
+  if (typeof window !== 'undefined') {
+    localStorage.removeItem(`giai_dau_config_${id}`);
+    localStorage.removeItem(`scheduler_config_${id}`);
+    localStorage.removeItem(`blackout_dates_${id}`);
+  }
+  
+  // Finally delete the tournament
+  return await supabase.from('giai_dau').delete().eq('id', id);
 }

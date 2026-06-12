@@ -1,5 +1,5 @@
 import React from 'react';
-import styles from '../page.module.css';
+import styles from '../quan-tri.module.css';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import dynamic from 'next/dynamic';
 const AdminOnboardingTour = dynamic(() => import('@/components/AdminOnboardingTour'), { ssr: false });
@@ -63,7 +63,7 @@ export default function AdminDesktopView(props: any) {
     setIsBulkImportOpen, setBulkImportProgress, setSelectedBulkFile, setIsBulkDragActive,
     handleAutoFetchLogo, handleAddTeam, confirmAddTeam, handleEditTeam, handleSaveTeam,
     handleAddPlayer, handleDeletePlayer, handleDeleteTeam, handleDeleteAllTeams,
-    handleSaveTournamentConfig, handleAutoSchedule, handleEditMatch, handleSaveMatch,
+    handleSaveTournamentConfig, handleDeleteTournament, handleAutoSchedule, handleEditMatch, handleSaveMatch,
     handleCreateMatch, handleDeleteMatch, formatMatchTime, getMatchHalfState,
     calculateCurrentRoster, fetchData, addCustomEvent, removeCustomEvent, updateCustomEvent,
     handleDownloadBulkTemplate, handleClearBulkImport, processBulkFile, handleImportBulkFile,
@@ -395,6 +395,8 @@ export default function AdminDesktopView(props: any) {
           {activeTab === 'cai-dat' && (
             <SettingsTab
               styles={styles}
+              selectedTournamentId={selectedTournament?.id || 'giai-1'}
+              selectedTournament={selectedTournament}
               tournamentName={tournamentName}
               setTournamentName={setTournamentName}
               tournamentSeason={tournamentSeason}
@@ -422,6 +424,7 @@ export default function AdminDesktopView(props: any) {
               updateCustomEvent={updateCustomEvent}
               removeCustomEvent={removeCustomEvent}
               handleSaveTournamentConfig={handleSaveTournamentConfig}
+              handleDeleteTournament={handleDeleteTournament}
             />
           )}
 
@@ -1212,7 +1215,7 @@ export default function AdminDesktopView(props: any) {
                     <span style={{ fontSize: '14px', fontWeight: 600, color: bulkImportProgress.step === 'error' ? '#ef4444' : '#1e293b' }}>
                       {bulkImportProgress.message}
                     </span>
-                    <span style={{ fontSize: '14px', fontWeight: 700, color: '#3b82f6' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-primary)' }}>
                       {bulkImportProgress.percent}%
                     </span>
                   </div>
@@ -1221,7 +1224,7 @@ export default function AdminDesktopView(props: any) {
                       style={{ 
                         width: `${bulkImportProgress.percent}%`, 
                         height: '100%', 
-                        background: bulkImportProgress.step === 'error' ? '#ef4444' : (bulkImportProgress.step === 'done' ? '#10b981' : '#3b82f6'),
+                        background: bulkImportProgress.step === 'error' ? '#ef4444' : (bulkImportProgress.step === 'done' ? '#10b981' : 'var(--color-primary)'),
                         transition: 'width 0.3s ease-out, background-color 0.3s ease'
                       }} 
                     />
@@ -1252,8 +1255,8 @@ export default function AdminDesktopView(props: any) {
                       }
                     }}
                     style={{
-                      background: isBulkDragActive ? 'rgba(59, 130, 246, 0.04)' : '#fff',
-                      border: isBulkDragActive ? '2px dashed #3b82f6' : '2px dashed #cbd5e1',
+                      background: isBulkDragActive ? 'rgba(15, 118, 110, 0.04)' : '#fff',
+                      border: isBulkDragActive ? '2px dashed var(--color-primary)' : '2px dashed #cbd5e1',
                       borderRadius: '12px',
                       padding: '40px 24px',
                       textAlign: 'center',
@@ -1277,7 +1280,7 @@ export default function AdminDesktopView(props: any) {
                       xmlns="http://www.w3.org/2000/svg"
                       viewBox="0 0 24 24"
                       fill="none"
-                      stroke={isBulkDragActive ? '#3b82f6' : '#10b981'}
+                      stroke={isBulkDragActive ? 'var(--color-primary)' : '#10b981'}
                       strokeWidth="2"
                       strokeLinecap="round"
                       strokeLinejoin="round"

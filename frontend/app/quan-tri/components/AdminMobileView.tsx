@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useEffect } from 'react';
-import styles from '../page.module.css';
+import styles from '../quan-tri.module.css';
 import TeamLogo from '@/components/TeamLogo';
 import { IconGoal, IconCalendar, IconShield, IconSettings, IconTrophy } from './RefereeIcons';
 import TeamDetailView from './TeamDetailView';

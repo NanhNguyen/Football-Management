@@ -17,6 +17,7 @@ export default function RefereeMobileView({ data, actions }: any) {
     refereeFilterVong,
     uniqueRounds,
     starterCount,
+    customEvents,
   } = data;
 
   const {
@@ -97,9 +98,11 @@ export default function RefereeMobileView({ data, actions }: any) {
 
   // Wizard state for action selections (goal, yellow card, red card, sub)
   const [activeWizard, setActiveWizard] = useState<{
-    type: 'goal' | 'yellow' | 'red' | 'sub';
+    type: 'goal' | 'yellow' | 'red' | 'sub' | 'custom';
     step?: 1 | 2;
     subOutPlayer?: any;
+    subType?: string;
+    requiresPlayer?: boolean;
   } | null>(null);
   const [activeTeamTab, setActiveTeamTab] = useState<'nha' | 'khach'>('nha');
 
@@ -651,7 +654,7 @@ export default function RefereeMobileView({ data, actions }: any) {
       return (
         <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
           <button
-            style={{ ...styles.controlButtonFull(selectedMatch.dangTamDung ? '#10b981' : '#3b82f6'), flex: 1 }}
+            style={{ ...styles.controlButtonFull(selectedMatch.dangTamDung ? '#10b981' : 'var(--color-primary)'), flex: 1 }}
             onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}
           >
             {selectedMatch.dangTamDung ? (
@@ -693,7 +696,7 @@ export default function RefereeMobileView({ data, actions }: any) {
       return (
         <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
           <button
-            style={{ ...styles.controlButtonFull(selectedMatch.dangTamDung ? '#10b981' : '#3b82f6'), flex: 1 }}
+            style={{ ...styles.controlButtonFull(selectedMatch.dangTamDung ? '#10b981' : 'var(--color-primary)'), flex: 1 }}
             onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}
           >
             {selectedMatch.dangTamDung ? (
@@ -742,6 +745,10 @@ export default function RefereeMobileView({ data, actions }: any) {
       if (type === 'sub') {
         return step === 1 ? '🔄 Thay người: Chọn cầu thủ RA SÂN' : '🔄 Thay người: Chọn cầu thủ VÀO SÂN';
       }
+      if (type === 'custom') {
+        const customEvt = customEvents?.find((e: any) => e.code === activeWizard.subType);
+        return `${customEvt?.icon} ${customEvt?.name}`;
+      }
       return 'Chọn cầu thủ';
     };
 
@@ -758,6 +765,9 @@ export default function RefereeMobileView({ data, actions }: any) {
           setActiveWizard(null);
         } else if (type === 'red') {
           await handleActionSelect('card', 'red', { teamId, matchId: selectedMatch.id, player });
+          setActiveWizard(null);
+        } else if (type === 'custom') {
+          await handleActionSelect('custom', activeWizard.subType, { teamId, matchId: selectedMatch.id, player });
           setActiveWizard(null);
         } else if (type === 'sub') {
           if (step === 1) {
@@ -776,7 +786,22 @@ export default function RefereeMobileView({ data, actions }: any) {
       }
     };
 
+    const handleTeamActionSelect = async () => {
+      const teamId = activeTeam?.id;
+      if (!teamId) return;
+      try {
+        if (type === 'custom') {
+          // Send a dummy player since requires_player is false
+          await handleActionSelect('custom', activeWizard.subType, { teamId, matchId: selectedMatch.id, player: { id: null, ten: 'Toàn Đội' } });
+          setActiveWizard(null);
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    };
+
     const showSegmentControl = type !== 'sub' || step === 1;
+    const isCustomNoPlayer = type === 'custom' && activeWizard.requiresPlayer === false;
 
     return (
       <div style={styles.modalOverlay} onClick={() => setActiveWizard(null)}>
@@ -811,66 +836,77 @@ export default function RefereeMobileView({ data, actions }: any) {
             </div>
           )}
 
-          {/* Player List */}
-          <div style={styles.playerList}>
-            {playersToShow.map((p: any) => {
-              const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === p.id).length || 0;
-              const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === p.id) || yellowCount >= 2;
-              const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === p.id).length || 0;
+          {/* Player List or Apply Button */}
+          {isCustomNoPlayer ? (
+            <div style={{ display: 'flex', justifyContent: 'center', marginTop: '24px' }}>
+              <button
+                style={styles.controlButtonFull('var(--color-primary, #0f766e)')}
+                onClick={handleTeamActionSelect}
+              >
+                Áp dụng cho {activeTeam?.ten}
+              </button>
+            </div>
+          ) : (
+            <div style={styles.playerList}>
+              {playersToShow.map((p: any) => {
+                const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === p.id).length || 0;
+                const hasRedCard = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === p.id) || yellowCount >= 2;
+                const goalCount = selectedMatch.suKien?.filter((ev: any) => ev.loai.startsWith('GOAL_') && ev.loai !== 'GOAL_OG' && ev.cauThuId === p.id).length || 0;
 
-              const isRedCarded = hasRedCard;
-              const isDisabled = isRedCarded;
+                const isRedCarded = hasRedCard;
+                const isDisabled = isRedCarded;
 
-              return (
-                <button
-                  key={p.id}
-                  style={{
-                    ...styles.playerRow,
-                    opacity: isDisabled ? 0.5 : 1,
-                    cursor: isDisabled ? 'not-allowed' : 'pointer',
-                    width: '100%',
-                    textAlign: 'left',
-                    display: 'flex',
-                    alignItems: 'center',
-                    border: '1px solid #f1f5f9',
-                    background: '#ffffff',
-                    outline: 'none'
-                  }}
-                  onClick={() => !isDisabled && handlePlayerSelect(p)}
-                  disabled={isDisabled}
-                >
-                  <div style={styles.playerJersey}>
-                    {p.soAo || '#'}
-                  </div>
-                  <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <span style={styles.playerName}>{p.ten}</span>
-                    <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
-                      {goalCount > 0 && (
-                        <span style={{ fontSize: '12px', background: '#e1f5fe', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px' }}>
-                          ⚽ {goalCount}
-                        </span>
-                      )}
-                      {yellowCount > 0 && (
-                        <span style={{ fontSize: '12px', background: '#fff9c4', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px', border: '1px solid #fbc02d' }}>
-                          🟨 {yellowCount}
-                        </span>
-                      )}
-                      {hasRedCard && (
-                        <span style={{ fontSize: '12px', background: '#ffebee', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px', border: '1px solid #e53935', color: '#c62828', fontWeight: 'bold' }}>
-                          🟥 Thẻ đỏ
-                        </span>
-                      )}
+                return (
+                  <button
+                    key={p.id}
+                    style={{
+                      ...styles.playerRow,
+                      opacity: isDisabled ? 0.5 : 1,
+                      cursor: isDisabled ? 'not-allowed' : 'pointer',
+                      width: '100%',
+                      textAlign: 'left',
+                      display: 'flex',
+                      alignItems: 'center',
+                      border: '1px solid #f1f5f9',
+                      background: '#ffffff',
+                      outline: 'none'
+                    }}
+                    onClick={() => !isDisabled && handlePlayerSelect(p)}
+                    disabled={isDisabled}
+                  >
+                    <div style={styles.playerJersey}>
+                      {p.soAo || '#'}
                     </div>
-                  </div>
-                </button>
-              );
-            })}
-            {playersToShow.length === 0 && (
-              <div style={styles.noMatches}>
-                Chưa có danh sách cầu thủ của đội bóng này.
-              </div>
-            )}
-          </div>
+                    <div style={{ flex: 1, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <span style={styles.playerName}>{p.ten}</span>
+                      <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                        {goalCount > 0 && (
+                          <span style={{ fontSize: '12px', background: '#e1f5fe', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px' }}>
+                            ⚽ {goalCount}
+                          </span>
+                        )}
+                        {yellowCount > 0 && (
+                          <span style={{ fontSize: '12px', background: '#fff9c4', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px', border: '1px solid #fbc02d' }}>
+                            🟨 {yellowCount}
+                          </span>
+                        )}
+                        {hasRedCard && (
+                          <span style={{ fontSize: '12px', background: '#ffebee', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px', border: '1px solid #e53935', color: '#c62828', fontWeight: 'bold' }}>
+                            🟥 Thẻ đỏ
+                          </span>
+                        )}
+                      </div>
+                    </div>
+                  </button>
+                );
+              })}
+              {playersToShow.length === 0 && (
+                <div style={styles.noMatches}>
+                  Chưa có danh sách cầu thủ của đội bóng này.
+                </div>
+              )}
+            </div>
+          )}
         </div>
       </div>
     );
@@ -990,7 +1026,7 @@ export default function RefereeMobileView({ data, actions }: any) {
             <button
               disabled={actionsDisabled}
               style={{
-                ...styles.actionButton('#3b82f6'),
+                ...styles.actionButton('var(--color-primary)'),
                 opacity: actionsDisabled ? 0.5 : 1,
                 cursor: actionsDisabled ? 'not-allowed' : 'pointer'
               }}
@@ -999,6 +1035,22 @@ export default function RefereeMobileView({ data, actions }: any) {
               <IconSwap size={32} color="#ffffff" />
               <span style={styles.actionButtonLabel}>THAY NGƯỜI</span>
             </button>
+
+            {customEvents?.map((evt: any) => (
+              <button
+                key={evt.code}
+                disabled={actionsDisabled}
+                style={{
+                  ...styles.actionButton(evt.color || '#3b82f6', '#ffffff'),
+                  opacity: actionsDisabled ? 0.5 : 1,
+                  cursor: actionsDisabled ? 'not-allowed' : 'pointer'
+                }}
+                onClick={() => setActiveWizard({ type: 'custom', subType: evt.code, requiresPlayer: evt.target_scope !== 'none' })}
+              >
+                <div style={{ fontSize: '32px' }}>{evt.icon}</div>
+                <span style={{ ...styles.actionButtonLabel, textAlign: 'center' }}>{evt.name?.toUpperCase()}</span>
+              </button>
+            ))}
           </div>
         );
       })()}

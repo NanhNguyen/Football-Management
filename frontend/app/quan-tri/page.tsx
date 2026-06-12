@@ -5,7 +5,7 @@ import AdminDesktopView from './components/AdminDesktopView';
 import AdminMobileView from './components/AdminMobileView';
 
 import { useState, useEffect, useRef } from 'react';
-import styles from './page.module.css';
+import styles from './quan-tri.module.css';
 import {
   layDanhSachDoi,
   layDanhSachTranDau,
@@ -22,7 +22,8 @@ import {
   calculateMatchMinute,
   layDanhSachGiaiDau,
   createTournament,
-  layDanhSachTournamentTemplates
+  layDanhSachTournamentTemplates,
+  deleteTournament
 } from '@/lib/api';
 
 import { useRouter } from 'next/navigation';
@@ -462,34 +463,51 @@ export default function QuanTriPage() {
         setTournamentStartDate(currentTourney.ngay_bat_dau || '');
         setTournamentVenueType(currentTourney.venue_type || 'CENTRALIZED');
 
-        const localConfigStr = localStorage.getItem(`giai_dau_config_${currentTourney.id}`);
-        if (localConfigStr) {
-          try {
-            const config = JSON.parse(localConfigStr);
-            setTournamentEndDate(config.ngayKetThuc || '2024-06-30');
-            setMaxTeams(config.maxTeams || 16);
-            setTournamentMaxPlayers(config.maxPlayers || 20);
-            setStarterCount(config.starterCount || 7);
-            setBenchCount(config.benchCount || 7);
-            setTournamentType(config.theThuc || 'tournament');
-            setTournamentGroupLegs(config.luotVongBang || 1);
-            setTournamentLeagueRounds(config.soVongLeague || 5);
-            setStandingsConfig(config.standingsConfig || { phongDo: true, thePhat: false });
-            setCustomEvents(config.customEvents || []);
-          } catch (e) {
-            console.error('Error loading tournament config:', e);
-          }
+        // Load from DB rules_config if available
+        if (currentTourney.rules_config) {
+          const config = currentTourney.rules_config;
+          setTournamentEndDate(config.ngayKetThuc || '2024-06-30');
+          setMaxTeams(config.maxTeams || 16);
+          setTournamentMaxPlayers(config.maxPlayers || 20);
+          setStarterCount(config.starterCount || 7);
+          setBenchCount(config.benchCount || 7);
+          setTournamentType(config.theThuc || 'tournament');
+          setTournamentGroupLegs(config.luotVongBang || 1);
+          setTournamentLeagueRounds(config.soVongLeague || 5);
+          setStandingsConfig(config.standingsConfig || { phongDo: true, thePhat: false });
+          // Lấy custom_events từ dữ liệu API
+          setCustomEvents(config.custom_events || config.customEvents || []);
         } else {
-          setTournamentEndDate('2024-06-30');
-          setMaxTeams(16);
-          setTournamentMaxPlayers(20);
-          setStarterCount(7);
-          setBenchCount(7);
-          setTournamentType('tournament');
-          setTournamentGroupLegs(1);
-          setTournamentLeagueRounds(5);
-          setStandingsConfig({ phongDo: true, thePhat: false });
-          setCustomEvents([]);
+          // Fallback to localStorage ONLY if there's no DB config
+          const localConfigStr = localStorage.getItem(`giai_dau_config_${currentTourney.id}`);
+          if (localConfigStr) {
+            try {
+              const config = JSON.parse(localConfigStr);
+              setTournamentEndDate(config.ngayKetThuc || '2024-06-30');
+              setMaxTeams(config.maxTeams || 16);
+              setTournamentMaxPlayers(config.maxPlayers || 20);
+              setStarterCount(config.starterCount || 7);
+              setBenchCount(config.benchCount || 7);
+              setTournamentType(config.theThuc || 'tournament');
+              setTournamentGroupLegs(config.luotVongBang || 1);
+              setTournamentLeagueRounds(config.soVongLeague || 5);
+              setStandingsConfig(config.standingsConfig || { phongDo: true, thePhat: false });
+              setCustomEvents(config.custom_events || config.customEvents || []);
+            } catch (e) {
+              console.error('Error loading tournament config:', e);
+            }
+          } else {
+            setTournamentEndDate('2024-06-30');
+            setMaxTeams(16);
+            setTournamentMaxPlayers(20);
+            setStarterCount(7);
+            setBenchCount(7);
+            setTournamentType('tournament');
+            setTournamentGroupLegs(1);
+            setTournamentLeagueRounds(5);
+            setStandingsConfig({ phongDo: true, thePhat: false });
+            setCustomEvents([]);
+          }
         }
 
         const defaultSchedulerConfig = {
@@ -674,38 +692,62 @@ export default function QuanTriPage() {
     );
   };
 
-  const handleSaveTournamentConfig = async () => {
+  const handleSaveTournamentConfig = async (rules?: any) => {
     if (!selectedTournament) return;
     try {
       showToast("⏳ Đang lưu cấu hình giải đấu...");
 
-      // Update core fields in Supabase
+      // Update local states if rules was supplied from form
+      if (rules) {
+        if (rules.matchFormat) {
+          setStarterCount(rules.matchFormat.playersPerTeam);
+        }
+        if (rules.custom_events) {
+          setCustomEvents(rules.custom_events);
+        }
+      }
+
+      // Save additional configuration to localStorage as fallback
+      const config = {
+        ngayKetThuc: tournamentEndDate,
+        maxTeams: maxTeams || 16,
+        maxPlayers: tournamentMaxPlayers || 20,
+        starterCount: rules?.matchFormat?.playersPerTeam || starterCount || 7,
+        benchCount: benchCount || 7,
+        theThuc: tournamentType,
+        luotVongBang: tournamentGroupLegs,
+        soVongLeague: tournamentLeagueRounds || 5,
+        standingsConfig,
+        custom_events: rules?.custom_events || customEvents,
+        matchFormat: rules?.matchFormat || {
+          playersPerTeam: starterCount || 7,
+          minutesPerHalf: 45,
+          penaltyIfDraw: false,
+        },
+        pointsSystem: rules?.pointsSystem || {
+          win: 3,
+          draw: 1,
+          loss: 0,
+          winByPenalty: 2,
+          lossByPenalty: 1,
+        },
+        tieBreakerPriority: rules?.tieBreakerPriority || ['headToHead', 'goalDifference', 'goalsScored'],
+      };
+      localStorage.setItem(`giai_dau_config_${selectedTournament.id}`, JSON.stringify(config));
+
+      // Update core fields and config in Supabase
       const { error } = await supabase
         .from('giai_dau')
         .update({
           ten: tournamentName,
           mua_giai: tournamentSeason,
           ngay_bat_dau: tournamentStartDate,
-          venue_type: tournamentVenueType
+          venue_type: tournamentVenueType,
+          rules_config: config
         })
         .eq('id', selectedTournament.id);
 
       if (error) throw error;
-
-      // Save additional configuration to localStorage
-      const config = {
-        ngayKetThuc: tournamentEndDate,
-        maxTeams: maxTeams || 16,
-        maxPlayers: tournamentMaxPlayers || 20,
-        starterCount: starterCount || 7,
-        benchCount: benchCount || 7,
-        theThuc: tournamentType,
-        luotVongBang: tournamentGroupLegs,
-        soVongLeague: tournamentLeagueRounds || 5,
-        standingsConfig,
-        customEvents
-      };
-      localStorage.setItem(`giai_dau_config_${selectedTournament.id}`, JSON.stringify(config));
 
       showToast("✨ Đã lưu cấu hình giải đấu thành công!");
       await fetchData(selectedTournament.id);
@@ -713,6 +755,37 @@ export default function QuanTriPage() {
       console.error(err);
       showToast(`❌ Lỗi khi lưu cấu hình: ${err.message}`);
     }
+  };
+
+  const handleDeleteTournament = async () => {
+    if (!selectedTournament?.id) return;
+    showConfirm(
+      "XÓA GIẢI ĐẤU",
+      `⚠️ Bạn có chắc chắn muốn xóa giải đấu "${selectedTournament.ten}" không? Toàn bộ đội bóng, cầu thủ, trận đấu, sự kiện và cấu hình liên quan sẽ bị XÓA VĨNH VIỄN và KHÔNG thể khôi phục!`,
+      async () => {
+        try {
+          showToast("🗑️ Đang xóa giải đấu...");
+          const { error } = await deleteTournament(selectedTournament.id);
+          if (error) {
+            showToast(`❌ Lỗi khi xóa giải đấu: ${error.message}`);
+          } else {
+            showToast("✨ Đã xóa giải đấu thành công!");
+            const freshTournaments = await layDanhSachGiaiDau();
+            setTournaments(freshTournaments);
+            if (freshTournaments.length > 0) {
+              setSelectedTournament(freshTournaments[0]);
+              await fetchData(freshTournaments[0].id);
+            } else {
+              setSelectedTournament(null);
+              setTeams([]);
+              setLiveMatches([]);
+            }
+          }
+        } catch (err: any) {
+          showToast(`❌ Lỗi khi xóa giải đấu: ${err.message}`);
+        }
+      }
+    );
   };
 
   const handleCreateTournament = async () => {
@@ -1216,11 +1289,11 @@ export default function QuanTriPage() {
       eventType = subType ? `GOAL_${subType.toUpperCase()}` : 'GOAL_NORMAL';
       increment = 1;
     } else if (type === 'custom' && subType) {
-      const customEvt = customEvents.find(e => e.id === subType);
+      const customEvt = customEvents.find((e: any) => e.code === subType);
       if (customEvt) {
-        typeLabel = `${customEvt.name}${customEvt.points ? ` (+${customEvt.points})` : ''}`;
-        eventType = `CUSTOM_${customEvt.id.toUpperCase()}`;
-        increment = customEvt.points || 0;
+        typeLabel = `${customEvt.name}`;
+        eventType = `CUSTOM_${customEvt.code.toUpperCase()}`;
+        increment = 0; // Custom events based on new schema do not implicitly add points here
       }
     } else if (type === 'card') {
       typeLabel = subType === 'yellow' ? 'Phạt thẻ vàng 🟨' : subType === 'red' ? 'Phạt thẻ đỏ 🟥' : 'Án phạt';
@@ -1301,9 +1374,8 @@ export default function QuanTriPage() {
         let increment = 0;
         if (eventType.startsWith('GOAL')) increment = 1;
         if (eventType.startsWith('CUSTOM_')) {
-          const customId = eventType.replace('CUSTOM_', '');
-          const customEvt = customEvents.find((e: any) => e.id.toUpperCase() === customId.toUpperCase() || e.id === customId);
-          if (customEvt) increment = customEvt.points || 0;
+          // Custom events don't have points mapped implicitly now
+          increment = 0;
         }
 
         await deleteEvent(eventId);
@@ -1709,7 +1781,7 @@ export default function QuanTriPage() {
     setIsBulkImportOpen, setBulkImportProgress, setSelectedBulkFile, setIsBulkDragActive,
     handleAutoFetchLogo, handleAddTeam, confirmAddTeam, handleEditTeam, handleSaveTeam,
     handleAddPlayer, handleDeletePlayer, handleDeleteTeam, handleDeleteAllTeams,
-    handleSaveTournamentConfig, handleAutoSchedule, handleEditMatch, handleSaveMatch,
+    handleSaveTournamentConfig, handleDeleteTournament, handleAutoSchedule, handleEditMatch, handleSaveMatch,
     handleCreateMatch, handleDeleteMatch, formatMatchTime, getMatchHalfState,
     calculateCurrentRoster, fetchData, addCustomEvent, removeCustomEvent, updateCustomEvent,
     handleDownloadBulkTemplate, handleClearDraftSchedule, processBulkFile, handleImportBulkFile,

@@ -1,7 +1,11 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import CustomRuleBuilder from './CustomRuleBuilder';
+import { getTournamentRules, updateTournamentRules } from '@/lib/api';
 
 interface SettingsTabProps {
   styles: any;
+  selectedTournamentId: string;
+  selectedTournament?: any;
   tournamentName: string;
   setTournamentName: (val: string) => void;
   tournamentSeason: string;
@@ -28,11 +32,14 @@ interface SettingsTabProps {
   addCustomEvent: () => void;
   updateCustomEvent: (idx: number, field: string, value: any) => void;
   removeCustomEvent: (idx: number) => void;
-  handleSaveTournamentConfig: () => void;
+  handleSaveTournamentConfig: (rules?: any) => void;
+  handleDeleteTournament: () => void;
 }
 
 export default function SettingsTab({
   styles,
+  selectedTournamentId,
+  selectedTournament,
   tournamentName,
   setTournamentName,
   tournamentSeason,
@@ -59,8 +66,42 @@ export default function SettingsTab({
   addCustomEvent,
   updateCustomEvent,
   removeCustomEvent,
-  handleSaveTournamentConfig
+  handleSaveTournamentConfig,
+  handleDeleteTournament
 }: SettingsTabProps) {
+  const [initialRules, setInitialRules] = useState<any>(null);
+  const [loadingRules, setLoadingRules] = useState(true);
+
+  useEffect(() => {
+    async function fetchRules() {
+      if (selectedTournamentId) {
+        setLoadingRules(true);
+        // Prioritize persistent rules_config from Supabase
+        if (selectedTournament?.rules_config?.matchFormat) {
+          setInitialRules(selectedTournament.rules_config);
+          setLoadingRules(false);
+          // Sync to in-memory NestJS backend in the background so calculations there align
+          updateTournamentRules(selectedTournamentId, selectedTournament.rules_config).catch(err => {
+            console.error('Lỗi đồng bộ luật lên backend:', err);
+          });
+        } else {
+          const rules = await getTournamentRules(selectedTournamentId);
+          setInitialRules(rules);
+          setLoadingRules(false);
+        }
+      }
+    }
+    fetchRules();
+  }, [selectedTournamentId, selectedTournament]);
+
+  const handleSaveCustomRules = async (rules: any) => {
+    if (selectedTournamentId) {
+      await updateTournamentRules(selectedTournamentId, rules);
+      await handleSaveTournamentConfig(rules);
+      setInitialRules(rules);
+    }
+  };
+
   return (
     <div className={`${styles.content} animate-fade-in`}>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
@@ -68,7 +109,6 @@ export default function SettingsTab({
           <h2 className={styles.pageTitle}>Cài đặt giải đấu</h2>
           <p className={styles.pageDesc}>Cấu hình thông tin cơ bản và giới hạn của giải đấu</p>
         </div>
-        <button className={styles.addBtn} onClick={handleSaveTournamentConfig}>Lưu cấu hình</button>
       </div>
 
       <div className={styles.formCard}>
@@ -208,60 +248,44 @@ export default function SettingsTab({
           </label>
         </div>
 
+        <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>Cấu Hình Luật Nâng Cao & Sự kiện tùy chỉnh (Custom Rules & Events)</h3>
+        {loadingRules ? (
+          <div className="text-center p-4" style={{ textAlign: 'center', padding: '16px', color: 'var(--color-text-muted)', fontSize: '14px' }}>Đang tải cấu hình luật...</div>
+        ) : (
+          <CustomRuleBuilder initialData={initialRules} onSubmit={handleSaveCustomRules} styles={styles} />
+        )}
+        
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+          <button type="submit" form="custom-rules-form" className={styles.addBtn} style={{ padding: '12px 24px', fontSize: '14px', height: 'auto', fontWeight: 'bold' }}>
+            Lưu cấu hình giải đấu
+          </button>
+        </div>
+
         <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-light)', margin: '24px 0' }} />
 
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-          <h3 style={{ fontSize: '16px', fontWeight: 700 }}>Sự kiện & Luật Bổ Sung (Custom Events)</h3>
-          <button className={styles.editBtnCompact} style={{ padding: '6px 12px' }} onClick={addCustomEvent}>+ Thêm sự kiện</button>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-          {customEvents.map((evt, idx) => (
-            <div key={evt.id} style={{ display: 'flex', gap: '12px', alignItems: 'center', background: 'var(--color-surface-hover)', padding: '12px', borderRadius: '8px' }}>
-              <input
-                type="text"
-                value={evt.icon}
-                onChange={(e) => updateCustomEvent(idx, 'icon', e.target.value)}
-                style={{ width: '40px', textAlign: 'center', fontSize: '20px', padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border-light)' }}
-                placeholder="⚽"
-              />
-              <input
-                type="text"
-                value={evt.name}
-                onChange={(e) => updateCustomEvent(idx, 'name', e.target.value)}
-                style={{ flex: 1, padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border-light)' }}
-                placeholder="Tên sự kiện (VD: Siêu Chốt)"
-              />
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>Cộng:</span>
-                <input
-                  type="number"
-                  value={evt.points}
-                  onChange={(e) => updateCustomEvent(idx, 'points', Number(e.target.value))}
-                  style={{ width: '60px', padding: '8px', borderRadius: '6px', border: '1px solid var(--color-border-light)' }}
-                />
-                <span style={{ fontSize: '13px', fontWeight: 600 }}>Điểm BXH</span>
-              </div>
-              <label style={{ display: 'flex', alignItems: 'center', gap: '6px', cursor: 'pointer', marginLeft: '12px' }}>
-                <input
-                  type="checkbox"
-                  checked={evt.isIndividual}
-                  onChange={(e) => updateCustomEvent(idx, 'isIndividual', e.target.checked)}
-                  style={{ accentColor: 'var(--color-primary)' }}
-                />
-                <span style={{ fontSize: '13px' }}>Tính cá nhân</span>
-              </label>
-              <button
-                onClick={() => removeCustomEvent(idx)}
-                style={{ background: 'none', border: 'none', color: 'var(--color-primary)', cursor: 'pointer', fontSize: '18px', padding: '4px 8px', marginLeft: 'auto' }}
-                title="Xóa sự kiện"
-              >×</button>
-            </div>
-          ))}
-          {customEvents.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '20px', color: 'var(--color-text-muted)', fontSize: '13px', fontStyle: 'italic', border: '1px dashed var(--color-border-light)', borderRadius: '8px' }}>
-              Giải đấu đang sử dụng các luật mặc định (Bàn thắng, Thẻ phạt).<br />Bấm "+ Thêm sự kiện" để định nghĩa các luật đặc thù.
-            </div>
-          )}
+        <div style={{ marginTop: '24px', padding: '20px', border: '1px solid #fee2e2', borderRadius: '12px', background: '#fef2f2', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+          <div>
+            <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-danger)', margin: 0 }}>Vùng nguy hiểm (Danger Zone)</h4>
+            <p style={{ fontSize: '13px', color: '#7f1d1d', marginTop: '4px', margin: 0 }}>Xóa giải đấu này sẽ xóa vĩnh viễn tất cả đội bóng, cầu thủ, lịch thi đấu, và các dữ liệu liên quan.</p>
+          </div>
+          <button
+            onClick={handleDeleteTournament}
+            style={{
+              background: 'var(--color-danger)',
+              color: '#fff',
+              padding: '10px 20px',
+              borderRadius: '8px',
+              fontWeight: 600,
+              fontSize: '14px',
+              cursor: 'pointer',
+              border: 'none',
+              transition: 'background 0.2s',
+            }}
+            onMouseOver={(e) => (e.currentTarget.style.background = '#dc2626')}
+            onMouseOut={(e) => (e.currentTarget.style.background = 'var(--color-danger)')}
+          >
+            Xóa giải đấu
+          </button>
         </div>
       </div>
     </div>

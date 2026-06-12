@@ -1271,14 +1271,14 @@
 }
 
 .teamRow:hover span {
-  color: #3b82f6;
+  color: var(--color-primary);
 }
 
 .teamRow::after {
   content: 'Chi tiết →';
   font-size: 11px;
   font-weight: 700;
-  color: #3b82f6;
+  color: var(--color-primary);
   opacity: 0;
   transform: translateX(-5px);
   transition: all 0.2s ease;
@@ -1364,7 +1364,7 @@
 .badgeWarning { background: #fef9c3; color: #a16207; }
 
 .editBtn {
-  color: #3b82f6;
+  color: var(--color-primary);
   font-weight: 600;
   cursor: pointer;
   background: none;
@@ -1625,7 +1625,7 @@
 
 .iconBtn:hover {
   background: #f1f5f9;
-  color: #3b82f6;
+  color: var(--color-primary);
 }
 
 .iconBtnDanger:hover {
@@ -1634,9 +1634,9 @@
 }
 
 .clickableLink {
-  color: #2563eb;
+  color: var(--color-primary-dark);
   text-decoration: underline;
-  text-decoration-color: #93c5fd;
+  text-decoration-color: var(--color-primary-light);
   text-underline-offset: 3px;
   cursor: pointer;
   font-weight: 500;
@@ -1644,8 +1644,8 @@
 }
 
 .clickableLink:hover {
-  color: #1d4ed8;
-  text-decoration-color: #2563eb;
+  color: var(--color-primary);
+  text-decoration-color: var(--color-primary-dark);
 }
 
 .customCheckbox {
@@ -2092,8 +2092,8 @@
 .bsActionBtn:active {
   transform: scale(0.98);
 }
-.bsGoalBtn { background: #3b82f6; color: white; }
-.bsPenBtn { background: rgba(59, 130, 246, 0.15); color: #60a5fa; border: 1px solid rgba(59,130,246,0.3); }
+.bsGoalBtn { background: var(--color-primary); color: white; }
+.bsPenBtn { background: rgba(15, 118, 110, 0.15); color: var(--color-accent); border: 1px solid rgba(15,118,110,0.3); }
 .bsOgBtn { background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100,116,139,0.3); }
 .bsChotBtn { background: #f59e0b; color: white; }
 .bsYellowBtn { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234,179,8,0.3); }
@@ -3809,8 +3809,8 @@
 }
 
 .hugeActionSub {
-  background: linear-gradient(135deg, #3b82f6 0%, #2563eb 100%);
-  box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3);
 }
 
 .mobileSecondaryActionArea {

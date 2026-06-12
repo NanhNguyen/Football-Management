@@ -43,7 +43,7 @@ export default function TeamsTab({
           )}
           <button 
             className={styles.editBtnCompact} 
-            style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', background: '#3b82f6', color: 'white', borderColor: '#2563eb' }} 
+            style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--color-primary)', color: 'white', borderColor: 'var(--color-primary-dark)' }} 
             onClick={() => setIsBulkImportOpen(true)}
           >
             <ImportIcon size={14} color="#white" />

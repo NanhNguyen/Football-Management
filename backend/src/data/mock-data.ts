@@ -16,6 +16,36 @@ export interface CauThu {
   banThang: number;
 }
 
+export interface Tournament {
+  id: string;
+  ten: string;
+  trangThai: 'SAP_DIEN_RA' | 'DANG_DIEN_RA' | 'KET_THUC';
+  rulesConfig: any; // Mapped to TournamentRulesDto later
+}
+
+export const giaiDauHienTai: Tournament = {
+  id: 'giai-1',
+  ten: 'Giải Bóng Đá Mùa Hè 2024',
+  trangThai: 'DANG_DIEN_RA',
+  rulesConfig: {
+    matchFormat: {
+      playersPerTeam: 7,
+      minutesPerHalf: 45,
+      penaltyIfDraw: false,
+    },
+    pointsSystem: {
+      win: 3,
+      draw: 1,
+      loss: 0,
+      winByPenalty: 2,
+      lossByPenalty: 1,
+    },
+    tieBreakerPriority: ['headToHead', 'goalDifference', 'goalsScored'],
+    custom_events: [],
+  },
+};
+
+
 export interface SuKien {
   id: string;
   loai: 'BAN_THANG' | 'THE_VANG' | 'THE_DO' | 'THAY_NGUOI';
