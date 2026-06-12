@@ -4,6 +4,7 @@ import TeamLogo from '@/components/TeamLogo';
 import { IconGoal, IconCalendar, IconShield, IconSettings, IconTrophy } from './RefereeIcons';
 import TeamDetailView from './TeamDetailView';
 import RefereeMobileView from './RefereeMobileView';
+import SettingsTab from './SettingsTab';
 
 export default function AdminMobileView(props: any) {
   const { data, actions } = props;
@@ -13,7 +14,12 @@ export default function AdminMobileView(props: any) {
     activeTab, mobileMenuOpen, teams, liveMatches, sidebarItems,
     isAddingTeam, newTeamData, editingTeam,
     isAddingMatch, newMatchData, editingMatch, tournaments, selectedTournament,
-    confirmDialog
+    confirmDialog,
+    // Settings configuration fields
+    tournamentName, tournamentSeason, tournamentStartDate,
+    tournamentEndDate, tournamentMaxPlayers, maxTeams,
+    tournamentType, tournamentVenueType, tournamentGroupLegs,
+    tournamentLeagueRounds, standingsConfig, customEvents
   } = data;
 
   const {
@@ -21,7 +27,14 @@ export default function AdminMobileView(props: any) {
     setIsAddingTeam, setNewTeamData, confirmAddTeam, setEditingTeam, handleSaveTeam, handleDeleteTeam,
     setIsAddingMatch, setNewMatchData, handleCreateMatch, setEditingMatch, handleSaveMatch, handleDeleteMatch,
     handleAutoFetchLogo,
-    setSelectedTournament, fetchData, showToast
+    setSelectedTournament, fetchData, showToast,
+    // Settings configuration action triggers
+    setTournamentName, setTournamentSeason, setTournamentStartDate,
+    setTournamentEndDate, setTournamentMaxPlayers, setMaxTeams,
+    setTournamentType, setTournamentVenueType, setTournamentGroupLegs,
+    setTournamentLeagueRounds, setStandingsConfig,
+    addCustomEvent, updateCustomEvent, removeCustomEvent,
+    handleSaveTournamentConfig, handleDeleteTournament
   } = actions;
 
   const [viewingTeam, setViewingTeam] = useState<any>(null);
@@ -585,7 +598,41 @@ export default function AdminMobileView(props: any) {
         {activeTab === 'doi' && renderTeamsTab()}
         {activeTab === 'lich' && renderSchedulerTab()}
         {activeTab === 'referee' && <RefereeMobileView data={data} actions={actions} />}
-        {activeTab === 'cai-dat' && <div style={{ textAlign: 'center', padding: '40px 0', color: '#64748b' }}>Cài đặt giải đấu vui lòng truy cập bằng máy tính</div>}
+        {activeTab === 'cai-dat' && (
+          <SettingsTab
+            styles={styles}
+            selectedTournamentId={selectedTournament?.id || 'giai-1'}
+            selectedTournament={selectedTournament}
+            tournamentName={tournamentName}
+            setTournamentName={setTournamentName}
+            tournamentSeason={tournamentSeason}
+            setTournamentSeason={setTournamentSeason}
+            tournamentStartDate={tournamentStartDate}
+            setTournamentStartDate={setTournamentStartDate}
+            tournamentEndDate={tournamentEndDate}
+            setTournamentEndDate={setTournamentEndDate}
+            maxTeams={maxTeams}
+            setMaxTeams={setMaxTeams}
+            tournamentMaxPlayers={tournamentMaxPlayers}
+            setTournamentMaxPlayers={setTournamentMaxPlayers}
+            tournamentType={tournamentType}
+            setTournamentType={setTournamentType}
+            tournamentVenueType={tournamentVenueType}
+            setTournamentVenueType={setTournamentVenueType}
+            tournamentGroupLegs={tournamentGroupLegs}
+            setTournamentGroupLegs={setTournamentGroupLegs}
+            tournamentLeagueRounds={tournamentLeagueRounds}
+            setTournamentLeagueRounds={setTournamentLeagueRounds}
+            standingsConfig={standingsConfig}
+            setStandingsConfig={setStandingsConfig}
+            customEvents={customEvents}
+            addCustomEvent={addCustomEvent}
+            updateCustomEvent={updateCustomEvent}
+            removeCustomEvent={removeCustomEvent}
+            handleSaveTournamentConfig={handleSaveTournamentConfig}
+            handleDeleteTournament={handleDeleteTournament}
+          />
+        )}
       </main>
 
       {/* Bottom Tab Bar */}
