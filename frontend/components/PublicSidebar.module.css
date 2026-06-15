@@ -517,3 +517,11 @@
   .sidebarOpen { transform: translateX(0); }
   .closeBtn { display: block; }
 }
+
+.avatarImg {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+}
+

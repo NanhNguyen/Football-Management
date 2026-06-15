@@ -39,6 +39,7 @@ import TeamsTab from './components/TeamsTab';
 import SchedulerTab from './components/SchedulerTab';
 import RefereeTab from './components/RefereeTab';
 import TeamDetailView from './components/TeamDetailView';
+import RoleManagementTab from './components/RoleManagementTab';
 
 import * as XLSX from 'xlsx';
 import TeamLogo from '@/components/TeamLogo';
@@ -48,6 +49,7 @@ const sidebarItems = [
   { label: 'Lịch đấu', id: 'lich' },
   { label: 'Quản lý đội', id: 'doi' },
   { label: 'Trọng tài', id: 'referee' },
+  { label: 'Quản trị tài khoản', id: 'role-management' },
   { label: 'Cài đặt giải đấu', id: 'cai-dat' },
 ];
 
@@ -62,6 +64,7 @@ export default function QuanTriPage() {
   const [loading, setLoading] = useState(true);
   const [selectedMatchId, setSelectedMatchId] = useState<string | null>(null);
   const [isMounted, setIsMounted] = useState(false);
+  const [userRole, setUserRole] = useState<string | null>(null);
 
   useEffect(() => {
     const savedTab = localStorage.getItem('adminActiveTab');
@@ -157,7 +160,66 @@ export default function QuanTriPage() {
     }
   };
 
-  const [newTeamData, setNewTeamData] = useState({ ten: '', logo: '⚽', bang: 'A' });
+  const [newTeamData, setNewTeamData] = useState({ 
+    ten: '', 
+    logo: '⚽', 
+    bang: 'A',
+    externalApiId: null as number | null,
+    logoSource: 'DEFAULT'
+  });
+  const [teamSuggestion, setTeamSuggestion] = useState<{ name: string; logo: string; id: number } | null>(null);
+  const [isSyncingLogos, setIsSyncingLogos] = useState(false);
+
+  const handleTeamNameBlur = async (name: string) => {
+    if (!name || name.trim().length < 3) return;
+    try {
+      const res = await fetch(`https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${encodeURIComponent(name)}`);
+      if (!res.ok) return;
+      const data = await res.json();
+      if (data && data.teams && data.teams.length > 0) {
+        const apiTeam = data.teams[0];
+        setTeamSuggestion({
+          name: apiTeam.strTeam,
+          logo: apiTeam.strBadge,
+          id: parseInt(apiTeam.idTeam)
+        });
+      } else {
+        setTeamSuggestion(null);
+      }
+    } catch (err) {
+      console.error("Error fetching suggestion:", err);
+    }
+  };
+
+  const handleBulkSyncLogos = async () => {
+    if (!selectedTournament?.id) return;
+    try {
+      setToast({ message: `Đang đồng bộ logo đội bóng bằng AI...`, visible: true });
+      setIsSyncingLogos(true);
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`http://localhost:3001/api/tournaments/${selectedTournament.id}/sync-team-logos`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+        }
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Đồng bộ thất bại");
+      if (result.success) {
+        showToast(`⚡ Đã đồng bộ thành công ${result.count} đội bóng!`);
+        await fetchData(selectedTournament.id); // Refresh data
+      } else {
+        showToast(`❌ Đồng bộ thất bại: ${result.error}`);
+      }
+    } catch (err) {
+      console.error("Bulk sync error:", err);
+      showToast("❌ Lỗi khi đồng bộ logo");
+    } finally {
+      setIsSyncingLogos(false);
+    }
+  };
+
   const [editingMatch, setEditingMatch] = useState<any | null>(null);
   const [isAddingMatch, setIsAddingMatch] = useState(false);
   const [newMatchData, setNewMatchData] = useState({ doiNhaId: '', doiKhachId: '', vong: 'Vòng bảng', date: '', time: '15:00', san: 'Sân TK' });
@@ -339,13 +401,35 @@ export default function QuanTriPage() {
       const { data: { session } } = await supabase.auth.getSession();
       if (!session) {
         router.push('/login');
-      } else {
-        const templates = await layDanhSachTournamentTemplates();
-        if (templates && templates.length > 0) {
-          setTournamentTemplates(templates);
-        }
-        fetchData();
+        return;
       }
+      
+      const { data: roleData } = await supabase
+        .from('user_roles')
+        .select('role_id')
+        .eq('user_id', session.user.id)
+        .single();
+        
+      const roleId = roleData?.role_id || 3;
+      const roleMap: Record<number, string> = { 1: 'admin', 2: 'ref', 3: 'user' };
+      const role = roleMap[roleId] || 'user';
+      setUserRole(role);
+      
+      if (role === 'user') {
+        // user thường không có quyền vào quản trị
+        router.push('/');
+        return;
+      }
+
+      if (role === 'ref' && activeTab !== 'referee') {
+        setActiveTab('referee'); // Force ref to referee tab
+      }
+
+      const templates = await layDanhSachTournamentTemplates();
+      if (templates && templates.length > 0) {
+        setTournamentTemplates(templates);
+      }
+      fetchData();
     };
     checkAuth();
   }, [router]);
@@ -581,7 +665,10 @@ export default function QuanTriPage() {
 
 
   // Event Handlers for Teams & Schedule
-  const handleAddTeam = () => setIsAddingTeam(true);
+  const handleAddTeam = () => {
+    setTeamSuggestion(null);
+    setIsAddingTeam(true);
+  };
 
   const confirmAddTeam = async () => {
     if (!newTeamData.ten) {
@@ -599,6 +686,8 @@ export default function QuanTriPage() {
       logo: newTeamData.logo,
       bang: newTeamData.bang,
       giaiDauId: selectedTournament?.id,
+      externalApiId: newTeamData.externalApiId || null,
+      logoSource: newTeamData.logoSource || 'DEFAULT',
       cauThu: []
     };
 
@@ -606,7 +695,8 @@ export default function QuanTriPage() {
     if (!error) {
       await fetchData(selectedTournament?.id);
       setIsAddingTeam(false);
-      setNewTeamData({ ten: '', logo: '⚽', bang: 'A' });
+      setNewTeamData({ ten: '', logo: '⚽', bang: 'A', externalApiId: null, logoSource: 'DEFAULT' });
+      setTeamSuggestion(null);
       showToast(`Đã khởi tạo đội ${newTeam.ten} thành công!`);
     } else {
       showToast(`Lỗi: ${error.message}`);
@@ -614,13 +704,17 @@ export default function QuanTriPage() {
   };
 
 
-  const handleEditTeam = (team: any) => setEditingTeam({ ...team });
+  const handleEditTeam = (team: any) => {
+    setTeamSuggestion(null);
+    setEditingTeam({ ...team });
+  };
 
   const handleSaveTeam = async () => {
     const { error } = await updateTeam(editingTeam);
     if (!error) {
       await fetchData(selectedTournament?.id);
       setEditingTeam(null);
+      setTeamSuggestion(null);
       showToast("Đã cập nhật thông tin đội bóng!");
     } else {
       showToast(`Lỗi: ${error.message}`);
@@ -1245,6 +1339,9 @@ export default function QuanTriPage() {
   };
 
   const handleLogout = async () => {
+    if (!window.confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
+      return;
+    }
     await supabase.auth.signOut();
     router.push('/login');
   };
@@ -1735,6 +1832,18 @@ export default function QuanTriPage() {
     return <GlobalSkeletonLoader />;
   }
 
+  const filteredSidebarItems = sidebarItems.filter(item => {
+    if (userRole === 'ref') {
+      // Trọng tài chỉ được xem Lịch đấu và Trọng tài
+      return item.id === 'lich' || item.id === 'referee';
+    }
+    if (item.id === 'role-management' && userRole !== 'admin') {
+      // Chỉ admin mới được vào tab phân quyền
+      return false;
+    }
+    return true; // Admin thấy hết
+  });
+
   const data = {
     activeTab, mobileMenuOpen, runTour, runRefereeTour,
     liveMatches, teams, loading, selectedMatchId,
@@ -1752,14 +1861,17 @@ export default function QuanTriPage() {
     starterCount, benchCount, isSelectingSubstitute, tournamentType,
     tournamentGroupLegs, tournamentLeagueRounds, confirmDialog,
     isBulkImportOpen, bulkImportProgress, selectedBulkFile, isBulkDragActive,
-    bulkFileInputRef, sidebarItems,
+    bulkFileInputRef, sidebarItems: filteredSidebarItems,
     selectedMatch,
     uniqueRounds,
     uniqueGroups,
     isKnockoutActive,
     filteredAndSortedRefereeMatches,
     scheduleUniqueRounds,
-    filteredAndSortedScheduleMatches
+    filteredAndSortedScheduleMatches,
+    teamSuggestion,
+    isSyncingLogos,
+    userRole
   };
 
   const actions = {
@@ -1798,7 +1910,10 @@ export default function QuanTriPage() {
     handleDeleteEvent,
     handleActionSelect,
     handleInlineUpdateMatch,
-    calculateMatchMinute
+    calculateMatchMinute,
+    handleTeamNameBlur,
+    handleBulkSyncLogos,
+    setTeamSuggestion
   };
 
   if (isMobile) {

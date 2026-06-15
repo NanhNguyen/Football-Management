@@ -17,6 +17,7 @@ const menuItems = [
 export default function TopNav() {
   const pathname = usePathname();
   const [user, setUser] = useState<any>(null);
+  const [userRole, setUserRole] = useState<string>('user');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
   const [isLeague, setIsLeague] = useState(false);
@@ -68,6 +69,18 @@ export default function TopNav() {
       if (session) {
         setUser(session.user);
         
+        // Fetch role
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role_id')
+          .eq('user_id', session.user.id)
+          .single();
+        const roleId = roleData?.role_id || 3;
+        const roleMap: Record<number, string> = { 1: 'admin', 2: 'ref', 3: 'user' };
+        const role = roleMap[roleId] || 'user';
+        setUserRole(role);
+        localStorage.setItem('user_role', role);
+
         const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
         const now = Date.now();
         if (expiresAt - now < 5 * 60 * 1000) {
@@ -75,6 +88,7 @@ export default function TopNav() {
         }
       } else {
         setUser(null);
+        setUserRole('user');
       }
     };
     
@@ -82,11 +96,14 @@ export default function TopNav() {
 
     // Listen for auth changes
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth event:', event);
       if (session) {
         setUser(session.user);
+        const storedRole = localStorage.getItem('user_role');
+        if (storedRole) setUserRole(storedRole);
       } else {
         setUser(null);
+        setUserRole('user');
+        localStorage.removeItem('user_role');
         if (pathname.startsWith('/quan-tri') && event === 'SIGNED_OUT') {
           window.location.href = '/login';
         }
@@ -111,6 +128,10 @@ export default function TopNav() {
   }, []);
 
   const handleLogout = async () => {
+    if (!window.confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
+      return;
+    }
+    localStorage.removeItem('user_role');
     await supabase.auth.signOut();
     setDropdownOpen(false);
     window.location.href = '/login';
@@ -119,7 +140,23 @@ export default function TopNav() {
   // Admin pages use their own layout
   if (pathname.startsWith('/quan-tri')) return null;
 
-  const initials = user?.email ? user.email.substring(0, 2).toUpperCase() : 'AD';
+  const getInitials = () => {
+    if (user?.user_metadata?.full_name) {
+      const parts = user.user_metadata.full_name.split(' ');
+      if (parts.length >= 2) {
+        return (parts[0][0] + parts[parts.length - 1][0]).toUpperCase();
+      }
+      return user.user_metadata.full_name.substring(0, 2).toUpperCase();
+    }
+    return user?.email ? user.email.substring(0, 2).toUpperCase() : 'US';
+  };
+  const initials = getInitials();
+  
+  const roleDisplayNames: Record<string, string> = {
+    'admin': 'Admin',
+    'ref': 'Trọng tài',
+    'user': 'Người xem'
+  };
 
   return (
     <header className={styles.header}>
@@ -159,7 +196,16 @@ export default function TopNav() {
               title={user.email}
             >
               <div className={styles.avatar}>
-                {initials}
+                {user.user_metadata?.avatar_url ? (
+                  <img 
+                    src={user.user_metadata.avatar_url} 
+                    alt="User Avatar" 
+                    className={styles.avatarImg}
+                    referrerPolicy="no-referrer"
+                  />
+                ) : (
+                  initials
+                )}
                 <span className={styles.onlineBadge}></span>
               </div>
             </div>
@@ -170,28 +216,41 @@ export default function TopNav() {
                 {/* Part 1: User Info */}
                 <div className={styles.userInfo}>
                   <div className={styles.userAvatar}>
-                    {initials}
+                    {user.user_metadata?.avatar_url ? (
+                      <img 
+                        src={user.user_metadata.avatar_url} 
+                        alt="User Avatar" 
+                        className={styles.avatarImg}
+                        referrerPolicy="no-referrer"
+                      />
+                    ) : (
+                      initials
+                    )}
                   </div>
                   <div className={styles.userDetails}>
-                    <p className={styles.userName}>Nguyễn Nam Anh</p>
-                    <p className={styles.userRole}>Ban Tổ Chức</p>
+                    <p className={styles.userName}>
+                      {user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User'}
+                    </p>
+                    <p className={styles.userRole}>{roleDisplayNames[userRole]}</p>
                   </div>
                 </div>
 
-                {/* Part 2: Admin Shortcut */}
-                <Link 
-                  href="/quan-tri" 
-                  className={styles.dropdownItem}
-                  onClick={() => setDropdownOpen(false)}
-                >
-                  <span className={styles.dropdownItemIcon}>
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                      <circle cx="12" cy="12" r="3"></circle>
-                      <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
-                    </svg>
-                  </span>
-                  <span>Trang Quản trị</span>
-                </Link>
+                {/* Part 2: Admin Shortcut (Only for admin or ref) */}
+                {(userRole === 'admin' || userRole === 'ref') && (
+                  <Link 
+                    href="/quan-tri" 
+                    className={styles.dropdownItem}
+                    onClick={() => setDropdownOpen(false)}
+                  >
+                    <span className={styles.dropdownItemIcon}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <circle cx="12" cy="12" r="3"></circle>
+                        <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+                      </svg>
+                    </span>
+                    <span>Trang Quản trị</span>
+                  </Link>
+                )}
 
                 {/* Part 3: Logout */}
                 <button 

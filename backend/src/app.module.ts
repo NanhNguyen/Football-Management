@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { TournamentTemplatesController } from './tournament-templates.controller';
@@ -6,9 +7,13 @@ import { TournamentTemplatesService } from './tournament-templates.service';
 import { MatchService } from './tournament/match.service';
 import { TournamentService } from './tournament/tournament.service';
 import { TournamentController } from './tournament/tournament.controller';
+import { AuthModule } from './auth/auth.module';
 
 @Module({
-  imports: [],
+  imports: [
+    ConfigModule.forRoot({ isGlobal: true }),
+    AuthModule
+  ],
   controllers: [AppController, TournamentTemplatesController, TournamentController],
   providers: [AppService, TournamentTemplatesService, MatchService, TournamentService],
 })

@@ -37,12 +37,27 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
   const [loadingTeams, setLoadingTeams] = useState(true);
   const [user, setUser] = useState<any>(null);
 
+  const [userRole, setUserRole] = useState<string>('user');
+
   // Authentication status effect
   useEffect(() => {
     const initAuth = async () => {
       const { data: { session } } = await supabase.auth.getSession();
       if (session) {
         setUser(session.user);
+        
+        // Fetch role
+        const { data: roleData } = await supabase
+          .from('user_roles')
+          .select('role_id')
+          .eq('user_id', session.user.id)
+          .single();
+        const roleId = roleData?.role_id || 3;
+        const roleMap: Record<number, string> = { 1: 'admin', 2: 'ref', 3: 'user' };
+        const role = roleMap[roleId] || 'user';
+        setUserRole(role);
+        localStorage.setItem('user_role', role);
+
         const expiresAt = session.expires_at ? session.expires_at * 1000 : 0;
         const now = Date.now();
         if (expiresAt - now < 5 * 60 * 1000) {
@@ -50,6 +65,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
         }
       } else {
         setUser(null);
+        setUserRole('user');
       }
     };
     
@@ -58,8 +74,12 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
     const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
       if (session) {
         setUser(session.user);
+        const storedRole = localStorage.getItem('user_role');
+        if (storedRole) setUserRole(storedRole);
       } else {
         setUser(null);
+        setUserRole('user');
+        localStorage.removeItem('user_role');
         if (pathname.startsWith('/quan-tri') && event === 'SIGNED_OUT') {
           window.location.href = '/login';
         }
@@ -70,6 +90,10 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
   }, [pathname]);
 
   const handleLogout = async () => {
+    if (!window.confirm('Bạn có chắc chắn muốn đăng xuất không?')) {
+      return;
+    }
+    localStorage.removeItem('user_role');
     await supabase.auth.signOut();
     window.location.href = '/login';
   };
@@ -115,6 +139,12 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
 
   // Determine if Section "⭐ ĐANG THEO DÕI" should be shown or show a muted placeholder
   const hasFollowedItems = followedTourneysList.length > 0 || followedTeamsList.length > 0;
+
+  const roleDisplayNames: Record<string, string> = {
+    'admin': 'Admin',
+    'ref': 'Trọng tài',
+    'user': 'Người xem'
+  };
 
   return (
     <>
@@ -278,18 +308,33 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
             <div className={styles.userProfile}>
               <div className={styles.userInfoWrapper}>
                 <div className={styles.avatar}>
-                  {user.email ? user.email[0].toUpperCase() : 'U'}
+                  {user.user_metadata?.avatar_url ? (
+                    <img 
+                      src={user.user_metadata.avatar_url} 
+                      alt="User Avatar" 
+                      className={styles.avatarImg}
+                      referrerPolicy="no-referrer"
+                    />
+                  ) : (
+                    user.user_metadata?.full_name 
+                      ? user.user_metadata.full_name[0].toUpperCase() 
+                      : (user.email ? user.email[0].toUpperCase() : 'U')
+                  )}
                   <span className={styles.onlineBadge} />
                 </div>
                 <div className={styles.userDetails}>
-                  <span className={styles.userName}>{user.email}</span>
-                  <span className={styles.userRole}>Cầu thủ</span>
+                  <span className={styles.userName}>
+                    {user.user_metadata?.full_name || user.user_metadata?.name || user.email?.split('@')[0] || 'User'}
+                  </span>
+                  <span className={styles.userRole}>{roleDisplayNames[userRole]}</span>
                 </div>
               </div>
               <div className={styles.profileActions}>
-                <Link href="/ca-nhan" className={styles.actionBtn}>
-                  Cá nhân
-                </Link>
+                {(userRole === 'admin' || userRole === 'ref') && (
+                  <Link href="/quan-tri" className={styles.actionBtn}>
+                    Quản trị
+                  </Link>
+                )}
                 <button onClick={handleLogout} className={`${styles.actionBtn} ${styles.logoutBtn}`}>
                   <LogoutIcon size={14} className={styles.logoutIcon} />
                   <span>Đăng xuất</span>
