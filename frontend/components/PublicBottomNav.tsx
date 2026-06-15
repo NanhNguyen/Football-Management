@@ -32,7 +32,7 @@ const MatchesIcon = ({ active }: { active: boolean }) => (
   </svg>
 );
 
-const TrophyIcon = ({ active }: { active: boolean }) => (
+const StarIcon = ({ active }: { active: boolean }) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
     width="20" 
@@ -45,11 +45,7 @@ const TrophyIcon = ({ active }: { active: boolean }) => (
     strokeLinejoin="round"
     style={{ transition: 'all 0.2s ease' }}
   >
-    <line x1="18" y1="20" x2="18" y2="16" />
-    <line x1="6" y1="20" x2="6" y2="16" />
-    <line x1="12" y1="20" x2="12" y2="16" />
-    <rect x="2" y="2" width="20" height="14" rx="2" fill={active ? "var(--color-primary)" : "none"} />
-    <line x1="2" y1="10" x2="22" y2="10" />
+    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2" />
   </svg>
 );
 
@@ -105,14 +101,11 @@ function BottomNavContent() {
       onClick: () => setTournamentsSheetOpen(false)
     },
     { 
-      label: 'Giải đấu', 
-      href: '#', 
-      isActive: tournamentsSheetOpen,
-      renderIcon: (active: boolean) => <TrophyIcon active={active} />,
-      onClick: (e: React.MouseEvent) => {
-        e.preventDefault();
-        setTournamentsSheetOpen(!tournamentsSheetOpen);
-      }
+      label: 'Yêu thích', 
+      href: '/dang-theo-doi', 
+      isActive: pathname === '/dang-theo-doi' && !tournamentsSheetOpen,
+      renderIcon: (active: boolean) => <StarIcon active={active} />,
+      onClick: () => setTournamentsSheetOpen(false)
     },
     { 
       label: 'Thống kê', 
