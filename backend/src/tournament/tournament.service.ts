@@ -151,4 +151,147 @@ export class TournamentService {
 
     return leaderboard;
   }
+
+  private getSimilarity(s1: string, s2: string): number {
+    const norm1 = s1.trim().toLowerCase();
+    const norm2 = s2.trim().toLowerCase();
+    
+    if (norm1 === norm2) return 1.0;
+    
+    const cleanStr = (s: string) => s.replace(/[^a-z0-9]/g, '');
+    const c1 = cleanStr(norm1);
+    const c2 = cleanStr(norm2);
+    if (c1 === c2 && c1.length > 0) return 1.0;
+    
+    const track = Array(norm2.length + 1).fill(null).map(() =>
+      Array(norm1.length + 1).fill(null)
+    );
+    for (let i = 0; i <= norm1.length; i += 1) {
+      track[0][i] = i;
+    }
+    for (let j = 0; j <= norm2.length; j += 1) {
+      track[j][0] = j;
+    }
+    for (let j = 1; j <= norm2.length; j += 1) {
+      for (let i = 1; i <= norm1.length; i += 1) {
+        const indicator = norm1[i - 1] === norm2[j - 1] ? 0 : 1;
+        track[j][i] = Math.min(
+          track[j][i - 1] + 1, // deletion
+          track[j - 1][i] + 1, // insertion
+          track[j - 1][i - 1] + indicator // substitution
+        );
+      }
+    }
+    const distance = track[norm2.length][norm1.length];
+    const maxLen = Math.max(norm1.length, norm2.length);
+    if (maxLen === 0) return 1.0;
+    return (maxLen - distance) / maxLen;
+  }
+
+  private checkMatch(name1: string, name2: string): boolean {
+    const n1 = name1.trim().toLowerCase();
+    const n2 = name2.trim().toLowerCase();
+    if (n1 === n2) return true;
+    
+    const clean = (s: string) => s.replace(/\b(fc|football club|club|sc|women|u21|youth)\b/g, '').replace(/[^a-z0-9]/g, ' ').replace(/\s+/g, ' ').trim();
+    const c1 = clean(n1);
+    const c2 = clean(n2);
+    if (c1 === c2 && c1.length > 0) return true;
+    
+    const sim = this.getSimilarity(c1, c2);
+    if (sim >= 0.9) return true;
+    
+    if (c1.includes(c2) || c2.includes(c1)) {
+      const minLen = Math.min(c1.length, c2.length);
+      const maxLen = Math.max(c1.length, c2.length);
+      if (minLen / maxLen >= 0.7) {
+        return true;
+      }
+    }
+    
+    return false;
+  }
+
+  async syncTeamLogos(tournamentId: string) {
+    const fs = require('fs');
+    const path = require('path');
+    const { createClient } = require('@supabase/supabase-js');
+
+    const envPath = path.resolve(process.cwd(), '../frontend/.env.local');
+    let supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+    let supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '';
+
+    if (fs.existsSync(envPath)) {
+      const envContent = fs.readFileSync(envPath, 'utf8');
+      const urlMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_URL=(.*)/);
+      const keyMatch = envContent.match(/NEXT_PUBLIC_SUPABASE_ANON_KEY=(.*)/);
+      if (urlMatch) supabaseUrl = urlMatch[1].trim();
+      if (keyMatch) supabaseAnonKey = keyMatch[1].trim();
+    }
+
+    if (!supabaseUrl || !supabaseAnonKey) {
+      console.error('Supabase credentials not found');
+      return { success: false, error: 'Supabase credentials not found' };
+    }
+
+    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+
+    const { data: dbTeams, error: dbError } = await supabase
+      .from('doi_bong')
+      .select('*')
+      .eq('giai_dau_id', tournamentId)
+      .is('external_api_id', null);
+
+    if (dbError) {
+      console.error('Error fetching teams from Supabase:', dbError);
+      return { success: false, error: dbError.message };
+    }
+
+    if (!dbTeams || dbTeams.length === 0) {
+      return { success: true, count: 0 };
+    }
+
+    let syncCount = 0;
+
+    for (const team of dbTeams) {
+      try {
+        const res = await fetch(`https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${encodeURIComponent(team.ten)}`);
+        if (!res.ok) continue;
+        const data = await res.json();
+        if (data && data.teams && data.teams.length > 0) {
+          let matchedApiTeam: any = null;
+          for (const apiTeam of data.teams) {
+            if (this.checkMatch(team.ten, apiTeam.strTeam)) {
+              matchedApiTeam = apiTeam;
+              break;
+            }
+          }
+
+          if (matchedApiTeam) {
+            const externalId = parseInt(matchedApiTeam.idTeam);
+            const logoUrl = matchedApiTeam.strBadge;
+
+            const { error: updateError } = await supabase
+              .from('doi_bong')
+              .update({
+                external_api_id: externalId,
+                logo: logoUrl,
+                logo_source: 'EXTERNAL_API'
+              })
+              .eq('id', team.id);
+
+            if (!updateError) {
+              syncCount++;
+            } else {
+              console.error(`Error updating team ${team.ten}:`, updateError);
+            }
+          }
+        }
+      } catch (err) {
+        console.error(`Error syncing team ${team.ten}:`, err);
+      }
+    }
+
+    return { success: true, count: syncCount };
+  }
 }

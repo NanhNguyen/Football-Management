@@ -1,5 +1,6 @@
 import React from 'react';
 import TeamLogo from '@/components/TeamLogo';
+import PlayerAvatar from '@/components/PlayerAvatar';
 import { EditIcon, ShieldIcon, ClipboardIcon, SoccerBallIcon } from '@/components/AppIcons';
 
 interface TeamDetailViewProps {
@@ -174,22 +175,7 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '32px',
-                        height: '32px',
-                        background: '#fee2e2',
-                        color: '#ef4444',
-                        borderRadius: '50%',
-                        fontSize: '13px',
-                        fontWeight: 700
-                      }}
-                    >
-                      {p.soAo}
-                    </span>
+                    <PlayerAvatar avatarUrl={p.avatar} playerName={p.ten} soAo={p.soAo} />
                     <div>
                       <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>{p.ten}</p>
                       <p style={{ margin: 0, fontSize: '11px', color: 'var(--color-primary)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginTop: '2px' }}>
@@ -249,22 +235,7 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
                   }}
                 >
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                    <span
-                      style={{
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        width: '32px',
-                        height: '32px',
-                        background: '#e2e8f0',
-                        color: '#475569',
-                        borderRadius: '50%',
-                        fontSize: '13px',
-                        fontWeight: 700
-                      }}
-                    >
-                      {p.soAo}
-                    </span>
+                    <PlayerAvatar avatarUrl={p.avatar} playerName={p.ten} soAo={p.soAo} />
                     <div>
                       <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: '#334155' }}>{p.ten}</p>
                       <p style={{ margin: 0, fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginTop: '2px' }}>

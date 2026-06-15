@@ -26,10 +26,12 @@ export async function getTournamentRules(tournamentId: string) {
 
 export async function updateTournamentRules(tournamentId: string, rules: any) {
   try {
+    const { data: { session } } = await supabase.auth.getSession();
     const response = await fetch(`${NESTJS_API_URL}/tournaments/${tournamentId}/rules`, {
       method: 'PUT',
       headers: {
         'Content-Type': 'application/json',
+        ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
       },
       body: JSON.stringify(rules),
     });
@@ -89,6 +91,8 @@ export async function layDanhSachDoi(giaiDauId?: string) {
   return data.map(doi => ({
     ...doi,
     vietTat: doi.viet_tat,
+    externalApiId: doi.external_api_id,
+    logoSource: doi.logo_source,
     cauThu: doi.cau_thu ? doi.cau_thu.map((ct: any) => ({
       ...ct,
       banThang: ct.ban_thang,
@@ -112,7 +116,9 @@ export async function createTeam(team: any) {
       viet_tat: team.vietTat,
       logo: team.logo,
       bang: team.bang,
-      giai_dau_id: team.giaiDauId
+      giai_dau_id: team.giaiDauId,
+      external_api_id: team.externalApiId || null,
+      logo_source: team.logoSource || 'DEFAULT'
     }])
     .select();
   return { data, error };
@@ -125,7 +131,9 @@ export async function updateTeam(team: any) {
       ten: team.ten,
       viet_tat: team.vietTat,
       logo: team.logo,
-      bang: team.bang
+      bang: team.bang,
+      external_api_id: team.externalApiId || null,
+      logo_source: team.logoSource || 'DEFAULT'
     })
     .eq('id', team.id)
     .select();

@@ -324,11 +324,45 @@ function TongQuanContent() {
       
       {/* Header */}
       <div className={styles.header}>
-        <div className={styles.logoTitleWrapper}>
-          <img src="/logo-premium-transparent.png" alt="Sparta Logo" className={styles.logoImg} />
-          <h1 className={styles.appName}>SPARTA</h1>
+        <div className={styles.headerLeft}>
+          <div className={styles.logoTitleWrapper}>
+            <img src="/logo-premium-transparent.png" alt="Sparta Logo" className={styles.logoImg} />
+            <h1 className={styles.appName}>SPARTA</h1>
+          </div>
+          <p className={styles.slogan}>Hệ thống Quản lý Giải đấu Chuyên nghiệp</p>
         </div>
-        <p className={styles.slogan}>Hệ thống Quản lý Giải đấu Chuyên nghiệp</p>
+
+        {/* Tournament Switcher in Header */}
+        <div className={styles.headerSelectWrapper}>
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="18" 
+            height="18" 
+            viewBox="0 0 24 24" 
+            fill="none" 
+            stroke="var(--color-primary, #0f766e)" 
+            strokeWidth="2.5" 
+            strokeLinecap="round" 
+            strokeLinejoin="round"
+            className={styles.trophyIcon}
+          >
+            <path d="M6 9H4.5a2.5 2.5 0 0 1 0-5H6"></path>
+            <path d="M18 9h1.5a2.5 2.5 0 0 0 0-5H18"></path>
+            <path d="M4 22h16"></path>
+            <path d="M10 14.66V17c0 .55-.45 1-1 1H4v2h16v-2h-5c-.55 0-1-.45-1-1v-2.34"></path>
+            <path d="M12 2a6 6 0 0 1 6 6v5a6 6 0 0 1-6 6 6 6 0 0 1-6-6V8a6 6 0 0 1 6-6z"></path>
+          </svg>
+          <select 
+            className={styles.headerSelect}
+            value={selectedTournamentId || ''}
+            onChange={(e) => setSelectedTournamentId(e.target.value)}
+          >
+            {tournaments.map(t => (
+              <option key={t.id} value={t.id}>{t.ten}</option>
+            ))}
+          </select>
+          <svg className={styles.headerSelectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        </div>
       </div>
 
 
@@ -358,18 +392,7 @@ function TongQuanContent() {
         <>
           {/* Filters Container */}
           <div className={styles.filtersContainer}>
-            <div className={styles.filterSelectWrapper}>
-              <select 
-                className={styles.filterSelect}
-                value={selectedTournamentId || ''}
-                onChange={(e) => setSelectedTournamentId(e.target.value)}
-              >
-                {tournaments.map(t => (
-                  <option key={t.id} value={t.id}>{t.ten}</option>
-                ))}
-              </select>
-              <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-            </div>
+
 
             {/* Dropdown Matchweek selector to match Premier League filters */}
             {uniqueRounds.length > 0 && (

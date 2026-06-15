@@ -226,7 +226,7 @@ export default function MatchListFeed({ data, onMatchClick, tournamentType = 'le
                   {/* Team A */}
                   <div className={styles.teamA}>
                     <span className={styles.teamName}>{match.doiNha?.ten || 'TBD'}</span>
-                    <span className={styles.teamLogo}><TeamLogo logo={match.doiNha?.logo} fallback={<ShieldIcon size={16} />} /></span>
+                    <span className={styles.teamLogo}><TeamLogo logo={match.doiNha?.logo} teamName={match.doiNha?.ten} fallback={<ShieldIcon size={16} />} /></span>
                   </div>
 
                   {/* Score */}
@@ -247,7 +247,7 @@ export default function MatchListFeed({ data, onMatchClick, tournamentType = 'le
 
                   {/* Team B */}
                   <div className={styles.teamB}>
-                    <span className={styles.teamLogo}><TeamLogo logo={match.doiKhach?.logo} fallback={<ShieldIcon size={16} />} /></span>
+                    <span className={styles.teamLogo}><TeamLogo logo={match.doiKhach?.logo} teamName={match.doiKhach?.ten} fallback={<ShieldIcon size={16} />} /></span>
                     <span className={styles.teamName}>{match.doiKhach?.ten || 'TBD'}</span>
                   </div>
 

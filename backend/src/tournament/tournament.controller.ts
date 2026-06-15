@@ -1,8 +1,12 @@
-import { Controller, Get, Param, Put, Body } from '@nestjs/common';
+import { Controller, Get, Param, Put, Post, Body, UseGuards } from '@nestjs/common';
 import { TournamentService } from './tournament.service';
 import { TournamentRulesDto } from './dto/tournament-rules.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
 
 @Controller('tournaments')
+@UseGuards(JwtAuthGuard, RolesGuard)
 export class TournamentController {
   constructor(private readonly tournamentService: TournamentService) {}
 
@@ -12,6 +16,7 @@ export class TournamentController {
   }
 
   @Put(':id/rules')
+  @Roles('admin')
   updateRules(
     @Param('id') id: string,
     @Body() rules: TournamentRulesDto,
@@ -22,5 +27,11 @@ export class TournamentController {
   @Get(':id/leaderboard')
   getLeaderboard(@Param('id') id: string) {
     return this.tournamentService.calculateLeaderboard(id);
+  }
+
+  @Post(':id/sync-team-logos')
+  @Roles('admin')
+  async syncTeamLogos(@Param('id') id: string) {
+    return this.tournamentService.syncTeamLogos(id);
   }
 }

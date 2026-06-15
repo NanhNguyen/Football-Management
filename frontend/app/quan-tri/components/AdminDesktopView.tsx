@@ -12,6 +12,8 @@ import RefereeTab from './RefereeTab';
 import TeamDetailView from './TeamDetailView';
 import TeamLogo from '@/components/TeamLogo';
 import { IconTrophy } from './RefereeIcons';
+import { supabase } from '@/lib/supabase';
+import RoleManagementTab from './RoleManagementTab';
 
 export default function AdminDesktopView(props: any) {
   const { data, actions } = props;
@@ -41,7 +43,10 @@ export default function AdminDesktopView(props: any) {
     isKnockoutActive,
     filteredAndSortedRefereeMatches,
     scheduleUniqueRounds,
-    filteredAndSortedScheduleMatches
+    filteredAndSortedScheduleMatches,
+    teamSuggestion,
+    isSyncingLogos,
+    userRole
   } = data;
 
   const {
@@ -83,7 +88,10 @@ export default function AdminDesktopView(props: any) {
     handleActionSelect,
     handleInlineUpdateMatch,
     calculateMatchMinute,
-    handleClearDraftSchedule
+    handleClearDraftSchedule,
+    handleTeamNameBlur,
+    handleBulkSyncLogos,
+    setTeamSuggestion
   } = actions;
 
     return (
@@ -145,16 +153,20 @@ export default function AdminDesktopView(props: any) {
                     <IconTrophy size={16} color={selectedTournament?.id === t.id ? 'var(--color-primary)' : 'var(--color-text-muted)'} /> {t.ten}
                   </div>
                 ))}
-                <div className={styles.switcherDivider} />
-                <div
-                  className={styles.switcherCreateBtn}
-                  onClick={() => {
-                    setIsCreatingTournament(true);
-                    setIsSwitcherOpen(false);
-                  }}
-                >
-                  <span className={styles.switcherCreateIcon}>+</span> Tạo giải đấu mới
-                </div>
+                {userRole === 'admin' && (
+                  <>
+                    <div className={styles.switcherDivider} />
+                    <div
+                      className={styles.switcherCreateBtn}
+                      onClick={() => {
+                        setIsCreatingTournament(true);
+                        setIsSwitcherOpen(false);
+                      }}
+                    >
+                      <span className={styles.switcherCreateIcon}>+</span> Tạo giải đấu mới
+                    </div>
+                  </>
+                )}
               </div>
             )}
           </div>
@@ -178,8 +190,8 @@ export default function AdminDesktopView(props: any) {
             </button>
             <svg style={{ cursor: 'pointer' }} xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"></path><path d="M13.73 21a2 2 0 0 1-3.46 0"></path></svg>
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }} onClick={handleLogout}>
-              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--color-primary-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>AD</div>
-              <span className={styles.adminNameText} style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text)' }}>Admin</span>
+              <div style={{ width: '32px', height: '32px', borderRadius: '50%', background: 'var(--color-primary-light)', color: 'var(--color-primary)', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '12px', fontWeight: 'bold' }}>{userRole === 'admin' ? 'AD' : 'RF'}</div>
+              <span className={styles.adminNameText} style={{ fontSize: '14px', fontWeight: '600', color: 'var(--color-text)' }}>{userRole === 'admin' ? 'Admin' : 'Trọng tài'}</span>
             </div>
           </div>
         </div>
@@ -428,6 +440,10 @@ export default function AdminDesktopView(props: any) {
             />
           )}
 
+          {activeTab === 'role-management' && (
+            <RoleManagementTab showToast={showToast} />
+          )}
+
           {activeTab === 'doi' && (
             viewingTeam ? (
               <TeamDetailView
@@ -450,6 +466,8 @@ export default function AdminDesktopView(props: any) {
                 handleEditTeam={handleEditTeam}
                 handleDeleteTeam={handleDeleteTeam}
                 handleDeleteAllTeams={handleDeleteAllTeams}
+                isSyncingLogos={isSyncingLogos}
+                handleBulkSyncLogos={handleBulkSyncLogos}
               />
             )
           )}
@@ -528,14 +546,94 @@ export default function AdminDesktopView(props: any) {
                 className={styles.modalInput}
                 value={newTeamData.ten}
                 onChange={(e) => setNewTeamData({ ...newTeamData, ten: e.target.value })}
+                onBlur={() => handleTeamNameBlur(newTeamData.ten)}
               />
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input className={styles.modalInput} style={{ flex: 1, minWidth: 0 }} placeholder="URL Logo" value={newTeamData.logo} onChange={(e) => setNewTeamData({ ...newTeamData, logo: e.target.value })} />
-                  <button onClick={() => handleAutoFetchLogo(newTeamData.ten, false)} disabled={fetchingLogo} style={{ padding: '0 12px', background: '#fee2e2', color: '#d71920', border: '1px solid #fecaca', borderRadius: '10px', fontWeight: 600, cursor: 'pointer', whiteSpace: 'nowrap' }} title="Tự động tìm kiếm logo thật">
-                    {fetchingLogo ? '⌛' : '⚡ Tự tìm'}
+              {teamSuggestion && (
+                <div style={{
+                  marginTop: '12px',
+                  padding: '12px 16px',
+                  backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                  border: '1px solid rgba(59, 130, 246, 0.2)',
+                  borderRadius: '12px',
+                  fontSize: '13px',
+                  color: '#1e3a8a',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  gap: '12px'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                    <img src={teamSuggestion.logo} alt={teamSuggestion.name} style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                    <span style={{ textAlign: 'left' }}>
+                      💡 Tìm thấy dữ liệu quốc tế: <strong>{teamSuggestion.name}</strong>
+                    </span>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setNewTeamData({
+                        ...newTeamData,
+                        logo: teamSuggestion.logo,
+                        externalApiId: teamSuggestion.id,
+                        logoSource: 'EXTERNAL_API'
+                      });
+                      setTeamSuggestion(null);
+                    }}
+                    style={{
+                      background: '#3b82f6',
+                      color: '#ffffff',
+                      border: 'none',
+                      borderRadius: '8px',
+                      padding: '6px 12px',
+                      fontWeight: 'bold',
+                      cursor: 'pointer',
+                      fontSize: '12px',
+                      whiteSpace: 'nowrap'
+                    }}
+                  >
+                    Áp dụng ngay
                   </button>
                 </div>
+              )}
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px', marginTop: '15px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <label style={{ cursor: 'pointer', display: 'inline-block', position: 'relative' }}>
+                  <input 
+                    type="file" 
+                    accept="image/*" 
+                    style={{ display: 'none' }} 
+                    onChange={async (e) => {
+                      const file = e.target.files?.[0];
+                      if (!file) return;
+                      try {
+                        showToast("⏳ Đang tải ảnh lên...");
+                        const fileExt = file.name.split('.').pop();
+                        const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                        const { data, error } = await supabase.storage.from('team-logos').upload(fileName, file);
+                        if (error) throw error;
+                        const { data: publicData } = supabase.storage.from('team-logos').getPublicUrl(fileName);
+                        setNewTeamData({ 
+                          ...newTeamData, 
+                          logo: publicData.publicUrl,
+                          logoSource: 'SUPABASE_BUCKET',
+                          externalApiId: null
+                        });
+                        showToast("✅ Đã cập nhật logo!");
+                      } catch (err) {
+                        console.error("Upload error:", err);
+                        showToast("❌ Lỗi khi tải ảnh lên");
+                      }
+                    }}
+                  />
+                  <TeamLogo logo={newTeamData.logo} teamName={newTeamData.ten} className="w-12 h-12 rounded-full object-cover shadow-sm border border-slate-200" style={{ width: '48px', height: '48px', cursor: 'pointer' }} />
+                  <div style={{ position: 'absolute', bottom: -2, right: -2, background: '#ffffff', borderRadius: '50%', padding: '3px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', display: 'flex' }}>
+                    <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" color="#475569"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  </div>
+                </label>
+                <div style={{ fontSize: '12px', color: '#64748b' }}>
+                  Nhấn vào ảnh để tải lên<br/>logo từ thiết bị của bạn.
+                </div>
+              </div>
                 <select className={styles.modalInput} value={newTeamData.bang} onChange={(e) => setNewTeamData({ ...newTeamData, bang: e.target.value })}>
                   <option value="A">Bảng A</option>
                   <option value="B">Bảng B</option>
@@ -545,7 +643,7 @@ export default function AdminDesktopView(props: any) {
               </div>
               <div style={{ display: 'flex', gap: '10px', marginTop: '20px' }}>
                 <button className={styles.finishBtn} onClick={confirmAddTeam}>KHỞI TẠO</button>
-                <button className={styles.undoBtn} onClick={() => setIsAddingTeam(false)}>HỦY</button>
+                <button className={styles.undoBtn} onClick={() => { setIsAddingTeam(false); setTeamSuggestion(null); }}>HỦY</button>
               </div>
             </div>
           </div>
@@ -572,29 +670,98 @@ export default function AdminDesktopView(props: any) {
                   style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '12px 16px', fontSize: '15px' }}
                   value={editingTeam.ten}
                   onChange={(e) => setEditingTeam({ ...editingTeam, ten: e.target.value })}
+                  onBlur={() => handleTeamNameBlur(editingTeam.ten)}
                 />
+                {teamSuggestion && (
+                  <div style={{
+                    marginTop: '12px',
+                    padding: '12px 16px',
+                    backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                    border: '1px solid rgba(59, 130, 246, 0.2)',
+                    borderRadius: '12px',
+                    fontSize: '13px',
+                    color: '#1e3a8a',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '12px'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <img src={teamSuggestion.logo} alt={teamSuggestion.name} style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                      <span style={{ textAlign: 'left' }}>
+                        💡 Tìm thấy dữ liệu quốc tế: <strong>{teamSuggestion.name}</strong>
+                      </span>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setEditingTeam({
+                          ...editingTeam,
+                          logo: teamSuggestion.logo,
+                          externalApiId: teamSuggestion.id,
+                          logoSource: 'EXTERNAL_API'
+                        });
+                        setTeamSuggestion(null);
+                      }}
+                      style={{
+                        background: '#3b82f6',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '6px 12px',
+                        fontWeight: 'bold',
+                        cursor: 'pointer',
+                        fontSize: '12px',
+                        whiteSpace: 'nowrap'
+                      }}
+                    >
+                      Áp dụng ngay
+                    </button>
+                  </div>
+                )}
               </div>
 
               <div style={{ marginBottom: '20px' }}>
                 <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
                   🖼️ Logo đội bóng
                 </label>
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <input
-                    type="text"
-                    className={styles.modalInput}
-                    style={{ flex: 1, background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '12px 16px', fontSize: '15px' }}
-                    value={editingTeam.logo || ''}
-                    onChange={(e) => setEditingTeam({ ...editingTeam, logo: e.target.value })}
-                    placeholder="URL ảnh Logo đội bóng"
-                  />
-                  <button 
-                    onClick={() => handleAutoFetchLogo(editingTeam.ten, true)} 
-                    disabled={fetchingLogo} 
-                    style={{ padding: '0 20px', background: '#fee2e2', color: '#d71920', border: '1px solid #fecaca', borderRadius: '12px', fontWeight: 700, cursor: 'pointer', whiteSpace: 'nowrap' }}
-                  >
-                    {fetchingLogo ? 'Đang tìm...' : '⚡ Tìm Logo Tự Động'}
-                  </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px dashed #cbd5e1' }}>
+                  <label style={{ cursor: 'pointer', display: 'inline-block', position: 'relative' }}>
+                    <input 
+                      type="file" 
+                      accept="image/*" 
+                      style={{ display: 'none' }} 
+                      onChange={async (e) => {
+                        const file = e.target.files?.[0];
+                        if (!file) return;
+                        try {
+                          showToast("⏳ Đang tải ảnh lên...");
+                          const fileExt = file.name.split('.').pop();
+                          const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                          const { data, error } = await supabase.storage.from('team-logos').upload(fileName, file);
+                          if (error) throw error;
+                          const { data: publicData } = supabase.storage.from('team-logos').getPublicUrl(fileName);
+                          setEditingTeam({ 
+                            ...editingTeam, 
+                            logo: publicData.publicUrl,
+                            logoSource: 'SUPABASE_BUCKET',
+                            externalApiId: null
+                          });
+                          showToast("✅ Đã cập nhật logo!");
+                        } catch (err) {
+                          console.error("Upload error:", err);
+                          showToast("❌ Lỗi khi tải ảnh lên");
+                        }
+                      }}
+                    />
+                    <TeamLogo logo={editingTeam.logo} teamName={editingTeam.ten} className="w-16 h-16 rounded-full object-cover shadow-sm border border-slate-200" style={{ width: '64px', height: '64px', cursor: 'pointer' }} />
+                    <div style={{ position: 'absolute', bottom: 0, right: 0, background: '#ffffff', borderRadius: '50%', padding: '4px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', display: 'flex' }}>
+                      <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" color="#475569"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                    </div>
+                  </label>
+                  <div style={{ fontSize: '13px', color: '#64748b' }}>
+                    Nhấn vào ảnh để tải lên logo từ thiết bị.
+                  </div>
                 </div>
               </div>
 

@@ -513,11 +513,42 @@ export default function RefereeMobileView({ data, actions }: any) {
         {uniqueRounds && uniqueRounds.length > 0 && (
           <div style={{
             display: 'flex',
+            flexDirection: 'column',
             alignItems: 'center',
             justifyContent: 'center',
             margin: '0 0 20px 0',
-            padding: '8px 16px'
+            padding: '12px 16px',
+            background: '#ffffff',
+            borderRadius: '16px',
+            border: '1px solid #e2e8f0',
+            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+            gap: '12px'
           }}>
+            {/* Filter Dropdown on Top */}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Chọn nhanh vòng:</span>
+              <select
+                value={refereeFilterVong}
+                onChange={(e) => setRefereeFilterVong(e.target.value)}
+                style={{
+                  padding: '6px 12px',
+                  borderRadius: '8px',
+                  border: '1px solid #cbd5e1',
+                  background: '#fff',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  color: '#1e293b',
+                  outline: 'none',
+                  cursor: 'pointer',
+                  boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                }}
+              >
+                {uniqueRounds.map((r: string) => (
+                  <option key={r} value={r}>{r}</option>
+                ))}
+              </select>
+            </div>
+
             {(() => {
               const currentIdx = uniqueRounds.indexOf(refereeFilterVong);
               const isFirstRound = currentIdx <= 0;

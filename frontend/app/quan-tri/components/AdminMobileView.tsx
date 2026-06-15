@@ -5,6 +5,8 @@ import { IconGoal, IconCalendar, IconShield, IconSettings, IconTrophy } from './
 import TeamDetailView from './TeamDetailView';
 import RefereeMobileView from './RefereeMobileView';
 import SettingsTab from './SettingsTab';
+import { supabase } from '@/lib/supabase';
+import RoleManagementTab from './RoleManagementTab';
 
 export default function AdminMobileView(props: any) {
   const { data, actions } = props;
@@ -19,7 +21,9 @@ export default function AdminMobileView(props: any) {
     tournamentName, tournamentSeason, tournamentStartDate,
     tournamentEndDate, tournamentMaxPlayers, maxTeams,
     tournamentType, tournamentVenueType, tournamentGroupLegs,
-    tournamentLeagueRounds, standingsConfig, customEvents
+    tournamentLeagueRounds, standingsConfig, customEvents,
+    teamSuggestion,
+    userRole
   } = data;
 
   const {
@@ -34,7 +38,8 @@ export default function AdminMobileView(props: any) {
     setTournamentType, setTournamentVenueType, setTournamentGroupLegs,
     setTournamentLeagueRounds, setStandingsConfig,
     addCustomEvent, updateCustomEvent, removeCustomEvent,
-    handleSaveTournamentConfig, handleDeleteTournament
+    handleSaveTournamentConfig, handleDeleteTournament,
+    handleTeamNameBlur, setTeamSuggestion
   } = actions;
 
   const [viewingTeam, setViewingTeam] = useState<any>(null);
@@ -309,12 +314,38 @@ export default function AdminMobileView(props: any) {
           alignItems: 'center',
           justifyContent: 'center',
           marginBottom: '20px',
-          padding: '12px 16px',
+          padding: '16px',
           background: '#ffffff',
           borderRadius: '16px',
           border: '1px solid #e2e8f0',
-          boxShadow: '0 2px 8px rgba(0,0,0,0.04)'
+          boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
+          gap: '12px'
         }}>
+          {/* Filter Dropdown on Top */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+            <span style={{ fontSize: '12px', color: '#64748b', fontWeight: 600 }}>Chọn nhanh vòng:</span>
+            <select
+              value={selectedRound}
+              onChange={(e) => setSelectedRound(e.target.value)}
+              style={{
+                padding: '6px 12px',
+                borderRadius: '8px',
+                border: '1px solid #cbd5e1',
+                background: '#fff',
+                fontSize: '12px',
+                fontWeight: 600,
+                color: '#1e293b',
+                outline: 'none',
+                cursor: 'pointer',
+                boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+              }}
+            >
+              {uniqueRounds.map(r => (
+                <option key={r} value={r}>{r}</option>
+              ))}
+            </select>
+          </div>
+
           <div style={{ display: 'flex', alignItems: 'center', gap: '20px' }}>
             {(() => {
               const currentIdx = uniqueRounds.indexOf(selectedRound);
@@ -326,29 +357,29 @@ export default function AdminMobileView(props: any) {
                     onClick={handlePrevRound}
                     disabled={isFirstRound}
                     style={{
-                      width: '32px',
-                      height: '32px',
+                      width: '36px',
+                      height: '36px',
                       borderRadius: '50%',
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid #e2e8f0',
                       background: '#ffffff',
-                      color: isFirstRound ? '#cbd5e1' : '#1e293b',
-                      fontSize: '14px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: isFirstRound ? 'not-allowed' : 'pointer',
-                      fontWeight: 'bold',
                       outline: 'none',
                       opacity: isFirstRound ? 0.5 : 1
                     }}
+                    title="Vòng trước"
                   >
-                    &lt;
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="15 18 9 12 15 6"></polyline>
+                    </svg>
                   </button>
                   <div style={{ textAlign: 'center', minWidth: '130px' }}>
-                    <div style={{ fontSize: '16px', fontWeight: 800, color: 'var(--color-primary, #0f766e)' }}>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>
                       {selectedRound === 'NONE' ? 'Không có trận đấu' : selectedRound}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, marginTop: '2px' }}>
+                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, marginTop: '4px' }}>
                       {getRoundDateRange()}
                     </div>
                   </div>
@@ -356,23 +387,23 @@ export default function AdminMobileView(props: any) {
                     onClick={handleNextRound}
                     disabled={isLastRound}
                     style={{
-                      width: '32px',
-                      height: '32px',
+                      width: '36px',
+                      height: '36px',
                       borderRadius: '50%',
-                      border: '1px solid #cbd5e1',
+                      border: '1px solid #e2e8f0',
                       background: '#ffffff',
-                      color: isLastRound ? '#cbd5e1' : '#1e293b',
-                      fontSize: '14px',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
                       cursor: isLastRound ? 'not-allowed' : 'pointer',
-                      fontWeight: 'bold',
                       outline: 'none',
                       opacity: isLastRound ? 0.5 : 1
                     }}
+                    title="Vòng sau"
                   >
-                    &gt;
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <polyline points="9 18 15 12 9 6"></polyline>
+                    </svg>
                   </button>
                 </>
               );
@@ -446,6 +477,14 @@ export default function AdminMobileView(props: any) {
       case 'doi': return <IconShield size={24} color={color} />;
       case 'referee': return <IconGoal size={24} color={color} />;
       case 'cai-dat': return <IconSettings size={24} color={color} />;
+      case 'role-management': return (
+        <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+          <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+          <circle cx="9" cy="7" r="4" />
+          <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+          <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+        </svg>
+      );
       default: return null;
     }
   };
@@ -633,6 +672,9 @@ export default function AdminMobileView(props: any) {
             handleDeleteTournament={handleDeleteTournament}
           />
         )}
+        {activeTab === 'role-management' && (
+          <RoleManagementTab showToast={showToast} />
+        )}
       </main>
 
       {/* Bottom Tab Bar */}
@@ -653,7 +695,7 @@ export default function AdminMobileView(props: any) {
       
       {/* Add Team Bottom Sheet */}
       {isAddingTeam && (
-        <div style={mobileStyles.bottomSheetOverlay} onClick={() => setIsAddingTeam(false)}>
+        <div style={mobileStyles.bottomSheetOverlay} onClick={() => { setIsAddingTeam(false); setTeamSuggestion(null); }}>
           <div style={mobileStyles.bottomSheet} onClick={e => e.stopPropagation()}>
             <div style={{ width: '40px', height: '4px', background: '#cbd5e1', borderRadius: '2px', margin: '0 auto 20px auto' }} />
             <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 16px 0' }}>Tạo đội bóng mới</h3>
@@ -663,7 +705,55 @@ export default function AdminMobileView(props: any) {
               placeholder="Nhập tên đội..." 
               value={newTeamData.ten}
               onChange={e => setNewTeamData({...newTeamData, ten: e.target.value})}
+              onBlur={() => handleTeamNameBlur(newTeamData.ten)}
             />
+            {teamSuggestion && (
+              <div style={{
+                marginBottom: '16px',
+                padding: '12px 16px',
+                backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                border: '1px solid rgba(59, 130, 246, 0.2)',
+                borderRadius: '12px',
+                fontSize: '13px',
+                color: '#1e3a8a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <img src={teamSuggestion.logo} alt={teamSuggestion.name} style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                  <span style={{ textAlign: 'left' }}>
+                    💡 Tìm thấy dữ liệu quốc tế: <strong>{teamSuggestion.name}</strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setNewTeamData({
+                      ...newTeamData,
+                      logo: teamSuggestion.logo,
+                      externalApiId: teamSuggestion.id,
+                      logoSource: 'EXTERNAL_API'
+                    });
+                    setTeamSuggestion(null);
+                  }}
+                  style={{
+                    background: '#3b82f6',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Áp dụng
+                </button>
+              </div>
+            )}
             <label style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>Bảng đấu</label>
             <input 
               style={mobileStyles.input} 
@@ -671,7 +761,45 @@ export default function AdminMobileView(props: any) {
               value={newTeamData.bang}
               onChange={e => setNewTeamData({...newTeamData, bang: e.target.value})}
             />
-            <button style={{ ...mobileStyles.buttonPrimary, marginBottom: '12px' }} onClick={() => { handleAutoFetchLogo(newTeamData.ten, false); }}>Tạo Avatar Tự Động</button>
+            <label style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>Logo đội bóng</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+              <label style={{ cursor: 'pointer', display: 'inline-block', position: 'relative' }}>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  style={{ display: 'none' }} 
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      showToast("⏳ Đang tải ảnh lên...");
+                      const fileExt = file.name.split('.').pop();
+                      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                      const { data, error } = await supabase.storage.from('team-logos').upload(fileName, file);
+                      if (error) throw error;
+                      const { data: publicData } = supabase.storage.from('team-logos').getPublicUrl(fileName);
+                      setNewTeamData({ 
+                        ...newTeamData, 
+                        logo: publicData.publicUrl,
+                        logoSource: 'SUPABASE_BUCKET',
+                        externalApiId: null
+                      });
+                      showToast("✅ Đã cập nhật logo!");
+                    } catch (err) {
+                      console.error("Upload error:", err);
+                      showToast("❌ Lỗi khi tải ảnh lên");
+                    }
+                  }}
+                />
+                <TeamLogo logo={newTeamData.logo} teamName={newTeamData.ten} className="w-12 h-12 rounded-full object-cover shadow-sm border border-slate-200" style={{ width: '48px', height: '48px', cursor: 'pointer' }} />
+                <div style={{ position: 'absolute', bottom: -2, right: -2, background: '#ffffff', borderRadius: '50%', padding: '3px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', display: 'flex' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" color="#475569"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </div>
+              </label>
+              <div style={{ fontSize: '12px', color: '#64748b' }}>
+                Nhấn vào ảnh để tải lên<br/>logo từ thiết bị của bạn.
+              </div>
+            </div>
             <button style={mobileStyles.buttonPrimary} onClick={confirmAddTeam}>Xác Nhận Tạo Đội</button>
           </div>
         </div>
@@ -679,7 +807,7 @@ export default function AdminMobileView(props: any) {
 
       {/* Edit Team Bottom Sheet */}
       {editingTeam && (
-        <div style={mobileStyles.bottomSheetOverlay} onClick={() => setEditingTeam(null)}>
+        <div style={mobileStyles.bottomSheetOverlay} onClick={() => { setEditingTeam(null); setTeamSuggestion(null); }}>
           <div style={mobileStyles.bottomSheet} onClick={e => e.stopPropagation()}>
             <div style={{ width: '40px', height: '4px', background: '#cbd5e1', borderRadius: '2px', margin: '0 auto 20px auto' }} />
             <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 16px 0' }}>Sửa đội bóng</h3>
@@ -688,13 +816,100 @@ export default function AdminMobileView(props: any) {
               style={mobileStyles.input} 
               value={editingTeam.ten}
               onChange={e => setEditingTeam({...editingTeam, ten: e.target.value})}
+              onBlur={() => handleTeamNameBlur(editingTeam.ten)}
             />
+            {teamSuggestion && (
+              <div style={{
+                marginBottom: '16px',
+                padding: '12px 16px',
+                backgroundColor: 'rgba(59, 130, 246, 0.08)',
+                border: '1px solid rgba(59, 130, 246, 0.2)',
+                borderRadius: '12px',
+                fontSize: '13px',
+                color: '#1e3a8a',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'space-between',
+                gap: '12px'
+              }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                  <img src={teamSuggestion.logo} alt={teamSuggestion.name} style={{ width: '28px', height: '28px', objectFit: 'contain' }} />
+                  <span style={{ textAlign: 'left' }}>
+                    💡 Tìm thấy dữ liệu quốc tế: <strong>{teamSuggestion.name}</strong>
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setEditingTeam({
+                      ...editingTeam,
+                      logo: teamSuggestion.logo,
+                      externalApiId: teamSuggestion.id,
+                      logoSource: 'EXTERNAL_API'
+                    });
+                    setTeamSuggestion(null);
+                  }}
+                  style={{
+                    background: '#3b82f6',
+                    color: '#ffffff',
+                    border: 'none',
+                    borderRadius: '8px',
+                    padding: '6px 12px',
+                    fontWeight: 'bold',
+                    cursor: 'pointer',
+                    fontSize: '12px',
+                    whiteSpace: 'nowrap'
+                  }}
+                >
+                  Áp dụng
+                </button>
+              </div>
+            )}
             <label style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>Bảng đấu</label>
             <input 
               style={mobileStyles.input} 
               value={editingTeam.bang}
               onChange={e => setEditingTeam({...editingTeam, bang: e.target.value})}
             />
+            <label style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>Logo đội bóng</label>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+              <label style={{ cursor: 'pointer', display: 'inline-block', position: 'relative' }}>
+                <input 
+                  type="file" 
+                  accept="image/*" 
+                  style={{ display: 'none' }} 
+                  onChange={async (e) => {
+                    const file = e.target.files?.[0];
+                    if (!file) return;
+                    try {
+                      showToast("⏳ Đang tải ảnh lên...");
+                      const fileExt = file.name.split('.').pop();
+                      const fileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExt}`;
+                      const { data, error } = await supabase.storage.from('team-logos').upload(fileName, file);
+                      if (error) throw error;
+                      const { data: publicData } = supabase.storage.from('team-logos').getPublicUrl(fileName);
+                      setEditingTeam({ 
+                        ...editingTeam, 
+                        logo: publicData.publicUrl,
+                        logoSource: 'SUPABASE_BUCKET',
+                        externalApiId: null
+                      });
+                      showToast("✅ Đã cập nhật logo!");
+                    } catch (err) {
+                      console.error("Upload error:", err);
+                      showToast("❌ Lỗi khi tải ảnh lên");
+                    }
+                  }}
+                />
+                <TeamLogo logo={editingTeam.logo} teamName={editingTeam.ten} className="w-12 h-12 rounded-full object-cover shadow-sm border border-slate-200" style={{ width: '48px', height: '48px', cursor: 'pointer' }} />
+                <div style={{ position: 'absolute', bottom: -2, right: -2, background: '#ffffff', borderRadius: '50%', padding: '3px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', display: 'flex' }}>
+                  <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" color="#475569"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                </div>
+              </label>
+              <div style={{ fontSize: '12px', color: '#64748b' }}>
+                Nhấn vào ảnh để tải lên<br/>logo từ thiết bị của bạn.
+              </div>
+            </div>
             <button style={{ ...mobileStyles.buttonPrimary, marginBottom: '12px' }} onClick={handleSaveTeam}>Lưu Thay Đổi</button>
             <button style={{ ...mobileStyles.buttonSecondary, color: '#ef4444', background: '#fee2e2' }} onClick={() => setEditingTeam(null)}>Hủy Bỏ</button>
           </div>

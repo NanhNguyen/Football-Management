@@ -5,6 +5,8 @@ export interface DoiBong {
   logo: string;
   bang: string; // A, B, C, D
   cauThu?: CauThu[];
+  externalApiId?: number | null;
+  logoSource?: 'EXTERNAL_API' | 'SUPABASE_BUCKET' | 'DEFAULT';
 }
 
 export interface CauThu {

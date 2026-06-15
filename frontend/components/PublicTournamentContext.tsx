@@ -3,6 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { layDanhSachGiaiDau, layDanhSachTranDau } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
+import LoginRequiredModal from './LoginRequiredModal';
 
 interface Tournament {
   id: string;
@@ -43,6 +44,7 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
   const [favoriteTeams, setFavoriteTeams] = useState<string[]>([]);
   const [followedTournaments, setFollowedTournaments] = useState<string[]>([]);
   const [session, setSession] = useState<any>(null);
+  const [showLoginModal, setShowLoginModal] = useState(false);
 
   // Sync Supabase Auth Session
   useEffect(() => {
@@ -164,6 +166,11 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
 
   // Toggle favorite team with localStorage sync and optional backend sync if authenticated
   const toggleFollowTeam = async (teamId: string) => {
+    if (!session?.user) {
+      setShowLoginModal(true);
+      return;
+    }
+
     let nextFavorites: string[] = [];
     
     setFavoriteTeams((prev) => {
@@ -196,6 +203,11 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
   };
 
   const toggleFollowTournament = (id: string) => {
+    if (!session?.user) {
+      setShowLoginModal(true);
+      return;
+    }
+
     setFollowedTournaments((prev) => {
       const updated = prev.includes(id)
         ? prev.filter((x) => x !== id)
@@ -225,6 +237,9 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
       }}
     >
       {children}
+      {showLoginModal && (
+        <LoginRequiredModal onClose={() => setShowLoginModal(false)} />
+      )}
     </PublicTournamentContext.Provider>
   );
 }

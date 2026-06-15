@@ -643,12 +643,38 @@ export default function RefereeTab({
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 0 24px 0',
-              padding: '16px',
+              padding: '20px',
               background: 'var(--color-surface, #ffffff)',
               borderRadius: '16px',
               border: '1px solid var(--color-border-light, #e2e8f0)',
-              boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.05)'
+              boxShadow: '0 4px 10px rgba(0, 0, 0, 0.03)',
+              gap: '16px'
             }}>
+              {/* Filter Dropdown on Top */}
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Chọn nhanh vòng:</span>
+                <select
+                  value={refereeFilterVong}
+                  onChange={(e) => setRefereeFilterVong(e.target.value)}
+                  style={{
+                    padding: '8px 16px',
+                    borderRadius: '10px',
+                    border: '1px solid #cbd5e1',
+                    background: '#fff',
+                    fontSize: '13px',
+                    fontWeight: 600,
+                    color: '#1e293b',
+                    outline: 'none',
+                    cursor: 'pointer',
+                    boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
+                  }}
+                >
+                  {uniqueRounds.map(r => (
+                    <option key={r} value={r}>{r}</option>
+                  ))}
+                </select>
+              </div>
+
               {(() => {
                 const currentIdx = uniqueRounds.indexOf(refereeFilterVong);
                 const isFirstRound = currentIdx <= 0;
@@ -659,28 +685,28 @@ export default function RefereeTab({
                       onClick={handlePrevRound}
                       disabled={isFirstRound}
                       style={{
-                        width: '36px',
-                        height: '36px',
+                        width: '44px',
+                        height: '44px',
                         borderRadius: '50%',
-                        border: '1px solid var(--color-border-light, #e2e8f0)',
-                        background: 'var(--color-surface, #ffffff)',
-                        color: isFirstRound ? '#cbd5e1' : 'var(--color-text, #1e293b)',
-                        fontSize: '16px',
+                        border: '1px solid #e2e8f0',
+                        background: '#ffffff',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: isFirstRound ? 'not-allowed' : 'pointer',
                         transition: 'all 0.2s',
                         outline: 'none',
-                        fontWeight: 'bold',
-                        opacity: isFirstRound ? 0.4 : 1
+                        opacity: isFirstRound ? 0.5 : 1
                       }}
                       title="Vòng trước"
                     >
-                      &lt;
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="15 18 9 12 15 6"></polyline>
+                      </svg>
                     </button>
                     <div style={{ textAlign: 'center', minWidth: '160px' }}>
-                      <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-primary, #0f766e)' }}>
+                      <div style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>
                         {refereeFilterVong === 'NONE' ? 'Không có vòng đấu' : refereeFilterVong}
                       </div>
                       <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, marginTop: '4px' }}>
@@ -691,25 +717,25 @@ export default function RefereeTab({
                       onClick={handleNextRound}
                       disabled={isLastRound}
                       style={{
-                        width: '36px',
-                        height: '36px',
+                        width: '44px',
+                        height: '44px',
                         borderRadius: '50%',
-                        border: '1px solid var(--color-border-light, #e2e8f0)',
-                        background: 'var(--color-surface, #ffffff)',
-                        color: isLastRound ? '#cbd5e1' : 'var(--color-text, #1e293b)',
-                        fontSize: '16px',
+                        border: '1px solid #e2e8f0',
+                        background: '#ffffff',
+                        boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         cursor: isLastRound ? 'not-allowed' : 'pointer',
                         transition: 'all 0.2s',
                         outline: 'none',
-                        fontWeight: 'bold',
-                        opacity: isLastRound ? 0.4 : 1
+                        opacity: isLastRound ? 0.5 : 1
                       }}
                       title="Vòng sau"
                     >
-                      &gt;
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                        <polyline points="9 18 15 12 9 6"></polyline>
+                      </svg>
                     </button>
                   </div>
                 );
@@ -728,7 +754,7 @@ export default function RefereeTab({
                   <div className={styles.matchListInfo}>
                     <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, width: '80px' }}>{m.vong}</span>
                     <div className={styles.listTeam}>
-                      <span style={{ display: 'flex' }}><TeamLogo logo={m.doiNha?.logo} /></span>
+                      <span style={{ display: 'flex' }}><TeamLogo logo={m.doiNha?.logo} teamName={m.doiNha?.ten} /></span>
                       <span style={{ fontWeight: 700 }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
                     </div>
                     <div style={{ display: 'flex', gap: '8px', fontWeight: 800, fontSize: '18px', width: '60px', justifyContent: 'center' }}>
@@ -737,7 +763,7 @@ export default function RefereeTab({
                       <span>{m.tyKhach}</span>
                     </div>
                     <div className={styles.listTeam}>
-                      <span style={{ display: 'flex' }}><TeamLogo logo={m.doiKhach?.logo} /></span>
+                      <span style={{ display: 'flex' }}><TeamLogo logo={m.doiKhach?.logo} teamName={m.doiKhach?.ten} /></span>
                       <span style={{ fontWeight: 700 }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
                     </div>
                   </div>
@@ -823,8 +849,11 @@ export default function RefereeTab({
               <div style={desktopStyles.columnHomeAway}>
                 <div style={desktopStyles.card}>
                   <h3 style={desktopStyles.cardTitle}>
-                    <span style={{ width: '20px', height: '20px', display: 'flex' }}><TeamLogo logo={selectedMatch.doiNha?.logo} /></span>
-                    {selectedMatch.doiNha?.ten?.toUpperCase()} (ĐỘI NHÀ)
+                    <span style={{ width: '20px', height: '20px', display: 'flex' }}>
+                      <TeamLogo logo={selectedMatch.doiNha?.logo} teamName={selectedMatch.doiNha?.ten} />
+                    </span>
+                    <strong style={{ fontWeight: 800 }}>{selectedMatch.doiNha?.ten?.toUpperCase()}</strong>
+                    <span style={{ fontWeight: 500, opacity: 0.8 }}> (ĐỘI NHÀ)</span>
                   </h3>
                   <div onClick={e => e.stopPropagation()}>{renderDesktopLineupImageStyle(selectedMatch.doiNha, true)}</div>
                 </div>
@@ -842,9 +871,23 @@ export default function RefereeTab({
                   </div>
 
                   <div style={desktopStyles.scoreboardTeamsRow}>
-                    <div style={desktopStyles.scoreboardTeamCode('right')}>{selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.substring(0, 3).toUpperCase()}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-end', flex: 1 }}>
+                      <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px' }}>
+                        <TeamLogo logo={selectedMatch.doiNha?.logo} teamName={selectedMatch.doiNha?.ten} />
+                      </span>
+                      <span style={{ fontSize: '36px', fontWeight: 800, color: 'var(--color-text-heading, #0F172A)' }}>
+                        {selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.substring(0, 3).toUpperCase()}
+                      </span>
+                    </div>
                     <div style={desktopStyles.scoreboardBigScore}>{selectedMatch.tyNha} - {selectedMatch.tyKhach}</div>
-                    <div style={desktopStyles.scoreboardTeamCode('left')}>{selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.substring(0, 3).toUpperCase()}</div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-start', flex: 1 }}>
+                      <span style={{ fontSize: '36px', fontWeight: 800, color: 'var(--color-text-heading, #0F172A)' }}>
+                        {selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.substring(0, 3).toUpperCase()}
+                      </span>
+                      <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px' }}>
+                        <TeamLogo logo={selectedMatch.doiKhach?.logo} teamName={selectedMatch.doiKhach?.ten} />
+                      </span>
+                    </div>
                   </div>
 
                   {/* GOAL SCORERS */}
@@ -898,9 +941,7 @@ export default function RefereeTab({
                           className="desktop-cta-btn"
                           style={desktopStyles.ctaButton('var(--color-danger, #EF4444)')}
                           onClick={() => {
-                            if (confirm('Bạn có chắc muốn thiết lập lại toàn bộ trận đấu? Mọi sự kiện sẽ bị xóa.')) {
-                              handleResetMatch(selectedMatch.id);
-                            }
+                            handleResetMatch(selectedMatch.id);
                           }}
                         >
                           <IconReset size={18} /> THIẾT LẬP LẠI
@@ -997,8 +1038,11 @@ export default function RefereeTab({
               <div style={desktopStyles.columnHomeAway}>
                 <div style={desktopStyles.card}>
                   <h3 style={desktopStyles.cardTitle}>
-                    <span style={{ width: '20px', height: '20px', display: 'flex' }}><TeamLogo logo={selectedMatch.doiKhach?.logo} /></span>
-                    {selectedMatch.doiKhach?.ten?.toUpperCase()} (ĐỘI KHÁCH)
+                    <span style={{ width: '20px', height: '20px', display: 'flex' }}>
+                      <TeamLogo logo={selectedMatch.doiKhach?.logo} teamName={selectedMatch.doiKhach?.ten} />
+                    </span>
+                    <strong style={{ fontWeight: 800 }}>{selectedMatch.doiKhach?.ten?.toUpperCase()}</strong>
+                    <span style={{ fontWeight: 500, opacity: 0.8 }}> (ĐỘI KHÁCH)</span>
                   </h3>
                   <div onClick={e => e.stopPropagation()}>{renderDesktopLineupImageStyle(selectedMatch.doiKhach, false)}</div>
                 </div>
@@ -1030,7 +1074,7 @@ export default function RefereeTab({
               <div className={styles.stickyScoreboard}>
                 <div className={styles.consoleCentralHeaderCard} style={{ background: 'transparent', boxShadow: 'none', padding: 0 }}>
                   <div className={styles.consoleCentralTeam}>
-                    <span className={styles.consoleCentralLogo} style={{ display: 'flex', width: '40px', height: '40px' }}><TeamLogo logo={selectedMatch.doiNha?.logo} /></span>
+                    <span className={styles.consoleCentralLogo} style={{ display: 'flex', width: '40px', height: '40px' }}><TeamLogo logo={selectedMatch.doiNha?.logo} teamName={selectedMatch.doiNha?.ten} /></span>
                     <span className={styles.consoleCentralName}>{selectedMatch.doiNha?.ten}</span>
                   </div>
 
@@ -1043,7 +1087,7 @@ export default function RefereeTab({
                   </div>
 
                   <div className={styles.consoleCentralTeam}>
-                    <span className={styles.consoleCentralLogo} style={{ display: 'flex', width: '40px', height: '40px' }}><TeamLogo logo={selectedMatch.doiKhach?.logo} /></span>
+                    <span className={styles.consoleCentralLogo} style={{ display: 'flex', width: '40px', height: '40px' }}><TeamLogo logo={selectedMatch.doiKhach?.logo} teamName={selectedMatch.doiKhach?.ten} /></span>
                     <span className={styles.consoleCentralName}>{selectedMatch.doiKhach?.ten}</span>
                   </div>
                 </div>

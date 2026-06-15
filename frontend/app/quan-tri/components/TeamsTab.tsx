@@ -11,6 +11,8 @@ interface TeamsTabProps {
   handleEditTeam: (val: any) => void;
   handleDeleteTeam: (id: string) => void;
   handleDeleteAllTeams: () => void;
+  isSyncingLogos?: boolean;
+  handleBulkSyncLogos?: () => void;
 }
 
 export default function TeamsTab({
@@ -21,7 +23,9 @@ export default function TeamsTab({
   setViewingTeam,
   handleEditTeam,
   handleDeleteTeam,
-  handleDeleteAllTeams
+  handleDeleteAllTeams,
+  isSyncingLogos = false,
+  handleBulkSyncLogos
 }: TeamsTabProps) {
   return (
     <div className={`${styles.content} animate-fade-in`}>
@@ -32,21 +36,47 @@ export default function TeamsTab({
         </div>
         <div style={{ display: 'flex', gap: '10px' }}>
           {teams.length > 0 && (
-            <button 
-              className={styles.editBtnCompact} 
-              style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', background: '#ef4444', color: 'white', borderColor: '#dc2626' }} 
+            <button
+              className={styles.editBtnCompact}
+              style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', background: '#ef4444', color: 'white', borderColor: '#dc2626' }}
               onClick={handleDeleteAllTeams}
             >
-              <TrashIcon size={14} color="#white" />
+              {/* <TrashIcon size={14} color="#white" /> */}
               <span>Xóa tất cả đội</span>
             </button>
           )}
-          <button 
-            className={styles.editBtnCompact} 
-            style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--color-primary)', color: 'white', borderColor: 'var(--color-primary-dark)' }} 
+          <button
+            className={styles.editBtnCompact}
+            style={{ 
+              padding: '8px 14px', 
+              height: 'auto', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px', 
+              background: '#f59e0b', 
+              color: 'white', 
+              borderColor: '#d97706',
+              cursor: isSyncingLogos ? 'not-allowed' : 'pointer',
+              opacity: isSyncingLogos ? 0.7 : 1
+            }}
+            onClick={handleBulkSyncLogos}
+            disabled={isSyncingLogos}
+          >
+            {isSyncingLogos ? (
+              <>
+                <span style={{ display: 'inline-block', width: '12px', height: '12px', border: '2px solid white', borderTop: '2px solid transparent', borderRadius: '50%', animation: 'spin 1s linear infinite', marginRight: '4px' }} />
+                <span>Đang đồng bộ...</span>
+              </>
+            ) : (
+              <span>⚡ Tự động đồng bộ Logo</span>
+            )}
+          </button>
+          <button
+            className={styles.editBtnCompact}
+            style={{ padding: '8px 14px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', background: 'var(--color-primary)', color: 'white', borderColor: 'var(--color-primary-dark)' }}
             onClick={() => setIsBulkImportOpen(true)}
           >
-            <ImportIcon size={14} color="#white" />
+            {/* <ImportIcon size={14} color="#white" /> */}
             <span>Nhập dữ liệu tổng hợp (Excel)</span>
           </button>
           <button className={styles.addBtn} onClick={handleAddTeam}>+ Thêm đội mới</button>

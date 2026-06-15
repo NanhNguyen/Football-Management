@@ -10,10 +10,20 @@
 
 /* Header Section */
 .header {
-  padding: 24px 20px 16px 20px;
+  padding: 16px 20px;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--color-border-light, #e2e8f0);
+  background: var(--color-surface);
+  gap: 16px;
+}
+
+.headerLeft {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 4px;
 }
 
 .logoTitleWrapper {
@@ -47,39 +57,87 @@
   font-weight: 500;
 }
 
+/* Tournament Switcher in Header */
+.headerSelectWrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  background: var(--color-surface);
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full);
+  padding: 6px 32px 6px 36px;
+  transition: all 0.2s ease;
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+}
+
+.headerSelectWrapper:hover {
+  border-color: var(--color-primary);
+  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.08);
+}
+
+.trophyIcon {
+  position: absolute;
+  left: 12px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+}
+
+.headerSelect {
+  appearance: none;
+  background: transparent;
+  border: none;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
+  color: var(--color-primary, #0f766e);
+  cursor: pointer;
+  outline: none;
+  max-width: 280px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.headerSelectChevron {
+  position: absolute;
+  right: 12px;
+  pointer-events: none;
+  color: var(--color-primary, #0f766e);
+  transition: transform 0.2s ease;
+}
+
 @media (max-width: 768px) {
   .logoImg {
-    width: 32px;
-    height: 32px;
+    width: 36px;
+    height: 36px;
   }
   .appName {
-    font-size: 24px;
+    display: none;
   }
   .slogan {
     display: none;
   }
+  .header {
+    padding: 12px 16px;
+  }
+  .headerSelect {
+    max-width: 150px;
+    font-size: 14px;
+  }
+  .headerSelectWrapper {
+    padding: 6px 28px 6px 32px;
+  }
+  .trophyIcon {
+    left: 10px;
+    width: 14px;
+    height: 14px;
+  }
+  .headerSelectChevron {
+    right: 10px;
+  }
 }
-
-
-.headerSelect {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  margin-top: 8px;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  padding: 8px 12px;
-  border-radius: 20px;
-  width: fit-content;
-  cursor: pointer;
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  transition: all 0.2s ease;
-}
-
-.headerSelect:hover { border-color: var(--color-primary); }
 
 /* Tabs Section */
 .tabsContainer {
