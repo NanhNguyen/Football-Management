@@ -39,7 +39,7 @@
   background: var(--color-live);
   border-radius: var(--radius-full);
   animation: pulse-live 1.5s ease-in-out infinite;
-  box-shadow: 0 0 8px rgba(225, 29, 72, 0.5);
+  box-shadow: 0 0 8px rgba(255, 71, 87, 0.5);
 }
 
 .grid {
@@ -129,7 +129,7 @@
 .subPillTab:hover { background: var(--color-surface); }
 
 .subPillTabActive {
-  background: var(--color-primary-light, #E0F2F1);
+  background: var(--color-primary-light, rgba(0, 212, 184, 0.12));
   border-color: var(--color-primary);
   color: var(--color-primary);
   font-weight: 700;

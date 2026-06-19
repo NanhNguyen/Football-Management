@@ -15,8 +15,8 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid var(--color-border-light, #e2e8f0);
-  background: var(--color-surface);
+  border-bottom: 1px solid rgba(0, 212, 184, 0.12);
+  background: transparent;
   gap: 16px;
 }
 
@@ -36,7 +36,7 @@
   width: 38px;
   height: 38px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(15, 118, 110, 0.25));
+  filter: drop-shadow(0 2px 8px rgba(0, 212, 184, 0.35));
 }
 
 .appName {
@@ -73,7 +73,7 @@
 
 .headerSelectWrapper:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.08);
+  box-shadow: 0 0 12px rgba(0, 212, 184, 0.15);
 }
 
 .trophyIcon {
@@ -91,7 +91,7 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 15px;
   font-weight: 700;
-  color: var(--color-primary, #0f766e);
+  color: var(--color-primary, #00D4B8);
   cursor: pointer;
   outline: none;
   max-width: 280px;
@@ -104,7 +104,7 @@
   position: absolute;
   right: 12px;
   pointer-events: none;
-  color: var(--color-primary, #0f766e);
+  color: var(--color-primary, #00D4B8);
   transition: transform 0.2s ease;
 }
 
@@ -144,7 +144,7 @@
   display: flex;
   padding: 0 20px;
   gap: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(0, 212, 184, 0.12);
   margin-top: 8px;
 }
 
@@ -247,8 +247,8 @@
 }
 
 .navBtn {
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: rgba(14, 20, 33, 0.8);
+  border: 1px solid rgba(0, 212, 184, 0.2);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -257,15 +257,16 @@
   justify-content: center;
   cursor: pointer;
   color: var(--color-text);
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
 }
 
 .navBtn:hover:not(:disabled) {
-  background: var(--color-border);
+  background: rgba(0, 212, 184, 0.1);
   border-color: var(--color-primary);
   color: var(--color-primary);
   transform: scale(1.05);
+  box-shadow: 0 0 12px rgba(0, 212, 184, 0.2);
 }
 
 .navBtn:disabled {

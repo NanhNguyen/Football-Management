@@ -1,45 +1,45 @@
 /* ============================================================
-   SPARTA FOOTBALL LEAGUE — DESIGN SYSTEM v4.0
-   Light Gradient Glassmorphism
+   SPARTA FOOTBALL LEAGUE — DESIGN SYSTEM v5.0
+   Dark Gaming Theme — Cyber Teal
    ============================================================ */
 
 /* ===== CSS VARIABLES ===== */
 :root {
-  /* Brand Colors — Solid Modern Theme */
-  --color-primary: #0F766E;
-  --color-primary-dark: #115E59;
-  --color-primary-light: #E0F2F1;
-  --color-accent: #14B8A6;
+  /* Brand Colors — Cyber Teal / Gaming Dark */
+  --color-primary: #00D4B8;
+  --color-primary-dark: #00A896;
+  --color-primary-light: rgba(0, 212, 184, 0.15);
+  --color-accent: #00FFD4;
 
-  /* Surfaces */
-  --color-bg: #F8FAFC;
-  --color-surface: #FFFFFF;
-  --color-surface-sidebar: #F1F5F9;
-  --color-surface-hover: #F1F5F9;
-  --color-surface-container: #F8FAFC;
-  --color-surface-high: #FFFFFF;
+  /* Surfaces — Deep Dark */
+  --color-bg: #080C10;
+  --color-surface: #0E1421;
+  --color-surface-sidebar: #0A0F18;
+  --color-surface-hover: #141C2A;
+  --color-surface-container: #0A0F18;
+  --color-surface-high: #141C2A;
 
   /* Typography */
-  --color-text-heading: #0F172A;
-  --color-text: #334155;
-  --color-text-secondary: #334155;
-  --color-text-muted: #94A3B8;
+  --color-text-heading: #E8F4F8;
+  --color-text: #C8D8E8;
+  --color-text-secondary: #A0B4C8;
+  --color-text-muted: #4A6070;
 
   /* Borders */
-  --color-border: #E2E8F0;
-  --color-border-light: #F1F5F9;
+  --color-border: rgba(0, 212, 184, 0.15);
+  --color-border-light: rgba(0, 212, 184, 0.08);
 
   /* Status */
-  --color-success: #22C55E;
-  --color-warning: #F59E0B;
-  --color-danger: #EF4444;
-  --color-live: #EF4444;
+  --color-success: #00D4B8;
+  --color-warning: #F5A623;
+  --color-danger: #FF4757;
+  --color-live: #FF4757;
 
-  /* Legacy Glass Helpers (Mapped to flat) */
-  --glass-bg: #FFFFFF;
-  --glass-blur: none;
-  --glass-border: 1px solid #E2E8F0;
-  --glass-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  /* Glass / Glow Helpers */
+  --glass-bg: rgba(14, 20, 33, 0.85);
+  --glass-blur: blur(12px);
+  --glass-border: 1px solid rgba(0, 212, 184, 0.2);
+  --glass-shadow: 0 4px 24px rgba(0, 0, 0, 0.5);
   --glass-radius: 12px;
 
   /* Spacing */
@@ -59,10 +59,11 @@
   --radius-full: 9999px;
 
   /* Shadows */
-  --shadow-sm: 0 1px 2px rgba(0, 0, 0, 0.05);
-  --shadow-md: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
-  --shadow-glow: none;
+  --shadow-sm: 0 2px 8px rgba(0, 0, 0, 0.4);
+  --shadow-md: 0 4px 16px rgba(0, 0, 0, 0.5);
+  --shadow-lg: 0 10px 40px rgba(0, 0, 0, 0.6);
+  --shadow-glow: 0 0 20px rgba(0, 212, 184, 0.25);
+  --shadow-glow-strong: 0 0 40px rgba(0, 212, 184, 0.4);
 }
 
 /* ===== RESET & BASE ===== */
@@ -85,6 +86,9 @@ html {
 body {
   font-family: 'Hanken Grotesk', 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
   background-color: var(--color-bg);
+  background-image:
+    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(0, 212, 184, 0.08) 0%, transparent 60%),
+    radial-gradient(ellipse 40% 30% at 90% 80%, rgba(0, 168, 150, 0.05) 0%, transparent 50%);
   min-height: 100vh;
   color: var(--color-text);
   font-size: 14px;
@@ -141,8 +145,18 @@ button {
 }
 
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 8px rgba(15, 74, 78, 0.2); }
-  50% { box-shadow: 0 0 20px rgba(15, 74, 78, 0.4); }
+  0%, 100% { box-shadow: 0 0 8px rgba(0, 212, 184, 0.2); }
+  50% { box-shadow: 0 0 24px rgba(0, 212, 184, 0.5); }
+}
+
+@keyframes cyber-scan {
+  0% { background-position: 0% 0%; }
+  100% { background-position: 0% 100%; }
+}
+
+@keyframes border-glow {
+  0%, 100% { border-color: rgba(0, 212, 184, 0.2); }
+  50% { border-color: rgba(0, 212, 184, 0.6); }
 }
 
 @keyframes fadeInUp {
@@ -169,10 +183,10 @@ button {
 .stagger-5 { animation-delay: 0.5s; }
 
 /* ===== SCROLLBAR ===== */
-::-webkit-scrollbar { width: 5px; height: 5px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(15, 74, 78, 0.25); border-radius: 9999px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(15, 74, 78, 0.45); }
+::-webkit-scrollbar { width: 4px; height: 4px; }
+::-webkit-scrollbar-track { background: rgba(0, 212, 184, 0.04); }
+::-webkit-scrollbar-thumb { background: rgba(0, 212, 184, 0.3); border-radius: 9999px; }
+::-webkit-scrollbar-thumb:hover { background: rgba(0, 212, 184, 0.6); }
 
 /* ===== EMOJI / ICON TINT — neutral on glass ===== */
 [class*="teamLogo"]:not(:has(img)),

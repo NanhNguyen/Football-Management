@@ -88,7 +88,7 @@ export default function TeamDetailsPage() {
           lichSuTranDau
         });
       } catch (err: any) {
-        setError(err.message || 'Có lỗi xảy ra khi tải thông tin đội bóng');
+        setError(err.message || 'Có lỗi xảy ra khi tải thông tin đội bó`ng');
       } finally {
         setLoading(false);
       }

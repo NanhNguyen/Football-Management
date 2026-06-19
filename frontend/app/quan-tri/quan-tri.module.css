@@ -333,7 +333,7 @@
 }
 
 .adminMatchItem {
-  background: white;
+  background: #0E1421;
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-lg);
   padding: 20px;
@@ -396,7 +396,7 @@
   align-items: center;
   gap: 8px;
   padding: 10px 15px;
-  background: #f1f5f9;
+  background: #141C2A;
   border-radius: var(--radius-md);
   color: #475569;
   font-weight: 600;
@@ -465,7 +465,7 @@
 .timerPulse {
   width: 8px;
   height: 8px;
-  background: white;
+  background: #0E1421;
   border-radius: 50%;
   animation: blink 1s infinite;
 }
@@ -605,7 +605,7 @@
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
   gap: var(--space-sm);
-  background: white;
+  background: #0E1421;
   padding: var(--space-md);
   border-radius: var(--radius-lg);
   border: 1px solid var(--color-border-light);
@@ -657,7 +657,7 @@
 
 /* Event Timeline */
 .eventTimeline {
-  background: white;
+  background: #0E1421;
   border: 1px solid var(--color-border-light);
   border-radius: var(--radius-lg);
   padding: var(--space-md);
@@ -713,7 +713,7 @@
 
 /* Bottom Sheet */
 .bottomSheet {
-  background: white;
+  background: #0E1421;
   width: 100%;
   max-width: 450px;
   border-radius: var(--radius-xl) var(--radius-xl) 0 0;
@@ -922,7 +922,7 @@
 
 .select:focus, .input:focus {
   border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 212, 184, 0.1);
 }
 
 /* Preview */
@@ -936,7 +936,7 @@
   font-size: 14px;
   color: var(--color-primary);
   margin-bottom: var(--space-lg);
-  border: 1px solid rgba(15, 118, 110, 0.15);
+  border: 1px solid rgba(0, 212, 184, 0.15);
 }
 
 /* Actions */
@@ -1067,7 +1067,7 @@
   display: flex;
   gap: 10px;
   margin-bottom: 20px;
-  background: #f1f5f9;
+  background: #141C2A;
   padding: 5px;
   border-radius: var(--radius-lg);
 }
@@ -1085,7 +1085,7 @@
 }
 
 .typeBadgeActive {
-  background: white;
+  background: #0E1421;
   color: var(--color-primary);
   box-shadow: var(--shadow-sm);
 }
@@ -1098,7 +1098,7 @@
   font-size: 18px;
   font-weight: 600;
   outline: none;
-  background: white;
+  background: #0E1421;
 }
 
 .suggestionList {
@@ -1106,7 +1106,7 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
+  background: #0E1421;
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
   z-index: 1000;
@@ -1171,7 +1171,7 @@
 }
 
 .adminStatCard {
-  background: white;
+  background: #0E1421;
   border: 1px solid var(--color-border-light);
   border-radius: 24px;
   padding: 30px;
@@ -1190,7 +1190,7 @@
   font-size: 36px;
   width: 64px;
   height: 64px;
-  background: #f1f5f9;
+  background: #141C2A;
   border-radius: 20px;
   display: flex;
   align-items: center;
@@ -1216,7 +1216,7 @@
 .adminTable {
   width: 100%;
   border-collapse: collapse;
-  background: white;
+  background: #0E1421;
   border-radius: 24px;
   overflow: hidden;
   box-shadow: var(--shadow-sm);
@@ -1231,14 +1231,14 @@
   font-weight: 800;
   color: #64748b;
   text-transform: uppercase;
-  border-bottom: 2px solid #f1f5f9;
+  border-bottom: 2px solid #141C2A;
 }
 
 .adminTable td {
   padding: 10px 12px;
   font-size: 13px;
   font-weight: 500;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #141C2A;
   vertical-align: middle;
 }
 
@@ -1259,7 +1259,7 @@
 }
 
 .teamRow:hover {
-  background: #f1f5f9;
+  background: #141C2A;
   border-color: #e2e8f0;
   transform: translateY(-1px);
   box-shadow: var(--shadow-sm);
@@ -1313,7 +1313,7 @@
 }
 
 .editBtnCompact:hover {
-  background: #f1f5f9;
+  background: #141C2A;
   border-color: #cbd5e1;
   color: #1e293b;
 }
@@ -1342,7 +1342,7 @@
 .teamLogoMini {
   width: 32px;
   height: 32px;
-  background: #f1f5f9;
+  background: #141C2A;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -1393,7 +1393,7 @@
 
 .addBtn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(15, 118, 110, 0.3);
+  box-shadow: 0 4px 12px rgba(0, 212, 184, 0.3);
 }
 
 /* Modal Input & Styles */
@@ -1433,8 +1433,8 @@
 
 .modalInput:focus {
   border-color: var(--color-primary);
-  background: white;
-  box-shadow: 0 0 0 4px rgba(15, 118, 110, 0.1);
+  background: #0E1421;
+  box-shadow: 0 0 0 4px rgba(0, 212, 184, 0.1);
 }
 
 .toast {
@@ -1513,7 +1513,7 @@
 }
 
 .modalFooterSecondary {
-  background: #f1f5f9;
+  background: #141C2A;
   color: #475569;
   border: 1px solid #e2e8f0;
 }
@@ -1529,7 +1529,7 @@
   justify-content: space-between;
   align-items: center;
   margin-bottom: var(--space-lg);
-  background: white;
+  background: #0E1421;
   padding: 12px 16px;
   border-radius: 12px;
   border: 1px solid var(--color-border-light);
@@ -1549,7 +1549,7 @@
 
 .searchBox:focus-within {
   border-color: var(--color-primary);
-  background: white;
+  background: #0E1421;
   box-shadow: 0 0 0 3px rgba(220,38,38,0.1);
 }
 
@@ -1581,7 +1581,7 @@
   padding: 8px 32px 8px 12px;
   border-radius: 8px;
   border: 1px solid var(--color-border-light);
-  background-color: white;
+  background-color: #0E1421;
   font-size: 14px;
   color: var(--color-text);
   cursor: pointer;
@@ -1624,7 +1624,7 @@
 }
 
 .iconBtn:hover {
-  background: #f1f5f9;
+  background: #141C2A;
   color: var(--color-primary);
 }
 
@@ -1722,7 +1722,7 @@
 }
 
 .badgeNeutral {
-  background: #f1f5f9;
+  background: #141C2A;
   color: #64748b;
   border: 1px solid #e2e8f0;
 }
@@ -1757,19 +1757,19 @@
 }
 
 .refereeTabActiveLive {
-  background: white;
+  background: #0E1421;
   color: #ef4444;
   box-shadow: var(--shadow-sm);
 }
 
 .refereeTabActiveUpcoming {
-  background: white;
+  background: #0E1421;
   color: var(--color-text);
   box-shadow: var(--shadow-sm);
 }
 
 .refereeTabActiveFinished {
-  background: white;
+  background: #0E1421;
   color: #10b981;
   box-shadow: var(--shadow-sm);
 }
@@ -1817,7 +1817,7 @@
 }
 
 .statusUpcomingBadge {
-  background: #f1f5f9;
+  background: #141C2A;
   color: #475569;
   border: 1px solid #e2e8f0;
 }
@@ -1871,7 +1871,7 @@
 .scoreDivider {
   font-size: 32px;
   font-weight: 700;
-  color: rgba(255, 255, 255, 0.4);
+  color: rgba(0, 212, 184, 0.12);
 }
 
 /* 2. Player Grids */
@@ -1995,7 +1995,7 @@
 }
 .timelineDesc {
   font-size: 14px;
-  color: #f1f5f9;
+  color: #141C2A;
   font-weight: 500;
 }
 .undoEventBtn {
@@ -2093,7 +2093,7 @@
   transform: scale(0.98);
 }
 .bsGoalBtn { background: var(--color-primary); color: white; }
-.bsPenBtn { background: rgba(15, 118, 110, 0.15); color: var(--color-accent); border: 1px solid rgba(15,118,110,0.3); }
+.bsPenBtn { background: rgba(0, 212, 184, 0.15); color: var(--color-accent); border: 1px solid rgba(15,118,110,0.3); }
 .bsOgBtn { background: rgba(100, 116, 139, 0.2); color: #cbd5e1; border: 1px solid rgba(100,116,139,0.3); }
 .bsChotBtn { background: #f59e0b; color: white; }
 .bsYellowBtn { background: rgba(234, 179, 8, 0.15); color: #facc15; border: 1px solid rgba(234,179,8,0.3); }
@@ -2374,7 +2374,7 @@
   width: 32px;
   height: 32px;
   border-radius: 10px;
-  background: #f1f5f9;
+  background: #141C2A;
 }
 
 .bsActionText {
@@ -2745,7 +2745,7 @@
 }
 
 .consoleRosterGrid::-webkit-scrollbar { width: 4px; }
-.consoleRosterGrid::-webkit-scrollbar-track { background: #f1f5f9; border-radius: 4px; }
+.consoleRosterGrid::-webkit-scrollbar-track { background: #141C2A; border-radius: 4px; }
 .consoleRosterGrid::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
 
 .consoleEmptyRoster {
@@ -2780,7 +2780,7 @@
 .consolePlayerActive:hover {
   background: #fff;
   transform: translateY(-2px);
-  box-shadow: 0 10px 15px -3px rgba(15, 118, 110, 0.12), 0 4px 6px -2px rgba(15, 118, 110, 0.05);
+  box-shadow: 0 10px 15px -3px rgba(0, 212, 184, 0.12), 0 4px 6px -2px rgba(0, 212, 184, 0.05);
 }
 .consolePlayerActive:active { transform: scale(0.94); }
 
@@ -2844,7 +2844,7 @@
   padding: 10px;
   gap: 8px;
   overflow: hidden;
-  background: #f1f5f9;
+  background: #141C2A;
   border-left: 1px solid #e2e8f0;
   border-right: 1px solid #e2e8f0;
 }
@@ -2929,7 +2929,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 7px 10px 5px;
-  border-bottom: 1px solid #f1f5f9;
+  border-bottom: 1px solid #141C2A;
   flex-shrink: 0;
   background: #f8fafc;
 }
@@ -3331,7 +3331,7 @@
 }
 
 .pillTab:hover {
-  background-color: #f1f5f9;
+  background-color: #141C2A;
   color: var(--color-text);
   border-color: #cbd5e1;
 }
@@ -3421,13 +3421,13 @@
 .refereeFilterSelect:focus {
   border-color: #d71920;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.1);
+  box-shadow: 0 0 0 3px rgba(0, 212, 184, 0.1);
 }
 
 /* Enhanced live match item border and shadow in referee list */
 .adminMatchItemLive {
   border: 1.5px solid #d71920 !important;
-  box-shadow: 0 8px 24px rgba(15, 118, 110, 0.08) !important;
+  box-shadow: 0 8px 24px rgba(0, 212, 184, 0.08) !important;
   position: relative;
   overflow: hidden;
 }
@@ -3467,7 +3467,7 @@
 }
 
 .benchListRow:hover {
-  background: #f1f5f9;
+  background: #141C2A;
   border-color: #cbd5e1;
 }
 
@@ -3810,7 +3810,7 @@
 
 .hugeActionSub {
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
-  box-shadow: 0 8px 20px rgba(15, 118, 110, 0.3);
+  box-shadow: 0 8px 20px rgba(0, 212, 184, 0.3);
 }
 
 .mobileSecondaryActionArea {
@@ -3917,7 +3917,7 @@
 .actionChip {
   padding: 6px 16px;
   border-radius: 20px;
-  background: #f1f5f9;
+  background: #141C2A;
   border: 1px solid #e2e8f0;
   color: #475569;
   font-size: 13px;
@@ -3960,7 +3960,7 @@
   width: 44px;
   height: 44px;
   border-radius: 50%;
-  background: #f1f5f9;
+  background: #141C2A;
   display: flex;
   align-items: center;
   justify-content: center;

@@ -3,7 +3,7 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-bg, #F8FAFC);
+  background-color: var(--color-bg, #080C10);
   padding: 20px;
 }
 
@@ -65,8 +65,8 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--color-primary, #0F766E);
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+  border-color: var(--color-primary, #00D4B8);
+  box-shadow: 0 0 0 3px rgba(0, 212, 184, 0.15);
 }
 
 .error {
@@ -78,7 +78,7 @@
 }
 
 .button {
-  background: var(--color-primary, #0F766E);
+  background: var(--color-primary, #00D4B8);
   color: #ffffff;
   border: none;
   padding: 14px;
@@ -96,7 +96,7 @@
 }
 
 .button:hover:not(:disabled) {
-  background: var(--color-primary-dark, #115E59);
+  background: var(--color-primary-dark, #00A896);
   transform: translateY(-1px);
 }
 
@@ -114,7 +114,7 @@
 }
 
 .footerLink {
-  color: var(--color-primary, #0F766E);
+  color: var(--color-primary, #00D4B8);
   font-weight: 600;
   text-decoration: none;
   transition: color 0.2s ease;
@@ -122,7 +122,7 @@
 
 .footerLink:hover {
   text-decoration: underline;
-  color: var(--color-primary-dark, #115E59);
+  color: var(--color-primary-dark, #00A896);
 }
 
 .divider {
@@ -174,7 +174,7 @@
 }
 
 .googleButton:hover:not(:disabled) {
-  background: var(--color-surface-hover, #F1F5F9);
+  background: var(--color-surface-hover, #141C2A);
   border-color: #cbd5e1;
   transform: translateY(-1px);
 }
@@ -196,8 +196,8 @@
 .successIcon {
   width: 56px;
   height: 56px;
-  background-color: var(--color-primary-light, #E0F2F1);
-  color: var(--color-primary, #0F766E);
+  background-color: var(--color-primary-light, rgba(0, 212, 184, 0.12));
+  color: var(--color-primary, #00D4B8);
   font-size: 28px;
   font-weight: bold;
   border-radius: 50%;
@@ -205,7 +205,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  box-shadow: 0 4px 10px rgba(15, 118, 110, 0.1);
+  box-shadow: 0 4px 10px rgba(0, 212, 184, 0.1);
 }
 
 .successText {

@@ -58,7 +58,7 @@
 .livePulse {
   width: 6px;
   height: 6px;
-  background: white;
+  background: #0E1421;
   border-radius: var(--radius-full);
   animation: pulse-live 1.5s ease-in-out infinite;
 }
