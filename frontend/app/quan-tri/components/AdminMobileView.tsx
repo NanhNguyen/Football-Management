@@ -237,27 +237,27 @@ export default function AdminMobileView(props: any) {
 
   // Styles for Mobile
   const mobileStyles = {
-    container: { background: '#f8fafc', minHeight: '100vh', display: 'flex', flexDirection: 'column' as const, paddingBottom: '60px', fontFamily: 'Inter, sans-serif' },
-    header: { background: '#ffffff', padding: '16px', borderBottom: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky' as const, top: 0, zIndex: 10 },
-    title: { fontSize: '18px', fontWeight: 800, margin: 0, color: '#0f172a' },
+    container: { background: '#0E1421', minHeight: '100vh', display: 'flex', flexDirection: 'column' as const, paddingBottom: '60px', fontFamily: 'Inter, sans-serif' },
+    header: { background: '#141C2A', padding: '16px', borderBottom: '1px solid #1e293b', display: 'flex', justifyContent: 'space-between', alignItems: 'center', position: 'sticky' as const, top: 0, zIndex: 10 },
+    title: { fontSize: '18px', fontWeight: 800, margin: 0, color: '#f8fafc' },
     content: { flex: 1, padding: '16px', overflowY: 'auto' as const },
-    bottomTab: { position: 'fixed' as const, bottom: 0, left: 0, right: 0, background: '#ffffff', borderTop: '1px solid #e2e8f0', display: 'flex', justifyContent: 'space-around', alignItems: 'center', height: '64px', zIndex: 10 },
+    bottomTab: { position: 'fixed' as const, bottom: 0, left: 0, right: 0, background: '#141C2A', borderTop: '1px solid #1e293b', display: 'flex', justifyContent: 'space-around', alignItems: 'center', height: '64px', zIndex: 10 },
     tabItem: { display: 'flex', flexDirection: 'column' as const, alignItems: 'center', justifyContent: 'center', flex: 1, height: '100%', border: 'none', background: 'none' },
-    card: { background: '#ffffff', borderRadius: '16px', padding: '16px', marginBottom: '12px', boxShadow: '0 2px 8px rgba(0,0,0,0.04)', display: 'flex', flexDirection: 'column' as const, gap: '12px' },
+    card: { background: '#141C2A', borderRadius: '16px', padding: '16px', marginBottom: '12px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', display: 'flex', flexDirection: 'column' as const, gap: '12px', border: '1px solid #1e293b' },
     cardHeader: { display: 'flex', alignItems: 'center', gap: '12px' },
-    cardTitle: { fontSize: '16px', fontWeight: 700, margin: 0, color: '#1e293b' },
-    cardSubtitle: { fontSize: '13px', color: '#64748b', margin: 0 },
+    cardTitle: { fontSize: '16px', fontWeight: 700, margin: 0, color: '#cbd5e1' },
+    cardSubtitle: { fontSize: '13px', color: '#94a3b8', margin: 0 },
     buttonPrimary: { background: 'var(--color-primary, #3b82f6)', color: '#fff', border: 'none', borderRadius: '12px', minHeight: '48px', fontWeight: 600, fontSize: '15px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' },
-    buttonSecondary: { background: '#f1f5f9', color: '#475569', border: 'none', borderRadius: '12px', minHeight: '48px', fontWeight: 600, fontSize: '15px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' },
+    buttonSecondary: { background: '#0E1421', color: '#cbd5e1', border: '1px solid #1e293b', borderRadius: '12px', minHeight: '48px', fontWeight: 600, fontSize: '15px', width: '100%', display: 'flex', justifyContent: 'center', alignItems: 'center' },
     bottomSheetOverlay: { position: 'fixed' as const, top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.5)', zIndex: 100, display: 'flex', flexDirection: 'column' as const, justifyContent: 'flex-end' },
-    bottomSheet: { background: '#fff', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: '24px', maxHeight: '90vh', overflowY: 'auto' as const },
-    input: { width: '100%', minHeight: '48px', padding: '0 16px', borderRadius: '12px', border: '1px solid #cbd5e1', fontSize: '15px', marginBottom: '16px', boxSizing: 'border-box' as const }
+    bottomSheet: { background: '#141C2A', borderTopLeftRadius: '24px', borderTopRightRadius: '24px', padding: '24px', maxHeight: '90vh', overflowY: 'auto' as const, borderTop: '1px solid #1e293b' },
+    input: { width: '100%', minHeight: '48px', padding: '0 16px', borderRadius: '12px', border: '1px solid #1e293b', background: '#0E1421', color: '#cbd5e1', fontSize: '15px', marginBottom: '16px', boxSizing: 'border-box' as const }
   };
 
   const renderTeamsTab = () => {
     if (viewingTeam) {
       return (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#f8fafc', zIndex: 20, overflowY: 'auto' }}>
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: '#0E1421', zIndex: 20, overflowY: 'auto' }}>
           <TeamDetailView 
             team={viewingTeam} 
             styles={styles} 
@@ -277,7 +277,7 @@ export default function AdminMobileView(props: any) {
       {teams?.map((doi: any) => (
         <div key={doi.id} style={mobileStyles.card} onClick={() => setViewingTeam(doi)}>
           <div style={mobileStyles.cardHeader}>
-            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#f1f5f9', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
+            <div style={{ width: '48px', height: '48px', borderRadius: '50%', background: '#0E1421', border: '1px solid #1e293b', display: 'flex', alignItems: 'center', justifyContent: 'center', overflow: 'hidden' }}>
               <TeamLogo logo={doi.logo} />
             </div>
             <div style={{ flex: 1 }}>
@@ -315,9 +315,9 @@ export default function AdminMobileView(props: any) {
           justifyContent: 'center',
           marginBottom: '20px',
           padding: '16px',
-          background: '#ffffff',
+          background: '#141C2A',
           borderRadius: '16px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid #1e293b',
           boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
           gap: '12px'
         }}>
@@ -330,11 +330,11 @@ export default function AdminMobileView(props: any) {
               style={{
                 padding: '6px 12px',
                 borderRadius: '8px',
-                border: '1px solid #cbd5e1',
-                background: '#fff',
+                border: '1px solid #1e293b',
+                background: '#0E1421',
                 fontSize: '12px',
                 fontWeight: 600,
-                color: '#1e293b',
+                color: '#cbd5e1',
                 outline: 'none',
                 cursor: 'pointer',
                 boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
@@ -360,8 +360,8 @@ export default function AdminMobileView(props: any) {
                       width: '36px',
                       height: '36px',
                       borderRadius: '50%',
-                      border: '1px solid #e2e8f0',
-                      background: '#ffffff',
+                      border: '1px solid #1e293b',
+                      background: '#141C2A',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -390,8 +390,8 @@ export default function AdminMobileView(props: any) {
                       width: '36px',
                       height: '36px',
                       borderRadius: '50%',
-                      border: '1px solid #e2e8f0',
-                      background: '#ffffff',
+                      border: '1px solid #1e293b',
+                      background: '#141C2A',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
@@ -422,7 +422,7 @@ export default function AdminMobileView(props: any) {
                   {vong || 'Vòng đấu'}
                 </span>
                 {bang && (
-                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#475569', background: '#f1f5f9', padding: '4px 8px', borderRadius: '6px' }}>
+                  <span style={{ fontSize: '11px', fontWeight: 700, color: '#cbd5e1', background: '#0E1421', padding: '4px 8px', borderRadius: '6px' }}>
                     {bang}
                   </span>
                 )}
@@ -583,8 +583,8 @@ export default function AdminMobileView(props: any) {
                 left: '50%',
                 transform: 'translateX(-50%)',
                 width: '260px',
-                background: '#ffffff',
-                border: '1px solid #e2e8f0',
+                background: '#141C2A',
+                border: '1px solid #1e293b',
                 borderRadius: '12px',
                 boxShadow: '0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05)',
                 zIndex: 1000,
@@ -609,8 +609,8 @@ export default function AdminMobileView(props: any) {
                       padding: '10px 12px',
                       borderRadius: '8px',
                       border: 'none',
-                      background: selectedTournament?.id === t.id ? 'var(--color-primary-light, #eff6ff)' : 'transparent',
-                      color: selectedTournament?.id === t.id ? 'var(--color-primary, #0f766e)' : '#334155',
+                      background: selectedTournament?.id === t.id ? 'rgba(0, 212, 184, 0.15)' : 'transparent',
+                      color: selectedTournament?.id === t.id ? 'var(--color-primary, #0f766e)' : '#cbd5e1',
                       fontSize: '14px',
                       fontWeight: selectedTournament?.id === t.id ? 700 : 500,
                       textAlign: 'left',
@@ -697,7 +697,7 @@ export default function AdminMobileView(props: any) {
       {isAddingTeam && (
         <div style={mobileStyles.bottomSheetOverlay} onClick={() => { setIsAddingTeam(false); setTeamSuggestion(null); }}>
           <div style={mobileStyles.bottomSheet} onClick={e => e.stopPropagation()}>
-            <div style={{ width: '40px', height: '4px', background: '#cbd5e1', borderRadius: '2px', margin: '0 auto 20px auto' }} />
+            <div style={{ width: '40px', height: '4px', background: '#1e293b', borderRadius: '2px', margin: '0 auto 20px auto' }} />
             <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 16px 0' }}>Tạo đội bóng mới</h3>
             <label style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>Tên đội bóng</label>
             <input 
@@ -762,7 +762,7 @@ export default function AdminMobileView(props: any) {
               onChange={e => setNewTeamData({...newTeamData, bang: e.target.value})}
             />
             <label style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>Logo đội bóng</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#0E1421', padding: '12px', borderRadius: '12px', border: '1px solid #1e293b', marginBottom: '16px' }}>
               <label style={{ cursor: 'pointer', display: 'inline-block', position: 'relative' }}>
                 <input 
                   type="file" 
@@ -792,7 +792,7 @@ export default function AdminMobileView(props: any) {
                   }}
                 />
                 <TeamLogo logo={newTeamData.logo} teamName={newTeamData.ten} className="w-12 h-12 rounded-full object-cover shadow-sm border border-slate-200" style={{ width: '48px', height: '48px', cursor: 'pointer' }} />
-                <div style={{ position: 'absolute', bottom: -2, right: -2, background: '#ffffff', borderRadius: '50%', padding: '3px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', display: 'flex' }}>
+                <div style={{ position: 'absolute', bottom: -2, right: -2, background: '#141C2A', borderRadius: '50%', padding: '3px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #1e293b', display: 'flex' }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" color="#475569"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 </div>
               </label>
@@ -809,7 +809,7 @@ export default function AdminMobileView(props: any) {
       {editingTeam && (
         <div style={mobileStyles.bottomSheetOverlay} onClick={() => { setEditingTeam(null); setTeamSuggestion(null); }}>
           <div style={mobileStyles.bottomSheet} onClick={e => e.stopPropagation()}>
-            <div style={{ width: '40px', height: '4px', background: '#cbd5e1', borderRadius: '2px', margin: '0 auto 20px auto' }} />
+            <div style={{ width: '40px', height: '4px', background: '#1e293b', borderRadius: '2px', margin: '0 auto 20px auto' }} />
             <h3 style={{ fontSize: '20px', fontWeight: 800, margin: '0 0 16px 0' }}>Sửa đội bóng</h3>
             <label style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>Tên đội bóng</label>
             <input 
@@ -872,7 +872,7 @@ export default function AdminMobileView(props: any) {
               onChange={e => setEditingTeam({...editingTeam, bang: e.target.value})}
             />
             <label style={{ fontSize: '14px', fontWeight: 600, color: '#475569', marginBottom: '8px', display: 'block' }}>Logo đội bóng</label>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#f8fafc', padding: '12px', borderRadius: '12px', border: '1px solid #e2e8f0', marginBottom: '16px' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '16px', background: '#0E1421', padding: '12px', borderRadius: '12px', border: '1px solid #1e293b', marginBottom: '16px' }}>
               <label style={{ cursor: 'pointer', display: 'inline-block', position: 'relative' }}>
                 <input 
                   type="file" 
@@ -902,7 +902,7 @@ export default function AdminMobileView(props: any) {
                   }}
                 />
                 <TeamLogo logo={editingTeam.logo} teamName={editingTeam.ten} className="w-12 h-12 rounded-full object-cover shadow-sm border border-slate-200" style={{ width: '48px', height: '48px', cursor: 'pointer' }} />
-                <div style={{ position: 'absolute', bottom: -2, right: -2, background: '#ffffff', borderRadius: '50%', padding: '3px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #e2e8f0', display: 'flex' }}>
+                <div style={{ position: 'absolute', bottom: -2, right: -2, background: '#141C2A', borderRadius: '50%', padding: '3px', boxShadow: '0 2px 4px rgba(0,0,0,0.1)', border: '1px solid #1e293b', display: 'flex' }}>
                   <svg xmlns="http://www.w3.org/2000/svg" width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" color="#475569"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                 </div>
               </label>

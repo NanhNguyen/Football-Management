@@ -65,13 +65,12 @@
   border-radius: var(--radius-full);
 }
 
-/* TABLE — glass card */
 .tableWrap {
-  background: var(--color-surface);
+  background: #0E1421;
   border-radius: 20px;
-  border: 1px solid var(--color-border);
+  border: 1px solid rgba(0, 212, 184, 0.15);
   overflow: hidden;
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.5);
   max-width: 100%;
 }
 
@@ -99,7 +98,7 @@
   text-transform: uppercase;
   letter-spacing: 0.08em;
   color: var(--color-text-muted);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.5);
+  border-bottom: 1px solid rgba(0, 212, 184, 0.12);
   text-align: left;
   white-space: nowrap;
 }
@@ -108,9 +107,9 @@
 
 .row { transition: background 0.15s ease; }
 
-.row:hover { background: var(--color-surface); }
+.row:hover { background: rgba(0, 212, 184, 0.04); }
 
-.rowZebra { background: var(--color-surface); }
+.rowZebra { background: rgba(255, 255, 255, 0.02); }
 
 .rowTop3 { font-weight: 600; }
 
@@ -120,7 +119,7 @@
 
 .table td {
   padding: var(--space-md) var(--space-base);
-  border-bottom: 1px solid rgba(255, 255, 255, 0.3);
+  border-bottom: 1px solid rgba(0, 212, 184, 0.08);
   vertical-align: middle;
 }
 
@@ -191,16 +190,16 @@
 
 .pointsQualified {
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: #080C10;
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 0 12px rgba(0, 212, 184, 0.3);
 }
 
 .deals {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  background: var(--color-primary-light, #E0F2F1);
+  background: var(--color-primary-light, rgba(0, 212, 184, 0.12));
   color: var(--color-primary);
   font-weight: 700;
   font-size: 12px;
@@ -248,7 +247,7 @@
 .spinner {
   width: 40px;
   height: 40px;
-  border: 3px solid rgba(15, 74, 78, 0.1);
+  border: 3px solid rgba(0, 212, 184, 0.1);
   border-top-color: var(--color-primary);
   border-radius: 50%;
   animation: spin 0.8s linear infinite;
@@ -299,8 +298,8 @@
 .rowChampion:hover { background: rgba(245, 158, 11, 0.1) !important; }
 .rowChampion td:first-child { border-left: 6px solid #f59e0b !important; }
 
-.rowRelegated { background: rgba(225, 29, 72, 0.04) !important; }
-.rowRelegated:hover { background: rgba(225, 29, 72, 0.07) !important; }
+.rowRelegated { background: rgba(255, 71, 87, 0.04) !important; }
+.rowRelegated:hover { background: rgba(255, 71, 87, 0.07) !important; }
 .rowRelegated td:first-child { border-left: 6px solid var(--color-live) !important; }
 
 .pointsChampion {
@@ -314,13 +313,14 @@
   background: var(--color-live) !important;
   color: white !important;
   font-weight: 800 !important;
-  box-shadow: 0 2px 8px rgba(225, 29, 72, 0.3);
+  box-shadow: 0 2px 8px rgba(255, 71, 87, 0.3);
 }
 
 .pointsNormalLeague {
-  background: rgba(0, 0, 0, 0.12) !important;
+  background: rgba(0, 212, 184, 0.08) !important;
   color: var(--color-text) !important;
   font-weight: 700 !important;
+  border: 1px solid rgba(0, 212, 184, 0.2);
 }
 
 /* Skeleton Loader */
@@ -387,9 +387,9 @@
   height: 100%;
   background: linear-gradient(
     90deg,
-    rgba(255, 255, 255, 0) 0%,
-    rgba(255, 255, 255, 0.5) 50%,
-    rgba(255, 255, 255, 0) 100%
+    rgba(0, 212, 184, 0) 0%,
+    rgba(0, 212, 184, 0.06) 50%,
+    rgba(0, 212, 184, 0) 100%
   );
   animation: skeletonShimmerKeyframe 1.8s infinite;
   transform: translateX(-100%);
@@ -400,7 +400,7 @@
 .skeletonTable { width: 100%; border-collapse: collapse; }
 
 .skeletonTableHeaderRow {
-  border-bottom: 1px solid rgba(255, 255, 255, 0.4);
+  border-bottom: 1px solid rgba(0, 212, 184, 0.12);
   height: 48px;
   display: flex;
   align-items: center;
@@ -485,9 +485,9 @@
 
 .tabBtn.tabActive {
   background: var(--color-primary);
-  color: #FFFFFF;
+  color: #080C10;
   border-color: var(--color-primary);
-  box-shadow: var(--shadow-sm);
+  box-shadow: 0 0 12px rgba(0, 212, 184, 0.3);
   font-weight: 700;
 }
 
@@ -512,7 +512,7 @@
   .colRank,
   .colTeam {
     position: sticky !important;
-    background-color: #FFFFFF !important;
+    background-color: #0E1421 !important;
     z-index: 20;
   }
 
@@ -535,12 +535,12 @@
   .table thead .colRank,
   .table thead .colTeam {
     z-index: 30;
-    background-color: #FFFFFF !important;
+    background-color: #0E1421 !important;
   }
 
   .rowZebra .colRank,
   .rowZebra .colTeam {
-    background-color: #FFFFFF !important;
+    background-color: rgba(255, 255, 255, 0.02) !important;
   }
 
   .row:hover .colRank,
@@ -550,12 +550,12 @@
 
   .rowChampion .colRank,
   .rowChampion .colTeam { 
-    background-color: #FFF9EB !important; 
+    background-color: rgba(245, 158, 11, 0.08) !important; 
   }
 
   .rowRelegated .colRank,
   .rowRelegated .colTeam { 
-    background-color: #FFF1F2 !important; 
+    background-color: rgba(255, 71, 87, 0.06) !important; 
   }
 
   .teamLogo {

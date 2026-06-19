@@ -6,12 +6,12 @@
 
 .tabList {
   display: inline-flex;
-  background: var(--color-surface);
+  background: rgba(10, 15, 24, 0.8);
   padding: 6px;
   border-radius: 999px;
   gap: 4px;
-  border: 1px solid var(--color-border);
-  box-shadow: var(--shadow-sm);
+  border: 1px solid rgba(0, 212, 184, 0.2);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
 .tabBtn {
@@ -31,13 +31,14 @@
 
 .tabBtn:hover {
   color: var(--color-primary);
-  background: var(--color-primary-light, #E0F2F1);
+  background: rgba(0, 212, 184, 0.1);
 }
 
 .tabActive {
   background: var(--color-primary) !important;
-  color: #ffffff !important;
-  box-shadow: var(--shadow-sm);
+  color: #080C10 !important;
+  box-shadow: 0 0 12px rgba(0, 212, 184, 0.4);
+  font-weight: 700;
 }
 
 .blinkDot {
@@ -46,7 +47,7 @@
   background-color: var(--color-live);
   border-radius: 50%;
   animation: blink 1s infinite;
-  box-shadow: 0 0 8px rgba(225, 29, 72, 0.5);
+  box-shadow: 0 0 8px rgba(255, 71, 87, 0.7);
 }
 
 @keyframes blink {
@@ -64,9 +65,9 @@
   grid-column: 1 / -1;
   text-align: center;
   padding: 48px;
-  background: var(--color-surface);
+  background: #0E1421;
   border-radius: 20px;
-  border: 1px dashed rgba(15, 74, 78, 0.25);
+  border: 1px dashed rgba(0, 212, 184, 0.2);
   color: var(--color-text-muted);
   font-style: italic;
 }

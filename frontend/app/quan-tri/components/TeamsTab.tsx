@@ -102,7 +102,7 @@ export default function TeamsTab({
                   <span style={{ fontWeight: 600 }}>{doi.ten}</span>
                 </div>
               </td>
-              <td><span className={styles.statusBadge} style={{ background: '#f1f5f9' }}>Bảng {doi.bang}</span></td>
+              <td><span className={`${styles.statusBadge} ${styles.badgeNeutral}`}>Bảng {doi.bang}</span></td>
               <td>{doi.cauThu?.length || 0} cầu thủ</td>
               <td><span className={`${styles.statusBadge} ${styles.badgeSuccess}`}>Đã đăng ký</span></td>
               <td>

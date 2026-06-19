@@ -187,7 +187,7 @@ export default function SettingsTab({
               className={styles.input}
               value={tournamentType}
               onChange={(e) => setTournamentType(e.target.value as 'tournament' | 'league')}
-              style={{ width: '100%', height: '42px', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              style={{ width: '100%', height: '42px', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border, #1e293b)', background: 'var(--color-surface, #0E1421)', color: 'var(--color-text, #f8fafc)' }}
             >
               <option value="tournament">Đấu cúp chia bảng (Tournament)</option>
               <option value="league">Đấu vòng tròn toàn giải (League)</option>
@@ -200,7 +200,7 @@ export default function SettingsTab({
               className={styles.input}
               value={tournamentVenueType}
               onChange={(e) => setTournamentVenueType(e.target.value as 'CENTRALIZED' | 'HOME_AWAY')}
-              style={{ width: '100%', height: '42px', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+              style={{ width: '100%', height: '42px', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border, #1e293b)', background: 'var(--color-surface, #0E1421)', color: 'var(--color-text, #f8fafc)' }}
             >
               <option value="CENTRALIZED">Thi đấu tập trung</option>
               <option value="HOME_AWAY">Sân nhà & Sân khách</option>
@@ -214,7 +214,7 @@ export default function SettingsTab({
                 className={styles.input}
                 value={tournamentGroupLegs}
                 onChange={(e) => setTournamentGroupLegs(Number(e.target.value) as 1 | 2)}
-                style={{ width: '100%', height: '42px', padding: '8px 12px', borderRadius: '6px', border: '1px solid #cbd5e1' }}
+                style={{ width: '100%', height: '42px', padding: '8px 12px', borderRadius: '6px', border: '1px solid var(--color-border, #1e293b)', background: 'var(--color-surface, #0E1421)', color: 'var(--color-text, #f8fafc)' }}
               >
                 <option value={1}>1 lượt (Đá vòng tròn 1 lượt)</option>
                 <option value={2}>2 lượt (Lượt đi - Lượt về)</option>
@@ -263,10 +263,10 @@ export default function SettingsTab({
 
         <hr style={{ border: 'none', borderTop: '1px solid var(--color-border-light)', margin: '24px 0' }} />
 
-        <div style={{ marginTop: '24px', padding: '20px', border: '1px solid #fee2e2', borderRadius: '12px', background: '#fef2f2', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+        <div style={{ marginTop: '24px', padding: '20px', border: '1px solid rgba(239, 68, 68, 0.3)', borderRadius: '12px', background: 'rgba(239, 68, 68, 0.08)', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
           <div>
-            <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-danger)', margin: 0 }}>Vùng nguy hiểm (Danger Zone)</h4>
-            <p style={{ fontSize: '13px', color: '#7f1d1d', marginTop: '4px', margin: 0 }}>Xóa giải đấu này sẽ xóa vĩnh viễn tất cả đội bóng, cầu thủ, lịch thi đấu, và các dữ liệu liên quan.</p>
+            <h4 style={{ fontSize: '15px', fontWeight: 700, color: '#f87171', margin: 0 }}>Vùng nguy hiểm (Danger Zone)</h4>
+            <p style={{ fontSize: '13px', color: '#fca5a5', marginTop: '4px', margin: 0 }}>Xóa giải đấu này sẽ xóa vĩnh viễn tất cả đội bóng, cầu thủ, lịch thi đấu, và các dữ liệu liên quan.</p>
           </div>
           <button
             onClick={handleDeleteTournament}

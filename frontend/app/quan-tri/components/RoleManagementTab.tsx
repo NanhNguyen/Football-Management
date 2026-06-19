@@ -27,12 +27,7 @@ const roleNameToId: Record<'admin' | 'ref' | 'user', number> = {
 export default function RoleManagementTab({ showToast }: { showToast: (msg: string) => void }) {
   const [userRoles, setUserRoles] = useState<UserRole[]>([]);
   const [loading, setLoading] = useState(true);
-  const [submitting, setSubmitting] = useState(false);
-
-  // Form states for adding new role assignment
-  const [newUserId, setNewUserId] = useState('');
-  const [newEmail, setNewEmail] = useState('');
-  const [newRole, setNewRole] = useState<'admin' | 'ref' | 'user'>('user');
+  const [searchTerm, setSearchTerm] = useState('');
 
   const fetchUserRoles = async () => {
     setLoading(true);
@@ -97,52 +92,17 @@ export default function RoleManagementTab({ showToast }: { showToast: (msg: stri
     }
   };
 
-  const handleAddRoleAssignment = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!newUserId.trim()) {
-      showToast('❌ Vui lòng nhập User ID (UUID)');
-      return;
-    }
-
-    // Validate UUID format
-    const uuidRegex = /^[0-9a-f]{8}-[0-9a-f]{4}-[1-5][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i;
-    if (!uuidRegex.test(newUserId.trim())) {
-      showToast('❌ User ID không đúng định dạng UUID');
-      return;
-    }
-
-    setSubmitting(true);
-    try {
-      const targetRoleId = roleNameToId[newRole];
-      const { error } = await supabase
-        .from('user_roles')
-        .insert([
-          {
-            user_id: newUserId.trim(),
-            email: newEmail.trim() || null,
-            role_id: targetRoleId,
-          },
-        ]);
-
-      if (error) {
-        if (error.code === '23505') {
-          throw new Error('Người dùng này đã được phân quyền trước đó.');
-        }
-        throw error;
-      }
-
-      showToast('⚡ Thêm phân quyền người dùng thành công!');
-      setNewUserId('');
-      setNewEmail('');
-      setNewRole('user');
-      fetchUserRoles();
-    } catch (err: any) {
-      console.error('Lỗi khi gán phân quyền:', err);
-      showToast(`❌ Lỗi: ${err.message}`);
-    } finally {
-      setSubmitting(false);
-    }
-  };
+  const filteredUserRoles = userRoles.filter((ur) => {
+    const name = (ur as any).full_name || '';
+    const email = ur.email || '';
+    const userId = ur.user_id || '';
+    const term = searchTerm.toLowerCase();
+    return (
+      name.toLowerCase().includes(term) ||
+      email.toLowerCase().includes(term) ||
+      userId.toLowerCase().includes(term)
+    );
+  });
 
   return (
     <div className={styles.container}>
@@ -154,24 +114,37 @@ export default function RoleManagementTab({ showToast }: { showToast: (msg: stri
       </div>
 
       <div className={styles.grid}>
-        {/* Left Column: Users list */}
+        {/* Users list */}
         <div className={styles.tableCard}>
           <div className={styles.cardHeader}>
-            <h3>Danh sách đã phân quyền ({userRoles.length})</h3>
+            <h3>Danh sách đã phân quyền ({filteredUserRoles.length})</h3>
             <button className={styles.refreshBtn} onClick={fetchUserRoles} disabled={loading}>
               ↻ Tải lại
             </button>
           </div>
 
+          <div className={styles.searchWrapper}>
+            <input
+              type="text"
+              placeholder="Tìm kiếm theo tên, email hoặc User ID..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              className={styles.searchInput}
+            />
+          </div>
+
           {loading ? (
             <div className={styles.loader}>Đang tải danh sách người dùng...</div>
-          ) : userRoles.length === 0 ? (
-            <div className={styles.emptyState}>Chưa có người dùng nào được phân quyền trong hệ thống.</div>
+          ) : filteredUserRoles.length === 0 ? (
+            <div className={styles.emptyState}>
+              {searchTerm ? 'Không tìm thấy người dùng nào phù hợp với bộ lọc.' : 'Chưa có người dùng nào được phân quyền.'}
+            </div>
           ) : (
             <div className={styles.tableWrapper}>
               <table className={styles.table}>
                 <thead>
                   <tr>
+                    <th>Họ và tên</th>
                     <th>Email</th>
                     <th>User ID (UUID)</th>
                     <th>Vai trò</th>
@@ -179,10 +152,13 @@ export default function RoleManagementTab({ showToast }: { showToast: (msg: stri
                   </tr>
                 </thead>
                 <tbody>
-                  {userRoles.map((ur) => {
+                  {filteredUserRoles.map((ur) => {
                     const roleName = roleIdToName[ur.role_id] || 'user';
                     return (
                       <tr key={ur.id}>
+                        <td className={styles.nameCell}>
+                          {(ur as any).full_name || ur.email?.split('@')[0] || 'N/A'}
+                        </td>
                         <td className={styles.emailCell}>{ur.email || 'Chưa cập nhật email'}</td>
                         <td className={styles.uuidCell} title={ur.user_id}>
                           {ur.user_id.substring(0, 8)}...{ur.user_id.substring(ur.user_id.length - 8)}
@@ -215,59 +191,6 @@ export default function RoleManagementTab({ showToast }: { showToast: (msg: stri
               </table>
             </div>
           )}
-        </div>
-
-        {/* Right Column: Add role assignment form */}
-        <div className={styles.formCard}>
-          <h3>Gán phân quyền cho User mới</h3>
-          <p className={styles.formInstructions}>
-            Nếu người dùng vừa tạo tài khoản nhưng chưa hiển thị trong danh sách, hãy nhập User ID (lấy từ Supabase Auth) để gán vai trò trực tiếp.
-          </p>
-
-          <form onSubmit={handleAddRoleAssignment} className={styles.form}>
-            <div className={styles.formGroup}>
-              <label htmlFor="userId">User ID (UUID) *</label>
-              <input
-                id="userId"
-                type="text"
-                className={styles.input}
-                placeholder="e.g. d3b07384-d113-4956-..."
-                value={newUserId}
-                onChange={(e) => setNewUserId(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="email">Email</label>
-              <input
-                id="email"
-                type="email"
-                className={styles.input}
-                placeholder="e.g. user@sparta.com"
-                value={newEmail}
-                onChange={(e) => setNewEmail(e.target.value)}
-              />
-            </div>
-
-            <div className={styles.formGroup}>
-              <label htmlFor="role">Vai trò</label>
-              <select
-                id="role"
-                className={styles.select}
-                value={newRole}
-                onChange={(e) => setNewRole(e.target.value as any)}
-              >
-                <option value="user">Người xem (User)</option>
-                <option value="ref">Trọng tài (Referee)</option>
-                <option value="admin">Quản trị viên (Admin)</option>
-              </select>
-            </div>
-
-            <button type="submit" className={styles.submitBtn} disabled={submitting}>
-              {submitting ? 'Đang lưu...' : 'Gán vai trò'}
-            </button>
-          </form>
         </div>
       </div>
     </div>

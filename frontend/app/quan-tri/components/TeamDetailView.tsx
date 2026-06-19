@@ -40,7 +40,7 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
   };
 
   return (
-    <div className={`${styles.content} animate-fade-in`} style={{ padding: '24px', background: '#fff', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)' }}>
+    <div className={`${styles.content} animate-fade-in`} style={{ padding: '24px', background: '#0E1421', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '1px solid #1e293b' }}>
       {/* Navigation & Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
         <button
@@ -77,31 +77,31 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
           display: 'flex',
           alignItems: 'center',
           gap: '24px',
-          background: 'linear-gradient(135deg, #f8fafc 0%, #f1f5f9 100%)',
+          background: 'linear-gradient(135deg, #141C2A 0%, #0E1421 100%)',
           padding: '24px',
           borderRadius: '16px',
-          border: '1px solid #e2e8f0',
+          border: '1px solid #1e293b',
           marginBottom: '32px'
         }}
       >
         <div
           style={{
             fontSize: '48px',
-            background: '#fff',
+            background: '#0E1421',
             width: '80px',
             height: '80px',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             borderRadius: '20px',
-            border: '1px solid #cbd5e1',
+            border: '1px solid #1e293b',
             boxShadow: '0 4px 12px rgba(0,0,0,0.03)'
           }}
         >
           <TeamLogo logo={team.logo} />
         </div>
         <div>
-          <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: '#0f172a' }}>{team.ten}</h2>
+          <h2 style={{ margin: 0, fontSize: '28px', fontWeight: 800, color: '#f8fafc' }}>{team.ten}</h2>
           <div style={{ display: 'flex', gap: '12px', alignItems: 'center', marginTop: '8px', flexWrap: 'wrap' }}>
             <span style={{ background: 'var(--color-primary)', color: '#fff', padding: '4px 12px', borderRadius: '20px', fontSize: '13px', fontWeight: 700 }}>
               Bảng {team.bang || 'A'}
@@ -146,7 +146,7 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              borderBottom: '2px solid #fee2e2',
+              borderBottom: '2px solid rgba(220, 38, 38, 0.2)',
               paddingBottom: '8px'
             }}
           >
@@ -167,9 +167,9 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '12px 16px',
-                    background: '#fff',
+                    background: '#141C2A',
                     borderRadius: '12px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid #1e293b',
                     boxShadow: '0 2px 8px rgba(0,0,0,0.02)',
                     transition: 'transform 0.2s, box-shadow 0.2s'
                   }}
@@ -177,13 +177,13 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <PlayerAvatar avatarUrl={p.avatar} playerName={p.ten} soAo={p.soAo} />
                     <div>
-                      <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: '#1e293b' }}>{p.ten}</p>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: '#f8fafc' }}>{p.ten}</p>
                       <p style={{ margin: 0, fontSize: '11px', color: 'var(--color-primary)', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginTop: '2px' }}>
                         {getDisplayPos(p.viTri)}
                       </p>
                     </div>
                   </div>
-                  <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600, background: '#f8fafc', padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: 600, background: '#0E1421', padding: '4px 10px', borderRadius: '8px', border: '1px solid #1e293b', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <SoccerBallIcon size={12} color="#64748b" />
                     <span>{p.banThang || 0} bàn</span>
                   </span>
@@ -206,7 +206,7 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
               display: 'flex',
               alignItems: 'center',
               gap: '8px',
-              borderBottom: '2px solid #e2e8f0',
+              borderBottom: '2px solid #1e293b',
               paddingBottom: '8px'
             }}
           >
@@ -227,9 +227,9 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
                     alignItems: 'center',
                     justifyContent: 'space-between',
                     padding: '12px 16px',
-                    background: '#f8fafc',
+                    background: '#0E1421',
                     borderRadius: '12px',
-                    border: '1px solid #e2e8f0',
+                    border: '1px solid #1e293b',
                     boxShadow: '0 2px 4px rgba(0,0,0,0.01)',
                     transition: 'transform 0.2s, box-shadow 0.2s'
                   }}
@@ -237,13 +237,13 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <PlayerAvatar avatarUrl={p.avatar} playerName={p.ten} soAo={p.soAo} />
                     <div>
-                      <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: '#334155' }}>{p.ten}</p>
+                      <p style={{ margin: 0, fontWeight: 700, fontSize: '15px', color: '#cbd5e1' }}>{p.ten}</p>
                       <p style={{ margin: 0, fontSize: '11px', color: '#64748b', textTransform: 'uppercase', fontWeight: 700, letterSpacing: '0.05em', marginTop: '2px' }}>
                         {getDisplayPos(p.viTri)}
                       </p>
                     </div>
                   </div>
-                  <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600, background: '#fff', padding: '4px 10px', borderRadius: '8px', border: '1px solid #e2e8f0', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
+                  <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: 600, background: '#141C2A', padding: '4px 10px', borderRadius: '8px', border: '1px solid #1e293b', display: 'inline-flex', alignItems: 'center', gap: '4px' }}>
                     <SoccerBallIcon size={12} color="#64748b" />
                     <span>{p.banThang || 0} bàn</span>
                   </span>

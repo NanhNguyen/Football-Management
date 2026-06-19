@@ -23,15 +23,7 @@
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
-}
-
-@media (max-width: 1024px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+  display: block;
 }
 
 .tableCard, .formCard {
@@ -58,8 +50,8 @@
 }
 
 .refreshBtn {
-  background-color: var(--color-primary-light, #E0F2F1);
-  color: var(--color-primary, #0F766E);
+  background-color: var(--color-primary-light, rgba(0, 212, 184, 0.12));
+  color: var(--color-primary, #00D4B8);
   font-size: 12px;
   font-weight: 700;
   padding: 6px 12px;
@@ -68,7 +60,7 @@
 }
 
 .refreshBtn:hover {
-  background-color: var(--color-primary, #0F766E);
+  background-color: var(--color-primary, #00D4B8);
   color: #FFFFFF;
 }
 
@@ -102,7 +94,7 @@
 }
 
 .table th {
-  background-color: var(--color-surface-container, #F8FAFC);
+  background-color: var(--color-surface-container, #080C10);
   color: var(--color-text, #334155);
   font-weight: 600;
   padding: 12px 16px;
@@ -114,18 +106,44 @@
 
 .table td {
   padding: 14px 16px;
-  border-bottom: 1px solid var(--color-border-light, #F1F5F9);
+  border-bottom: 1px solid var(--color-border-light, #141C2A);
   color: var(--color-text-secondary, #334155);
   vertical-align: middle;
 }
 
 .table tbody tr:hover {
-  background-color: var(--color-surface-hover, #F1F5F9);
+  background-color: var(--color-surface-hover, #141C2A);
 }
 
 .emailCell {
-  font-weight: 600;
-  color: var(--color-text-heading, #0F172A);
+  font-weight: 500;
+  color: var(--color-text-muted, #94a3b8);
+}
+
+.nameCell {
+  font-weight: 700;
+  color: var(--color-text-heading, #f8fafc);
+}
+
+.searchWrapper {
+  margin-bottom: 20px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border, #1e293b);
+  background-color: var(--color-surface-hover, #141C2A);
+  color: var(--color-text, #f8fafc);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary, #00D4B8);
+  box-shadow: 0 0 0 3px rgba(0, 212, 184, 0.15);
 }
 
 .uuidCell {
@@ -147,9 +165,9 @@
 }
 
 .roleSelect_admin {
-  background-color: var(--color-primary-light, #E0F2F1);
-  color: var(--color-primary, #0F766E);
-  border-color: rgba(15, 118, 110, 0.2);
+  background-color: var(--color-primary-light, rgba(0, 212, 184, 0.12));
+  color: var(--color-primary, #00D4B8);
+  border-color: rgba(0, 212, 184, 0.2);
 }
 
 .roleSelect_ref {
@@ -159,13 +177,13 @@
 }
 
 .roleSelect_user {
-  background-color: #F1F5F9; /* Slate 100 */
+  background-color: #141C2A; /* Slate 100 */
   color: #475569; /* Slate 600 */
   border-color: rgba(71, 85, 105, 0.2);
 }
 
 .roleSelect:focus {
-  box-shadow: 0 0 0 2px rgba(15, 118, 110, 0.25);
+  box-shadow: 0 0 0 2px rgba(0, 212, 184, 0.25);
 }
 
 .deleteBtn {
@@ -224,24 +242,24 @@
 }
 
 .input:focus, .select:focus {
-  border-color: var(--color-primary, #0F766E);
-  box-shadow: 0 0 0 3px rgba(15, 118, 110, 0.15);
+  border-color: var(--color-primary, #00D4B8);
+  box-shadow: 0 0 0 3px rgba(0, 212, 184, 0.15);
 }
 
 .submitBtn {
-  background-color: var(--color-primary, #0F766E);
+  background-color: var(--color-primary, #00D4B8);
   color: #FFFFFF;
   padding: 12px;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 700;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 6px rgba(15, 118, 110, 0.15);
+  box-shadow: 0 4px 6px rgba(0, 212, 184, 0.15);
   margin-top: 8px;
 }
 
 .submitBtn:hover:not(:disabled) {
-  background-color: var(--color-primary-dark, #115E59);
+  background-color: var(--color-primary-dark, #00A896);
 }
 
 .submitBtn:disabled {

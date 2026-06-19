@@ -2,6 +2,7 @@ import { Injectable, CanActivate, ExecutionContext, ForbiddenException, Logger }
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from './roles.decorator';
 import { createClient } from '@supabase/supabase-js';
+import ws from 'ws';
 
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -11,7 +12,11 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {
     const supabaseUrl = process.env.SUPABASE_URL || 'https://mjbwdzgccxpahlkoksex.supabase.co';
     const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || process.env.SUPABASE_ANON_KEY || 'sb_publishable_626NQt7MhaX9abfCpCoEZw_G6gVioj1';
-    this.supabase = createClient(supabaseUrl, supabaseKey);
+    this.supabase = createClient(supabaseUrl, supabaseKey, {
+      realtime: {
+        transport: ws as any,
+      },
+    });
   }
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
