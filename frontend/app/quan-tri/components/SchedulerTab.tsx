@@ -137,18 +137,18 @@ export default function SchedulerTab({
           }}>
             {/* Filter Dropdown on Top */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-              <span style={{ fontSize: '13px', color: '#64748b', fontWeight: 600 }}>Chọn nhanh vòng:</span>
+              <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: 600 }}>Chọn nhanh vòng:</span>
               <select
                 value={scheduleFilterVong}
                 onChange={(e) => setScheduleFilterVong(e.target.value)}
                 style={{
                   padding: '8px 16px',
                   borderRadius: '10px',
-                  border: '1px solid #cbd5e1',
-                  background: '#fff',
+                  border: '1px solid #1e293b',
+                  background: '#0E1421',
                   fontSize: '13px',
                   fontWeight: 600,
-                  color: '#1e293b',
+                  color: '#cbd5e1',
                   outline: 'none',
                   cursor: 'pointer',
                   boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
@@ -174,8 +174,8 @@ export default function SchedulerTab({
                       width: '44px',
                       height: '44px',
                       borderRadius: '50%',
-                      border: '1px solid #e2e8f0',
-                      background: '#ffffff',
+                      border: '1px solid #1e293b',
+                      background: '#141C2A',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
                       display: 'flex',
                       alignItems: 'center',
@@ -187,15 +187,15 @@ export default function SchedulerTab({
                     }}
                     title="Vòng trước"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? 'var(--color-text-muted, #475569)' : 'var(--color-text, #f8fafc)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
                   </button>
                   <div style={{ textAlign: 'center', minWidth: '160px' }}>
-                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>
+                    <div style={{ fontSize: '20px', fontWeight: 800, color: '#f8fafc' }}>
                       {scheduleFilterVong === 'NONE' ? 'Không có vòng đấu' : scheduleFilterVong}
                     </div>
-                    <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, marginTop: '4px' }}>
+                    <div style={{ fontSize: '12px', color: '#cbd5e1', fontWeight: 600, marginTop: '4px' }}>
                       {getRoundDateRange()}
                     </div>
                   </div>
@@ -206,8 +206,8 @@ export default function SchedulerTab({
                       width: '44px',
                       height: '44px',
                       borderRadius: '50%',
-                      border: '1px solid #e2e8f0',
-                      background: '#ffffff',
+                      border: '1px solid #1e293b',
+                      background: '#141C2A',
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
                       display: 'flex',
                       alignItems: 'center',
@@ -219,7 +219,7 @@ export default function SchedulerTab({
                     }}
                     title="Vòng sau"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? 'var(--color-text-muted, #475569)' : 'var(--color-text, #f8fafc)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                   </button>
@@ -272,13 +272,13 @@ export default function SchedulerTab({
                 ).map(([vongName, matches]: any) => (
                   <Fragment key={vongName}>
                     <tr>
-                      <td colSpan={6} style={{ background: '#f8fafc', padding: '12px 16px', fontWeight: 700, color: '#334155', borderBottom: '2px solid #e2e8f0', borderTop: 'none' }}>
+                      <td colSpan={6} style={{ background: '#141C2A', padding: '12px 16px', fontWeight: 700, color: '#cbd5e1', borderBottom: '2px solid #1e293b', borderTop: 'none' }}>
                         {vongName}
                       </td>
                     </tr>
                     {matches.map((m: any, idx: number) => (
                       <tr key={m.id} style={{ transition: 'background-color 0.2s' }}>
-                        <td style={{ textAlign: 'center', fontSize: '13px', color: '#64748b', fontWeight: 600 }}>
+                        <td style={{ textAlign: 'center', fontSize: '13px', color: '#cbd5e1', fontWeight: 600 }}>
                           {idx + 1}
                         </td>
                         <td>
@@ -287,14 +287,14 @@ export default function SchedulerTab({
                               type="date"
                               value={m.date}
                               onChange={(e) => handleInlineUpdateMatch(m.id, 'ngay', e.target.value)}
-                              style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', outline: 'none', background: '#fff' }}
+                              style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #1e293b', fontSize: '13px', outline: 'none', background: '#0E1421', color: '#cbd5e1' }}
                               title="Nhấp để thay đổi ngày diễn ra trận đấu"
                             />
                             <input
                               type="time"
                               value={m.time}
                               onChange={(e) => handleInlineUpdateMatch(m.id, 'gio', e.target.value)}
-                              style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', outline: 'none', background: '#fff' }}
+                              style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #1e293b', fontSize: '13px', outline: 'none', background: '#0E1421', color: '#cbd5e1' }}
                               title="Nhấp để thay đổi thời gian (giờ) diễn ra trận đấu"
                             />
                           </div>
@@ -305,7 +305,7 @@ export default function SchedulerTab({
                             <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 600 }}>vs</span>
                             <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{m.doiKhach?.ten || '???'}</span>
                             {m.doiNha?.bang && (
-                              <span style={{ fontSize: '11px', color: 'var(--color-primary, #0f766e)', background: 'var(--color-primary-light, #eff6ff)', padding: '2px 8px', borderRadius: '4px', marginLeft: '8px', fontWeight: 700 }}>
+                              <span style={{ fontSize: '11px', color: 'var(--color-primary, #00d4b8)', background: 'rgba(0, 212, 184, 0.15)', padding: '2px 8px', borderRadius: '4px', marginLeft: '8px', fontWeight: 700 }}>
                                 Bảng {m.doiNha.bang}
                               </span>
                             )}
@@ -317,15 +317,15 @@ export default function SchedulerTab({
                             value={m.san || ''}
                             onChange={(e) => handleInlineUpdateMatch(m.id, 'san', e.target.value)}
                             placeholder="Tên sân"
-                            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #cbd5e1', fontSize: '13px', outline: 'none', width: '100%', minWidth: '150px', background: '#fff' }}
+                            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #1e293b', fontSize: '13px', outline: 'none', width: '100%', minWidth: '150px', background: '#0E1421', color: '#cbd5e1' }}
                             title="Nhấp để thay đổi sân thi đấu"
                           />
                         </td>
                         <td>
                           {m.trangThai === 'DRAFT' ? (
-                            <span className={`${styles.statusBadge}`} style={{ background: '#fef3c7', color: '#d97706', border: '1px solid #fde68a' }} title="Lịch dự thảo - Chỉ quản trị viên nhìn thấy và có thể sửa đổi">Draft</span>
+                            <span className={`${styles.statusBadge} ${styles.badgeWarning}`} title="Lịch dự thảo - Chỉ quản trị viên nhìn thấy và có thể sửa đổi">Draft</span>
                           ) : (
-                            <span className={`${styles.statusBadge}`} style={{ background: '#ecfdf5', color: '#059669', border: '1px solid #a7f3d0' }} title="Đã phát hành chính thức cho người xem">Đã lên lịch</span>
+                            <span className={`${styles.statusBadge} ${styles.badgeSuccess}`} title="Đã phát hành chính thức cho người xem">Đã lên lịch</span>
                           )}
                         </td>
                         <td>

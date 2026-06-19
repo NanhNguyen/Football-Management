@@ -179,12 +179,12 @@ export default function ChiTietTranDauPage() {
             </span>
           )}
           {isSapDienRa && (
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#f59e0b', background: '#fef3c7', padding: '4px 12px', borderRadius: '999px', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#fcd34d', background: 'rgba(245, 158, 11, 0.2)', padding: '4px 12px', borderRadius: '999px', textTransform: 'uppercase' }}>
               Sắp diễn ra
             </span>
           )}
           {isKetThuc && (
-            <span style={{ fontSize: '12px', fontWeight: 700, color: '#64748b', background: '#f1f5f9', padding: '4px 12px', borderRadius: '999px', textTransform: 'uppercase' }}>
+            <span style={{ fontSize: '12px', fontWeight: 700, color: '#cbd5e1', background: '#1e293b', padding: '4px 12px', borderRadius: '999px', textTransform: 'uppercase' }}>
               Kết thúc
             </span>
           )}
@@ -225,7 +225,7 @@ export default function ChiTietTranDauPage() {
       <div className={`${styles.timelineSection} animate-fade-up`}>
         <h3 className={styles.sectionTitle}>Diễn biến trận đấu</h3>
         {(matchData.suKien || []).length === 0 ? (
-          <div style={{ background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1', padding: '48px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
+          <div style={{ background: '#0E1421', borderRadius: '16px', border: '1px dashed #1e293b', padding: '48px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
             <span style={{ display: 'block', marginBottom: '12px' }}><TimerIcon size={32} /></span>
             <p style={{ color: '#64748b', fontWeight: 500, margin: 0 }}>Chưa có sự kiện nào được ghi nhận cho trận đấu này.</p>
           </div>
@@ -243,7 +243,7 @@ export default function ChiTietTranDauPage() {
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                       <span className={styles.timelineLabel}>{eventLabels[sk.loai] ?? sk.loai}</span>
                       {sk.doi?.ten && (
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: isHomeTeamEvent ? '#d71920' : '#2563eb', background: isHomeTeamEvent ? '#fef2f2' : '#eff6ff', padding: '2px 8px', borderRadius: '4px' }}>
+                        <span style={{ fontSize: '11px', fontWeight: 700, color: isHomeTeamEvent ? '#fca5a5' : '#93c5fd', background: isHomeTeamEvent ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)', padding: '2px 8px', borderRadius: '4px' }}>
                           {sk.doi.ten}
                         </span>
                       )}
@@ -252,7 +252,7 @@ export default function ChiTietTranDauPage() {
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span style={{ color: '#10b981', fontWeight: 900, fontSize: '13px' }}>▲</span>
-                          <span style={{ fontWeight: 600, color: '#1e293b' }}>{sk.cauThu?.ten || 'Không rõ'} (Vào sân)</span>
+                          <span style={{ fontWeight: 600, color: '#f8fafc' }}>{sk.cauThu?.ten || 'Không rõ'} (Vào sân)</span>
                         </div>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                           <span style={{ color: '#ef4444', fontWeight: 900, fontSize: '13px' }}>▼</span>

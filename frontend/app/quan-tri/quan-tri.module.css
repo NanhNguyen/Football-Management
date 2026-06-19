@@ -370,19 +370,22 @@
   font-size: 11px;
   font-weight: 800;
   text-transform: uppercase;
+  background: var(--color-surface);
+  color: var(--color-text-muted, #94a3b8);
+  border: 1px dashed var(--color-border, #1e293b);
 }
 
 .statusLive {
-  background: #fef2f2;
-  color: #ef4444;
-  border: 1px solid #fecaca;
+  background: rgba(239, 68, 68, 0.15);
+  color: #fca5a5;
+  border: 1px solid rgba(239, 68, 68, 0.3);
   animation: pulse 2s infinite;
 }
 
 .statusFinished {
-  background: #f8fafc;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
+  background: var(--color-surface);
+  color: var(--color-text-muted, #94a3b8);
+  border: 1px solid var(--color-border, #1e293b);
 }
 
 @keyframes pulse {
@@ -1224,14 +1227,14 @@
 }
 
 .adminTable th {
-  background: #f8fafc;
+  background: #141C2A;
   padding: 12px 16px;
   text-align: left;
   font-size: 12px;
   font-weight: 800;
-  color: #64748b;
+  color: #94a3b8;
   text-transform: uppercase;
-  border-bottom: 2px solid #141C2A;
+  border-bottom: 2px solid #1e293b;
 }
 
 .adminTable td {
@@ -1243,7 +1246,7 @@
 }
 
 .adminTable tr:hover {
-  background: #f8fbff;
+  background: var(--color-surface-hover, #141C2A);
 }
 
 .teamRow {
@@ -1307,15 +1310,15 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid #e2e8f0;
-  background: #f8fafc;
-  color: #475569;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  background: #141C2A;
+  color: #cbd5e1;
 }
 
 .editBtnCompact:hover {
-  background: #141C2A;
-  border-color: #cbd5e1;
-  color: #1e293b;
+  background: #1e293b;
+  border-color: rgba(255, 255, 255, 0.2);
+  color: white;
 }
 
 .deleteBtnCompact {
@@ -1328,15 +1331,15 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.2s ease;
-  border: 1px solid #fee2e2;
-  background: #fff5f5;
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  background: rgba(239, 68, 68, 0.1);
   color: #ef4444;
 }
 
 .deleteBtnCompact:hover {
-  background: #fee2e2;
-  border-color: #fca5a5;
-  color: #dc2626;
+  background: rgba(239, 68, 68, 0.2);
+  border-color: rgba(239, 68, 68, 0.3);
+  color: #f87171;
 }
 
 .teamLogoMini {
@@ -1360,8 +1363,8 @@
   vertical-align: middle;
 }
 
-.badgeSuccess { background: #dcfce7; color: #15803d; }
-.badgeWarning { background: #fef9c3; color: #a16207; }
+.badgeSuccess { background: rgba(16, 185, 129, 0.15); color: #34d399; border: 1px solid rgba(16, 185, 129, 0.3); }
+.badgeWarning { background: rgba(245, 158, 11, 0.15); color: #fbbf24; border: 1px solid rgba(245, 158, 11, 0.3); }
 
 .editBtn {
   color: var(--color-primary);
@@ -1723,8 +1726,8 @@
 
 .badgeNeutral {
   background: #141C2A;
-  color: #64748b;
-  border: 1px solid #e2e8f0;
+  color: #cbd5e1;
+  border: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 .refereeTabs {
@@ -2914,9 +2917,9 @@
   flex: 1;
   display: flex;
   flex-direction: column;
-  background: #fff;
+  background: var(--color-surface, #0E1421);
   border-radius: 12px;
-  border: 1px solid #e2e8f0;
+  border: 1px solid var(--color-border, #1e293b);
   overflow: hidden;
   min-height: 0;
   box-shadow: var(--shadow-sm);
@@ -2925,13 +2928,13 @@
 .consoleEventLogTitle {
   font-size: 10px;
   font-weight: 800;
-  color: #64748b;
+  color: var(--color-text-muted, #94a3b8);
   text-transform: uppercase;
   letter-spacing: 0.08em;
   padding: 7px 10px 5px;
-  border-bottom: 1px solid #141C2A;
+  border-bottom: 1px solid var(--color-border, #1e293b);
   flex-shrink: 0;
-  background: #f8fafc;
+  background: var(--color-surface-hover, #141C2A);
 }
 
 .consoleEventLogList {
@@ -2940,8 +2943,8 @@
   padding: 4px;
 }
 .consoleEventLogList::-webkit-scrollbar { width: 4px; }
-.consoleEventLogList::-webkit-scrollbar-track { background: #f8fafc; }
-.consoleEventLogList::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 4px; }
+.consoleEventLogList::-webkit-scrollbar-track { background: transparent; }
+.consoleEventLogList::-webkit-scrollbar-thumb { background: var(--color-border, #1e293b); border-radius: 4px; }
 
 .consoleEventRow {
   display: flex;
@@ -2951,13 +2954,13 @@
   border-radius: 6px;
   transition: background 0.15s;
 }
-.consoleEventRow:hover { background: #f8fafc; }
+.consoleEventRow:hover { background: var(--color-surface-hover, #141C2A); }
 
 .consoleEventMin {
   font-size: 10px;
   font-weight: 800;
-  color: #d71920;
-  background: #fef2f2;
+  color: #f87171;
+  background: rgba(239, 68, 68, 0.15);
   padding: 1px 5px;
   border-radius: 4px;
   min-width: 28px;
@@ -2968,7 +2971,7 @@
 .consoleEventDesc {
   flex: 1;
   font-size: 11px;
-  color: #475569;
+  color: var(--color-text, #f8fafc);
   font-weight: 500;
   white-space: nowrap;
   overflow: hidden;
@@ -2991,12 +2994,12 @@
   flex-shrink: 0;
   padding: 0;
 }
-.consoleUndoBtn:hover:not(:disabled) { background: #fef2f2; color: #d71920; }
+.consoleUndoBtn:hover:not(:disabled) { background: rgba(239, 68, 68, 0.2); color: #f87171; }
 .consoleUndoBtn:disabled { opacity: 0.3; cursor: not-allowed; }
 
 .consoleEventEmpty {
   text-align: center;
-  color: #cbd5e1;
+  color: var(--color-text-muted, #cbd5e1);
   font-size: 12px;
   padding: 24px 8px;
 }

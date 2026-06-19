@@ -659,11 +659,11 @@ export default function RefereeTab({
                   style={{
                     padding: '8px 16px',
                     borderRadius: '10px',
-                    border: '1px solid #cbd5e1',
-                    background: '#fff',
+                    border: '1px solid var(--color-border, #1e293b)',
+                    background: 'var(--color-surface, #141C2A)',
                     fontSize: '13px',
                     fontWeight: 600,
-                    color: '#1e293b',
+                    color: 'var(--color-text, #f8fafc)',
                     outline: 'none',
                     cursor: 'pointer',
                     boxShadow: '0 1px 2px rgba(0,0,0,0.05)'
@@ -688,8 +688,8 @@ export default function RefereeTab({
                         width: '44px',
                         height: '44px',
                         borderRadius: '50%',
-                        border: '1px solid #e2e8f0',
-                        background: '#ffffff',
+                        border: '1px solid var(--color-border, #1e293b)',
+                        background: 'var(--color-surface, #141C2A)',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
                         display: 'flex',
                         alignItems: 'center',
@@ -701,15 +701,15 @@ export default function RefereeTab({
                       }}
                       title="Vòng trước"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? 'var(--color-text-muted, #475569)' : 'var(--color-text, #f8fafc)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="15 18 9 12 15 6"></polyline>
                       </svg>
                     </button>
                     <div style={{ textAlign: 'center', minWidth: '160px' }}>
-                      <div style={{ fontSize: '20px', fontWeight: 800, color: '#1e293b' }}>
+                      <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-text-heading, #f8fafc)' }}>
                         {refereeFilterVong === 'NONE' ? 'Không có vòng đấu' : refereeFilterVong}
                       </div>
-                      <div style={{ fontSize: '12px', color: '#64748b', fontWeight: 600, marginTop: '4px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-muted, #94a3b8)', fontWeight: 600, marginTop: '4px' }}>
                         {getRoundDateRange()}
                       </div>
                     </div>
@@ -720,8 +720,8 @@ export default function RefereeTab({
                         width: '44px',
                         height: '44px',
                         borderRadius: '50%',
-                        border: '1px solid #e2e8f0',
-                        background: '#ffffff',
+                        border: '1px solid var(--color-border, #1e293b)',
+                        background: 'var(--color-surface, #141C2A)',
                         boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.08), 0 2px 4px -1px rgba(0, 0, 0, 0.04)',
                         display: 'flex',
                         alignItems: 'center',
@@ -733,7 +733,7 @@ export default function RefereeTab({
                       }}
                       title="Vòng sau"
                     >
-                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? 'var(--color-text-muted, #475569)' : 'var(--color-text, #f8fafc)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                       </svg>
                     </button>
@@ -752,19 +752,21 @@ export default function RefereeTab({
                   onClick={() => setSelectedMatchId(m.id)}
                 >
                   <div className={styles.matchListInfo}>
-                    <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, width: '80px' }}>{m.vong}</span>
-                    <div className={styles.listTeam}>
-                      <span style={{ display: 'flex' }}><TeamLogo logo={m.doiNha?.logo} teamName={m.doiNha?.ten} /></span>
-                      <span style={{ fontWeight: 700 }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
-                    </div>
-                    <div style={{ display: 'flex', gap: '8px', fontWeight: 800, fontSize: '18px', width: '60px', justifyContent: 'center' }}>
-                      <span>{m.tyNha}</span>
-                      <span>-</span>
-                      <span>{m.tyKhach}</span>
-                    </div>
-                    <div className={styles.listTeam}>
-                      <span style={{ display: 'flex' }}><TeamLogo logo={m.doiKhach?.logo} teamName={m.doiKhach?.ten} /></span>
-                      <span style={{ fontWeight: 700 }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
+                    <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, width: '80px', flexShrink: 0 }}>{m.vong}</span>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '24px' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', flex: 1, minWidth: 0 }}>
+                        <span style={{ fontWeight: 700, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
+                        <span style={{ display: 'flex', flexShrink: 0 }}><TeamLogo logo={m.doiNha?.logo} teamName={m.doiNha?.ten} /></span>
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px', fontWeight: 800, fontSize: '18px', width: '60px', justifyContent: 'center', flexShrink: 0 }}>
+                        <span>{m.tyNha}</span>
+                        <span>-</span>
+                        <span>{m.tyKhach}</span>
+                      </div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '12px', flex: 1, minWidth: 0 }}>
+                        <span style={{ display: 'flex', flexShrink: 0 }}><TeamLogo logo={m.doiKhach?.logo} teamName={m.doiKhach?.ten} /></span>
+                        <span style={{ fontWeight: 700, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
+                      </div>
                     </div>
                   </div>
 
@@ -781,8 +783,8 @@ export default function RefereeTab({
                       width: '32px',
                       height: '32px',
                       borderRadius: '50%',
-                      border: '1px solid var(--color-border-light, #e2e8f0)',
-                      background: '#ffffff',
+                      border: '1px solid var(--color-border, #1e293b)',
+                      background: 'var(--color-surface, #141C2A)',
                       boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
                       display: 'flex',
                       alignItems: 'center',
@@ -797,7 +799,7 @@ export default function RefereeTab({
                 </div>
               ))
             ) : (
-              <div className={styles.consoleEmptyRoster} style={{ padding: '40px', background: '#f8fafc', borderRadius: '16px', border: '1px dashed #cbd5e1' }}>
+              <div className={styles.consoleEmptyRoster} style={{ padding: '40px', background: 'var(--color-surface, #141C2A)', borderRadius: '16px', border: '1px dashed var(--color-border, #1e293b)' }}>
                 Không tìm thấy trận đấu nào thỏa mãn bộ lọc.
               </div>
             )}

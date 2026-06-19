@@ -23,15 +23,7 @@
 }
 
 .grid {
-  display: grid;
-  grid-template-columns: 2fr 1fr;
-  gap: 24px;
-}
-
-@media (max-width: 1024px) {
-  .grid {
-    grid-template-columns: 1fr;
-  }
+  display: block;
 }
 
 .tableCard, .formCard {
@@ -124,8 +116,34 @@
 }
 
 .emailCell {
-  font-weight: 600;
-  color: var(--color-text-heading, #0F172A);
+  font-weight: 500;
+  color: var(--color-text-muted, #94a3b8);
+}
+
+.nameCell {
+  font-weight: 700;
+  color: var(--color-text-heading, #f8fafc);
+}
+
+.searchWrapper {
+  margin-bottom: 20px;
+}
+
+.searchInput {
+  width: 100%;
+  padding: 12px 16px;
+  border-radius: 10px;
+  border: 1px solid var(--color-border, #1e293b);
+  background-color: var(--color-surface-hover, #141C2A);
+  color: var(--color-text, #f8fafc);
+  font-size: 14px;
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.searchInput:focus {
+  border-color: var(--color-primary, #00D4B8);
+  box-shadow: 0 0 0 3px rgba(0, 212, 184, 0.15);
 }
 
 .uuidCell {

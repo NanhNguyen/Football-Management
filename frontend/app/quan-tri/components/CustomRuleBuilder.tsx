@@ -249,7 +249,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
     <form id="custom-rules-form" onSubmit={handleSubmit(submitForm)} style={{ display: 'flex', flexDirection: 'column', gap: '24px', marginTop: '16px' }}>
       
       {/* Thể thức trận đấu */}
-      <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid var(--color-border-light)', padding: '20px' }}>
+      <div style={{ background: 'var(--color-surface, #141C2A)', borderRadius: '12px', border: '1px solid var(--color-border, #1e293b)', padding: '20px' }}>
         <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-heading)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <StopwatchIcon /> Thể thức trận đấu
         </h4>
@@ -299,7 +299,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
       </div>
 
       {/* Hệ thống điểm số */}
-      <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid var(--color-border-light)', padding: '20px' }}>
+      <div style={{ background: 'var(--color-surface, #141C2A)', borderRadius: '12px', border: '1px solid var(--color-border, #1e293b)', padding: '20px' }}>
         <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-heading)', marginBottom: '16px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <BarChartIcon /> Hệ thống điểm số xếp hạng
         </h4>
@@ -348,7 +348,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
       </div>
 
       {/* Tiêu chí xếp hạng */}
-      <div style={{ background: '#fff', borderRadius: '12px', border: '1px solid var(--color-border-light)', padding: '20px' }}>
+      <div style={{ background: 'var(--color-surface, #141C2A)', borderRadius: '12px', border: '1px solid var(--color-border, #1e293b)', padding: '20px' }}>
         <h4 style={{ fontSize: '15px', fontWeight: 700, color: 'var(--color-text-heading)', marginBottom: '6px', display: 'flex', alignItems: 'center', gap: '8px' }}>
           <ListIcon /> Thứ tự ưu tiên tiêu chí xếp hạng
         </h4>
@@ -375,8 +375,8 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                           alignItems: 'center',
                           padding: '12px 16px',
                           borderRadius: '8px',
-                          border: snapshot.isDragging ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
-                          background: snapshot.isDragging ? 'var(--color-primary-light)' : '#f8fafc',
+                          border: snapshot.isDragging ? '1px solid var(--color-primary)' : '1px solid var(--color-border, #1e293b)',
+                          background: snapshot.isDragging ? 'var(--color-primary-light)' : 'var(--color-surface-hover, #141C2A)',
                           boxShadow: snapshot.isDragging ? 'var(--shadow-md)' : 'none',
                           transition: 'all 0.15s ease',
                           cursor: 'grab'
@@ -407,7 +407,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
       </div>
 
       {/* Cấu hình Sự kiện tùy chỉnh */}
-      <div style={{ background: '#fff', borderRadius: '16px', border: '1px solid #e2e8f0', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)', maxWidth: '56rem', marginTop: '24px', position: 'relative' }}>
+      <div style={{ background: 'var(--color-surface, #141C2A)', borderRadius: '16px', border: '1px solid var(--color-border, #1e293b)', padding: '24px', boxShadow: '0 1px 3px rgba(0, 0, 0, 0.05)', maxWidth: '56rem', marginTop: '24px', position: 'relative' }}>
         
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
           <h4 style={{ fontSize: '16px', fontWeight: 700, color: 'var(--color-text-heading)', display: 'flex', alignItems: 'center', gap: '8px', margin: 0 }}>
@@ -430,9 +430,9 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                 onMouseEnter={() => setHoveredCardIdx(index)}
                 onMouseLeave={() => setHoveredCardIdx(null)}
                 style={{
-                  background: '#fff',
+                  background: 'var(--color-surface-hover, #141C2A)',
                   borderRadius: '12px',
-                  border: hoveredCardIdx === index ? '1px solid var(--color-primary)' : '1px solid #e2e8f0',
+                  border: hoveredCardIdx === index ? '1px solid var(--color-primary)' : '1px solid var(--color-border, #1e293b)',
                   padding: '16px',
                   display: 'flex',
                   gap: '12px',
@@ -466,13 +466,14 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                     <span style={{
                       fontSize: '9px',
                       fontWeight: 700,
-                      background: '#f1f5f9',
-                      color: '#475569',
+                      background: 'var(--color-surface, #0E1421)',
+                      color: 'var(--color-text-secondary, #A0B4C8)',
                       padding: '2px 6px',
                       borderRadius: '4px',
                       textTransform: 'uppercase',
                       letterSpacing: '0.02em',
-                      whiteSpace: 'nowrap'
+                      whiteSpace: 'nowrap',
+                      border: '1px solid var(--color-border-light)'
                     }}>
                       {eventData.code || 'CHƯA_CÓ_MÃ'}
                     </span>
@@ -510,7 +511,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                     onMouseLeave={() => setHoveredDeleteIdx(null)}
                     style={{
                       color: hoveredDeleteIdx === index ? '#be123c' : '#f43f5e',
-                      backgroundColor: hoveredDeleteIdx === index ? '#fff1f2' : 'transparent',
+                      backgroundColor: hoveredDeleteIdx === index ? 'rgba(239, 68, 68, 0.15)' : 'transparent',
                       padding: '6px',
                       borderRadius: '8px',
                       cursor: 'pointer',
@@ -531,7 +532,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
         </div>
 
         {customEventsFields.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '30px', color: 'var(--color-text-muted)', fontSize: '13.5px', fontStyle: 'italic', border: '2px dashed #cbd5e1', borderRadius: '12px', backgroundColor: '#fafafa', marginTop: '16px' }}>
+          <div style={{ textAlign: 'center', padding: '30px', color: 'var(--color-text-muted)', fontSize: '13.5px', fontStyle: 'italic', border: '2px dashed var(--color-border, rgba(0, 212, 184, 0.15))', borderRadius: '12px', backgroundColor: 'var(--color-surface-hover, #141C2A)', marginTop: '16px' }}>
             Chưa có sự kiện tùy chỉnh nào. Bấm "+ Thêm sự kiện tùy chỉnh mới" để tạo mới.
           </div>
         )}
@@ -555,9 +556,9 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
           style={{
             width: '100%',
             padding: '12px 0',
-            border: '2px dashed #cbd5e1',
-            borderColor: isAddHovered ? 'var(--color-primary)' : '#cbd5e1',
-            color: isAddHovered ? 'var(--color-primary)' : '#64748b',
+            border: '2px dashed var(--color-border, rgba(0, 212, 184, 0.15))',
+            borderColor: isAddHovered ? 'var(--color-primary)' : 'var(--color-border)',
+            color: isAddHovered ? 'var(--color-primary)' : 'var(--color-text-muted)',
             borderRadius: '12px',
             fontWeight: 600,
             fontSize: '14px',
@@ -593,30 +594,30 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
             left: 0,
             right: 0,
             bottom: 0,
-            backgroundColor: 'rgba(15, 23, 42, 0.6)',
-            backdropFilter: 'blur(4px)',
+            backgroundColor: 'rgba(5, 8, 16, 0.8)',
+            backdropFilter: 'blur(8px)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             zIndex: 9999,
           }}>
             <div style={{
-              background: '#fff',
+              background: 'var(--color-surface, #0E1421)',
               borderRadius: '16px',
               width: '90%',
               maxWidth: '600px',
               maxHeight: '90vh',
               overflowY: 'auto',
-              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.25)',
+              boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
               display: 'flex',
               flexDirection: 'column',
-              border: '1px solid #e2e8f0',
+              border: '1px solid var(--color-border, rgba(0, 212, 184, 0.2))',
               padding: '24px',
               boxSizing: 'border-box',
               gap: '20px'
             }}>
               {/* Header */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid #e2e8f0', paddingBottom: '12px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border-light)', paddingBottom: '12px' }}>
                 <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 700, color: 'var(--color-text-heading)' }}>
                   ⚙️ Cấu hình sự kiện tùy chỉnh
                 </h3>
@@ -634,14 +635,16 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                 {/* Event Name & Code */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>Tên sự kiện</label>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '6px' }}>Tên sự kiện</label>
                     <input
                       type="text"
                       {...register(`custom_events.${editingEventIdx}.name` as const)}
                       style={{ 
                         width: '100%', 
                         borderRadius: '8px', 
-                        border: errors.custom_events?.[editingEventIdx]?.name ? '1px solid var(--color-danger)' : '1px solid #cbd5e1', 
+                        border: errors.custom_events?.[editingEventIdx]?.name ? '1px solid var(--color-danger)' : '1px solid var(--color-border)', 
+                        background: 'var(--color-surface-hover, #141C2A)',
+                        color: 'var(--color-text, #C8D8E8)',
                         padding: '8px 12px', 
                         fontSize: '14px', 
                         outline: 'none',
@@ -657,14 +660,16 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>Mã sự kiện (Unique Code)</label>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '6px' }}>Mã sự kiện (Unique Code)</label>
                     <input
                       type="text"
                       {...register(`custom_events.${editingEventIdx}.code` as const)}
                       style={{ 
                         width: '100%', 
                         borderRadius: '8px', 
-                        border: errors.custom_events?.[editingEventIdx]?.code ? '1px solid var(--color-danger)' : '1px solid #cbd5e1', 
+                        border: errors.custom_events?.[editingEventIdx]?.code ? '1px solid var(--color-danger)' : '1px solid var(--color-border)', 
+                        background: 'var(--color-surface-hover, #141C2A)',
+                        color: 'var(--color-text, #C8D8E8)',
                         padding: '8px 12px', 
                         fontSize: '14px', 
                         outline: 'none',
@@ -687,8 +692,8 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                 {/* Icon & Color Selector */}
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>Chọn Icon Emoji</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '8px', background: '#f8fafc' }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '6px' }}>Chọn Icon Emoji</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: '6px', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '8px', background: 'var(--color-surface-hover, #141C2A)' }}>
                       {POPULAR_ICONS.map((emoji) => (
                         <div
                           key={emoji}
@@ -714,8 +719,8 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                   </div>
 
                   <div>
-                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>Chọn màu chủ đạo</label>
-                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', border: '1px solid #cbd5e1', borderRadius: '8px', padding: '10px', background: '#f8fafc', height: '100%', boxSizing: 'border-box' }}>
+                    <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '6px' }}>Chọn màu chủ đạo</label>
+                    <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: '10px', border: '1px solid var(--color-border)', borderRadius: '8px', padding: '10px', background: 'var(--color-surface-hover, #141C2A)', height: '100%', boxSizing: 'border-box' }}>
                       {TAILWIND_COLORS.map((colorObj) => (
                         <div
                           key={colorObj.hex}
@@ -738,10 +743,10 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
 
                 {/* Target Scope */}
                 <div>
-                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: '#475569', marginBottom: '6px' }}>Đối tượng áp dụng</label>
+                  <label style={{ display: 'block', fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)', marginBottom: '6px' }}>Đối tượng áp dụng</label>
                   <select
                     {...register(`custom_events.${editingEventIdx}.target_scope` as const)}
-                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+                    style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface-hover, #141C2A)', color: 'var(--color-text, #C8D8E8)', outline: 'none' }}
                   >
                     <option value="none">Không gán cầu thủ (Sự kiện chung)</option>
                     <option value="1_player">1 Cầu thủ</option>
@@ -752,21 +757,21 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                   {currentEvent.target_scope === '2_players' && (
                     <div style={{ display: 'flex', gap: '12px', marginTop: '10px' }}>
                       <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>Vai trò cầu thủ 1</label>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '4px' }}>Vai trò cầu thủ 1</label>
                         <input
                           type="text"
                           {...register(`custom_events.${editingEventIdx}.role_1` as const)}
                           placeholder="VD: Người chốt"
-                          style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface-hover, #141C2A)', color: 'var(--color-text, #C8D8E8)', outline: 'none' }}
                         />
                       </div>
                       <div style={{ flex: 1 }}>
-                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: '#64748b', marginBottom: '4px' }}>Vai trò cầu thủ 2</label>
+                        <label style={{ display: 'block', fontSize: '11px', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '4px' }}>Vai trò cầu thủ 2</label>
                         <input
                           type="text"
                           {...register(`custom_events.${editingEventIdx}.role_2` as const)}
                           placeholder="VD: Người giới thiệu"
-                          style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid #cbd5e1', outline: 'none' }}
+                          style={{ width: '100%', padding: '8px 12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface-hover, #141C2A)', color: 'var(--color-text, #C8D8E8)', outline: 'none' }}
                         />
                       </div>
                     </div>
@@ -777,7 +782,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
 
                 {/* Score Impact */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#475569', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={currentEvent.score_impact?.enabled || false}
@@ -789,16 +794,16 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                   
                   {currentEvent.score_impact?.enabled && (
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: '24px', animation: 'fadeIn 0.2s' }}>
-                      <span style={{ fontSize: '13px', color: '#475569' }}>Cộng</span>
+                      <span style={{ fontSize: '13px', color: 'var(--color-text)' }}>Cộng</span>
                       <input
                         type="number"
                         {...register(`custom_events.${editingEventIdx}.score_impact.value` as const, { valueAsNumber: true })}
-                        style={{ width: '60px', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
+                        style={{ width: '60px', padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface-hover, #141C2A)', color: 'var(--color-text, #C8D8E8)', outline: 'none' }}
                       />
-                      <span style={{ fontSize: '13px', color: '#475569' }}>bàn thắng cho</span>
+                      <span style={{ fontSize: '13px', color: 'var(--color-text)' }}>bàn thắng cho</span>
                       <select
                         {...register(`custom_events.${editingEventIdx}.score_impact.side` as const)}
-                        style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
+                        style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface-hover, #141C2A)', color: 'var(--color-text, #C8D8E8)', outline: 'none' }}
                       >
                         <option value="own">Đội thực hiện</option>
                         <option value="opponent">Đội đối phương (Phản lưới)</option>
@@ -811,7 +816,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
 
                 {/* League Impact */}
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: '#475569', cursor: 'pointer' }}>
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '13px', fontWeight: 600, color: 'var(--color-text-secondary)', cursor: 'pointer' }}>
                     <input
                       type="checkbox"
                       checked={currentEvent.league_impact?.enabled || false}
@@ -825,7 +830,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                     <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginLeft: '24px', animation: 'fadeIn 0.2s' }}>
                       <select
                         {...register(`custom_events.${editingEventIdx}.league_impact.action` as const)}
-                        style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
+                        style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface-hover, #141C2A)', color: 'var(--color-text, #C8D8E8)', outline: 'none' }}
                       >
                         <option value="add">Cộng (+)</option>
                         <option value="subtract">Trừ (-)</option>
@@ -833,25 +838,25 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                       <input
                         type="number"
                         {...register(`custom_events.${editingEventIdx}.league_impact.value` as const, { valueAsNumber: true })}
-                        style={{ width: '60px', padding: '6px 8px', borderRadius: '6px', border: '1px solid #cbd5e1', outline: 'none' }}
+                        style={{ width: '60px', padding: '6px 8px', borderRadius: '6px', border: '1px solid var(--color-border)', background: 'var(--color-surface-hover, #141C2A)', color: 'var(--color-text, #C8D8E8)', outline: 'none' }}
                       />
-                      <span style={{ fontSize: '13px', color: '#475569' }}>điểm trên bảng xếp hạng</span>
+                      <span style={{ fontSize: '13px', color: 'var(--color-text)' }}>điểm trên bảng xếp hạng</span>
                     </div>
                   )}
                 </div>
               </div>
 
               {/* Footer Actions */}
-              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid #e2e8f0', paddingTop: '16px', marginTop: '8px' }}>
+              <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end', borderTop: '1px solid var(--color-border-light)', paddingTop: '16px', marginTop: '8px' }}>
                 <button
                   type="button"
                   onClick={cancelEditing}
                   style={{
                     padding: '8px 16px',
                     borderRadius: '8px',
-                    border: '1px solid #cbd5e1',
-                    background: '#fff',
-                    color: '#475569',
+                    border: '1px solid var(--color-border)',
+                    background: 'var(--color-surface-hover, #141C2A)',
+                    color: 'var(--color-text)',
                     fontSize: '14px',
                     fontWeight: 600,
                     cursor: 'pointer'
@@ -867,9 +872,9 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
                     borderRadius: '8px',
                     border: 'none',
                     background: 'var(--color-primary)',
-                    color: '#fff',
+                    color: '#080C10',
                     fontSize: '14px',
-                    fontWeight: 600,
+                    fontWeight: 700,
                     cursor: 'pointer'
                   }}
                 >
@@ -883,10 +888,10 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
       {Object.keys(errors).length > 0 && (
         <div style={{
           padding: '12px 16px',
-          background: '#fef2f2',
-          border: '1px solid #fca5a5',
+          background: 'rgba(239, 68, 68, 0.1)',
+          border: '1px solid rgba(239, 68, 68, 0.3)',
           borderRadius: '8px',
-          color: '#b91c1c',
+          color: '#f87171',
           fontSize: '13.5px',
           fontWeight: 600,
           display: 'flex',

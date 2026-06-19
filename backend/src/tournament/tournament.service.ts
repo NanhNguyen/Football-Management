@@ -7,6 +7,7 @@ import {
   BangXepHangItem,
 } from '../data/mock-data';
 import { TournamentRulesDto } from './dto/tournament-rules.dto';
+import ws from 'ws';
 
 @Injectable()
 export class TournamentService {
@@ -234,7 +235,11 @@ export class TournamentService {
       return { success: false, error: 'Supabase credentials not found' };
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey);
+    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+      realtime: {
+        transport: ws as any,
+      },
+    });
 
     const { data: dbTeams, error: dbError } = await supabase
       .from('doi_bong')
