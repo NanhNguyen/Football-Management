@@ -244,25 +244,25 @@ export default function SchedulerTab({
           const poolMatches = filteredAndSortedScheduleMatches.filter(m => m.trangThai === 'POSTPONED' && !m.date);
           if (poolMatches.length > 0) {
             return (
-              <div style={{ marginBottom: '32px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '12px', overflow: 'hidden' }}>
-                <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #cbd5e1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#334155' }}>📦 Kho chờ xếp lịch ({poolMatches.length})</h3>
-                  <span style={{ fontSize: '12px', color: '#64748b' }}>Trận hoãn chưa xếp ngày</span>
+              <div style={{ marginBottom: '32px', background: 'var(--color-surface, #0E1421)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', background: 'var(--color-surface-sidebar, #0A0F18)', borderBottom: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--color-text-heading, #E8F4F8)' }}>📦 Kho chờ xếp lịch ({poolMatches.length})</h3>
+                  <span style={{ fontSize: '12px', color: 'var(--color-text-secondary, #A0B4C8)' }}>Trận hoãn chưa xếp ngày</span>
                 </div>
                 <div style={{ padding: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   {poolMatches.map(m => (
-                    <div key={m.id} style={{ border: '1px dashed #94a3b8', background: '#f1f5f9', padding: '12px', borderRadius: '8px', width: '250px' }}>
-                      <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px', fontWeight: 600 }}>{m.vong}</div>
-                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div key={m.id} style={{ border: '1px dashed var(--color-border, rgba(0, 212, 184, 0.3))', background: 'var(--color-surface-container, #0A0F18)', padding: '12px', borderRadius: '8px', width: '250px' }}>
+                      <div style={{ fontSize: '12px', color: 'var(--color-text-secondary, #A0B4C8)', marginBottom: '8px', fontWeight: 600 }}>{m.vong}</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--color-text-heading, #E8F4F8)' }}>
                         <span style={{ fontWeight: 600 }}>{m.doiNhaTen}</span>
-                        <span style={{ color: '#94a3b8', fontSize: '12px' }}>vs</span>
+                        <span style={{ color: 'var(--color-text-muted, #4A6070)', fontSize: '12px' }}>vs</span>
                         <span style={{ fontWeight: 600 }}>{m.doiKhachTen}</span>
                       </div>
                       <div style={{ marginTop: '12px' }}>
                         {/* A minimal hint for DND or manual edit */}
                         <button 
                           onClick={() => handleEditMatch(m)}
-                          style={{ width: '100%', padding: '6px', fontSize: '12px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#3b82f6' }}
+                          style={{ width: '100%', padding: '6px', fontSize: '12px', background: 'var(--color-surface-hover, #141C2A)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', borderRadius: '6px', cursor: 'pointer', color: 'var(--color-primary, #00D4B8)' }}
                         >
                           Xếp lịch thủ công
                         </button>

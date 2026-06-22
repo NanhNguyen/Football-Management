@@ -360,7 +360,7 @@ export default function AdminMobileView(props: any) {
                       width: '36px',
                       height: '36px',
                       borderRadius: '50%',
-                      border: '1px solid #1e293b',
+                      border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
                       background: '#141C2A',
                       display: 'flex',
                       alignItems: 'center',
@@ -371,15 +371,15 @@ export default function AdminMobileView(props: any) {
                     }}
                     title="Vòng trước"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? 'var(--color-text-muted, #4A6070)' : 'var(--color-primary, #00D4B8)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
                   </button>
                   <div style={{ textAlign: 'center', minWidth: '130px' }}>
-                    <div style={{ fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>
+                    <div style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-text-heading, #E8F4F8)' }}>
                       {selectedRound === 'NONE' ? 'Không có trận đấu' : selectedRound}
                     </div>
-                    <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 600, marginTop: '4px' }}>
+                    <div style={{ fontSize: '11px', color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, marginTop: '4px' }}>
                       {getRoundDateRange()}
                     </div>
                   </div>
@@ -390,7 +390,7 @@ export default function AdminMobileView(props: any) {
                       width: '36px',
                       height: '36px',
                       borderRadius: '50%',
-                      border: '1px solid #1e293b',
+                      border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
                       background: '#141C2A',
                       display: 'flex',
                       alignItems: 'center',
@@ -401,7 +401,7 @@ export default function AdminMobileView(props: any) {
                     }}
                     title="Vòng sau"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? '#cbd5e1' : '#334155'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? 'var(--color-text-muted, #4A6070)' : 'var(--color-primary, #00D4B8)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                   </button>
@@ -965,10 +965,10 @@ export default function AdminMobileView(props: any) {
         <div className={styles.overlay} style={{ zIndex: 9999 }}>
           <div className={styles.modal} style={{ maxWidth: '340px', width: '90%', textAlign: 'center', padding: '24px', borderRadius: '16px' }}>
             <div style={{ fontSize: '40px', marginBottom: '12px' }}>❓</div>
-            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 800, color: '#1e293b' }}>
+            <h3 style={{ margin: '0 0 8px 0', fontSize: '18px', fontWeight: 800, color: 'var(--color-text-heading, #E8F4F8)' }}>
               {confirmDialog.title}
             </h3>
-            <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b', lineHeight: 1.5 }}>
+            <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: 'var(--color-text-secondary, #A0B4C8)', lineHeight: 1.5 }}>
               {confirmDialog.message}
             </p>
             <div style={{ display: 'flex', gap: '12px' }}>

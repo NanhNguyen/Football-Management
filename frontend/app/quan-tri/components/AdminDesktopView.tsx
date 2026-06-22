@@ -700,21 +700,21 @@ export default function AdminDesktopView(props: any) {
         {editingTeam && (
           <div className={styles.overlay}>
             <div className={styles.modal} style={{ maxWidth: '650px', width: '100%', padding: '30px' }}>
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-text-heading, #E8F4F8)' }}>
                 ⚙️ CHỈNH SỬA ĐỘI BÓNG
               </h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
+              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: 'var(--color-text-secondary, #A0B4C8)' }}>
                 Cập nhật tên đội bóng và quản lý danh sách thành viên đăng ký thi đấu.
               </p>
 
               <div style={{ marginBottom: '20px' }}>
-                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--color-text-secondary, #A0B4C8)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
                   📛 Tên đội bóng
                 </label>
                 <input
                   type="text"
                   className={styles.modalInput}
-                  style={{ background: '#f8fafc', border: '2px solid #e2e8f0', borderRadius: '12px', padding: '12px 16px', fontSize: '15px' }}
+                  style={{ background: 'var(--color-surface-container, #0A0F18)', border: '2px solid var(--color-border, rgba(0, 212, 184, 0.15))', borderRadius: '12px', padding: '12px 16px', fontSize: '15px', color: 'var(--color-text-heading, #ffffff)' }}
                   value={editingTeam.ten}
                   onChange={(e) => setEditingTeam({ ...editingTeam, ten: e.target.value })}
                   onBlur={() => handleTeamNameBlur(editingTeam.ten)}
@@ -813,28 +813,28 @@ export default function AdminDesktopView(props: any) {
               </div>
 
               <div style={{ marginTop: '20px' }}>
-                <div style={{ background: '#f8fafc', border: '1px dashed #cbd5e1', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
+                <div style={{ background: 'var(--color-surface-sidebar, #0A0F18)', border: '1px dashed var(--color-border, rgba(0, 212, 184, 0.2))', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--color-text-secondary, #A0B4C8)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
                     ➕ Thêm cầu thủ mới
                   </label>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <input
                       className={styles.modalInput}
-                      style={{ flex: 3, padding: '10px 14px', borderRadius: '10px', background: '#fff', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                      style={{ flex: 3, padding: '10px 14px', borderRadius: '10px', background: 'var(--color-surface-container, #0A0F18)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', fontSize: '14px', color: 'var(--color-text-heading, #ffffff)' }}
                       placeholder="Tên cầu thủ"
                       value={newPlayerName}
                       onChange={e => setNewPlayerName(e.target.value)}
                     />
                     <input
                       className={styles.modalInput}
-                      style={{ width: '65px', padding: '10px 10px', textAlign: 'center', borderRadius: '10px', background: '#fff', border: '1px solid #cbd5e1', fontSize: '14px' }}
+                      style={{ width: '65px', padding: '10px 10px', textAlign: 'center', borderRadius: '10px', background: 'var(--color-surface-container, #0A0F18)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', fontSize: '14px', color: 'var(--color-text-heading, #ffffff)' }}
                       placeholder="Số"
                       value={newPlayerNumber}
                       onChange={e => setNewPlayerNumber(e.target.value)}
                     />
                     <select
                       className={styles.modalInput}
-                      style={{ width: '150px', padding: '10px 10px', borderRadius: '10px', background: '#fff', border: '1px solid #cbd5e1', fontSize: '13px', cursor: 'pointer' }}
+                      style={{ width: '150px', padding: '10px 10px', borderRadius: '10px', background: 'var(--color-surface-container, #0A0F18)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', fontSize: '13px', cursor: 'pointer', color: 'var(--color-text-heading, #ffffff)' }}
                       value={newPlayerPosition}
                       onChange={e => setNewPlayerPosition(e.target.value)}
                     >
@@ -858,7 +858,7 @@ export default function AdminDesktopView(props: any) {
                 </div>
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '10px' }}>
-                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: '#475569', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                  <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--color-text-secondary, #A0B4C8)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                     👥 Danh sách thành viên ({editingTeam.cauThu?.length || 0})
                   </label>
                 </div>
@@ -868,12 +868,12 @@ export default function AdminDesktopView(props: any) {
                     <p style={{ color: '#94a3b8', fontSize: '13px', fontStyle: 'italic', textAlign: 'center', padding: '15px' }}>Chương có cầu thủ nào. Hãy thêm cầu thủ ở trên!</p>
                   ) : (
                     editingTeam.cauThu.map((p: any) => (
-                      <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', background: '#f8fafc', borderRadius: '10px', border: '1px solid #e2e8f0', transition: 'all 0.2s' }}>
+                      <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', background: 'var(--color-surface-container, #0A0F18)', borderRadius: '10px', border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))', transition: 'all 0.2s' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', background: p.viTri?.startsWith('Dự bị') ? '#f1f5f9' : '#fee2e2', color: p.viTri?.startsWith('Dự bị') ? '#475569' : '#ef4444', borderRadius: '50%', fontSize: '11px', fontWeight: 700 }}>
+                          <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', background: p.viTri?.startsWith('Dự bị') ? 'rgba(148, 163, 184, 0.15)' : 'rgba(239, 68, 68, 0.15)', color: p.viTri?.startsWith('Dự bị') ? '#94a3b8' : '#ef4444', borderRadius: '50%', fontSize: '11px', fontWeight: 700 }}>
                             {p.soAo}
                           </span>
-                          <span style={{ fontSize: '14px', fontWeight: 600, color: '#1e293b' }}>{p.ten}</span>
+                          <span style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-text-heading, #E8F4F8)' }}>{p.ten}</span>
                         </div>
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                           <select
@@ -884,7 +884,7 @@ export default function AdminDesktopView(props: any) {
                               );
                               setEditingTeam({ ...editingTeam, cauThu: updatedPlayers });
                             }}
-                            style={{ padding: '4px 8px', fontSize: '12px', borderRadius: '6px', border: '1px solid #cbd5e1', background: '#fff', color: '#334155', fontWeight: 500, cursor: 'pointer' }}
+                            style={{ padding: '4px 8px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', background: 'var(--color-surface-sidebar, #0A0F18)', color: 'var(--color-text, #C8D8E8)', fontWeight: 500, cursor: 'pointer' }}
                           >
                             <option value="Thủ môn">Thủ môn</option>
                             <option value="Hậu vệ">Hậu vệ</option>
@@ -920,7 +920,7 @@ export default function AdminDesktopView(props: any) {
         {isAddingMatch && (
           <div className={styles.overlay}>
             <div className={styles.modal}>
-              <h3>TẠO TRẬN ĐẤU MỚI</h3>
+              <h3 style={{ margin: '0 0 15px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-text-heading, #E8F4F8)' }}>🏆 TẠO TRẬN ĐẤU MỚI</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '15px' }}>
                 <select
                   className={styles.modalInput}
@@ -961,9 +961,9 @@ export default function AdminDesktopView(props: any) {
         {editingMatch && (
           <div className={styles.overlay}>
             <div className={styles.modal}>
-              <h3>CHỈNH SỬA LỊCH THI ĐẤU</h3>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-text-heading, #E8F4F8)' }}>CHỈNH SỬA LỊCH THI ĐẤU</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginTop: '15px' }}>
-                <p style={{ color: '#64748b', fontSize: '13px' }}>
+                <p style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontSize: '13px', margin: '0 0 10px 0' }}>
                   {(editingMatch.doiNha?.ten || 'Chờ xác định')} vs {(editingMatch.doiKhach?.ten || 'Chờ xác định')}
                 </p>
                 <input className={styles.modalInput} placeholder="Vòng đấu" value={editingMatch.vong || ''} onChange={(e) => setEditingMatch({ ...editingMatch, vong: e.target.value })} />
@@ -987,16 +987,16 @@ export default function AdminDesktopView(props: any) {
         {isCreatingTournament && (
           <div className={styles.overlay}>
             <div className={styles.modal} style={{ maxWidth: '500px' }}>
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-text-heading, #E8F4F8)' }}>
                 🏆 TẠO GIẢI ĐẤU MỚI
               </h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
+              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: 'var(--color-text-secondary, #A0B4C8)' }}>
                 Nhập các thông tin cơ bản để khởi tạo một giải đấu mới trên nền tảng.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '15px' }}>
                 <div className={styles.formGroup}>
-                  <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Tên giải đấu</label>
+                  <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Tên giải đấu</label>
                   <input
                     type="text"
                     placeholder="Ví dụ: Thiên Khôi Cúp 2025"
@@ -1008,7 +1008,7 @@ export default function AdminDesktopView(props: any) {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '15px' }}>
                   <div className={styles.formGroup}>
-                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Mùa giải</label>
+                    <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Mùa giải</label>
                     <input
                       type="text"
                       placeholder="Ví dụ: 2025"
@@ -1018,7 +1018,7 @@ export default function AdminDesktopView(props: any) {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Ngày dự kiến bắt đầu</label>
+                    <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Ngày dự kiến bắt đầu</label>
                     <input
                       type="date"
                       className={styles.modalInput}
@@ -1029,7 +1029,7 @@ export default function AdminDesktopView(props: any) {
                   </div>
 
                 <div className={styles.formGroup} style={{ marginTop: '0px' }}>
-                  <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
+                  <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>
                     Loại giải đấu (Template) <span style={{ color: 'red' }}>*</span>
                   </label>
                   <select
@@ -1051,7 +1051,7 @@ export default function AdminDesktopView(props: any) {
                     )}
                   </select>
                   {tournamentTemplates.length > 0 && newTournamentData.templateCode && (
-                    <p style={{ fontSize: '12px', color: '#64748b', marginTop: '6px', fontStyle: 'italic' }}>
+                    <p style={{ fontSize: '12px', color: 'var(--color-text-muted, #4A6070)', marginTop: '6px', fontStyle: 'italic' }}>
                       {tournamentTemplates.find((t: any) => t.code === newTournamentData.templateCode)?.description}
                     </p>
                   )}
@@ -1061,7 +1061,7 @@ export default function AdminDesktopView(props: any) {
               <div style={{ display: 'flex', gap: '10px', marginTop: '25px' }}>
                 <button
                   className={styles.undoBtn}
-                  style={{ flex: 1, margin: 0, background: '#f1f5f9', color: '#475569', border: '1px solid #cbd5e1' }}
+                  style={{ flex: 1, margin: 0, background: 'var(--color-surface-hover, #141C2A)', color: 'var(--color-text, #C8D8E8)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))' }}
                   onClick={() => setIsCreatingTournament(false)}
                 >
                   HỦY BỎ
@@ -1082,10 +1082,10 @@ export default function AdminDesktopView(props: any) {
         {isSchedulerConfigOpen && (
           <div className={styles.overlay}>
             <div className={styles.modal} style={{ maxWidth: '500px', maxHeight: '90vh', display: 'flex', flexDirection: 'column', padding: '25px 25px 20px 25px' }}>
-              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b' }}>
+              <h3 style={{ margin: '0 0 4px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-text-heading, #E8F4F8)' }}>
                 ⚙️ CẤU HÌNH SMART SCHEDULER
               </h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
+              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: 'var(--color-text-secondary, #A0B4C8)' }}>
                 Thiết lập các thông số rải lịch và blackout dates để tự động tạo lịch đấu tối ưu.
               </p>
 
@@ -1093,7 +1093,7 @@ export default function AdminDesktopView(props: any) {
               <div style={{ flex: 1, overflowY: 'auto', paddingRight: '6px', display: 'flex', flexDirection: 'column', gap: '20px', marginBottom: '15px' }}>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className={styles.formGroup}>
-                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Ngày bắt đầu</label>
+                    <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Ngày bắt đầu</label>
                     <input
                       type="date"
                       className={styles.modalInput}
@@ -1109,7 +1109,7 @@ export default function AdminDesktopView(props: any) {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Ngày kết thúc dự kiến</label>
+                    <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Ngày kết thúc dự kiến</label>
                     <input
                       type="date"
                       className={styles.modalInput}
@@ -1122,7 +1122,7 @@ export default function AdminDesktopView(props: any) {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className={styles.formGroup}>
-                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Thời lượng trận (phút)</label>
+                    <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Thời lượng trận (phút)</label>
                     <input
                       type="number"
                       min="1"
@@ -1132,7 +1132,7 @@ export default function AdminDesktopView(props: any) {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Nghỉ giữa các trận (phút)</label>
+                    <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Nghỉ giữa các trận (phút)</label>
                     <input
                       type="number"
                       min="0"
@@ -1151,7 +1151,7 @@ export default function AdminDesktopView(props: any) {
 
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '12px' }}>
                   <div className={styles.formGroup}>
-                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Khoảng cách trận tối thiểu (giờ)</label>
+                    <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Khoảng cách trận tối thiểu (giờ)</label>
                     <input
                       type="number"
                       min="0"
@@ -1161,7 +1161,7 @@ export default function AdminDesktopView(props: any) {
                     />
                   </div>
                   <div className={styles.formGroup}>
-                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Số trận cùng giờ (Sân khả dụng)</label>
+                    <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Số trận cùng giờ (Sân khả dụng)</label>
                     <input
                       type="number"
                       min="1"
@@ -1173,7 +1173,7 @@ export default function AdminDesktopView(props: any) {
                 </div>
 
                 <div className={styles.formGroup}>
-                  <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Ngày thi đấu trong tuần</label>
+                  <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '8px' }}>Ngày thi đấu trong tuần</label>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '8px' }}>
                     {['Chủ Nhật', 'Thứ 2', 'Thứ 3', 'Thứ 4', 'Thứ 5', 'Thứ 6', 'Thứ 7'].map((dayName, idx) => {
                       const dayOfWeek = idx; 
@@ -1196,9 +1196,9 @@ export default function AdminDesktopView(props: any) {
                             padding: '8px 10px',
                             borderRadius: '8px',
                             border: '1px solid',
-                            borderColor: isChecked ? 'var(--color-primary)' : '#cbd5e1',
-                            background: isChecked ? 'var(--color-primary-light)' : '#fff',
-                            color: isChecked ? 'var(--color-primary)' : '#475569',
+                            borderColor: isChecked ? 'var(--color-primary)' : 'var(--color-border, rgba(0, 212, 184, 0.2))',
+                            background: isChecked ? 'var(--color-primary-light)' : 'var(--color-surface-container, #0A0F18)',
+                            color: isChecked ? 'var(--color-primary)' : 'var(--color-text, #C8D8E8)',
                             fontWeight: 600,
                             fontSize: '12px',
                             cursor: 'pointer',
@@ -1215,7 +1215,7 @@ export default function AdminDesktopView(props: any) {
 
                 <div className={styles.formGroup}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
-                    <label className={styles.label} style={{ color: '#475569', fontWeight: 600, margin: 0 }}>Cấu hình Khung giờ (Time Slots)</label>
+                    <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, margin: 0 }}>Cấu hình Khung giờ (Time Slots)</label>
                     <button
                       type="button"
                       onClick={() => {
@@ -1229,13 +1229,13 @@ export default function AdminDesktopView(props: any) {
                       + Thêm khung giờ
                     </button>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: '#f8fafc', padding: '8px', borderRadius: '8px', border: '1px solid #cbd5e1' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--color-surface-sidebar, #0A0F18)', padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))' }}>
                     {schedulerConfig.timeSlots.length === 0 ? (
                       <span style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>Chưa cấu hình khung giờ nào.</span>
                     ) : (
                       schedulerConfig.timeSlots.map((slot: any, sIdx: number) => (
                         <div key={slot.id} style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                          <span style={{ fontSize: '12px', color: '#64748b', minWidth: '40px' }}>Ca {sIdx + 1}:</span>
+                          <span style={{ fontSize: '12px', color: 'var(--color-text-secondary, #A0B4C8)', minWidth: '40px' }}>Ca {sIdx + 1}:</span>
                           <input
                             type="time"
                             className={styles.modalInput}
@@ -1272,7 +1272,7 @@ export default function AdminDesktopView(props: any) {
                 )}
 
                 <div className={styles.formGroup}>
-                  <label className={styles.label} style={{ color: '#475569', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Blackout Dates (Ngày nghỉ)</label>
+                  <label className={styles.label} style={{ color: 'var(--color-text-secondary, #A0B4C8)', fontWeight: 600, display: 'block', marginBottom: '6px' }}>Blackout Dates (Ngày nghỉ)</label>
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '8px' }}>
                     <input
                       type="date"
@@ -1299,9 +1299,9 @@ export default function AdminDesktopView(props: any) {
                     </button>
                   </div>
                   {blackoutDates.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '120px', overflowY: 'auto', background: '#f8fafc', padding: '10px', borderRadius: '8px', border: '1px solid #e2e8f0' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '120px', overflowY: 'auto', background: 'var(--color-surface-sidebar, #0A0F18)', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))' }}>
                       {blackoutDates.map((date: any) => (
-                        <div key={date} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: '#334155', fontWeight: 500 }}>
+                        <div key={date} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: 'var(--color-text, #C8D8E8)', fontWeight: 500 }}>
                           <span>📅 {date}</span>
                           <button
                             style={{ border: 'none', background: 'none', color: '#ef4444', cursor: 'pointer', fontSize: '16px', padding: '0 4px' }}
@@ -1323,7 +1323,7 @@ export default function AdminDesktopView(props: any) {
               </div>
 
               {/* Sticky Action Footer */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px', borderTop: '1px solid #e2e8f0', paddingTop: '15px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px', borderTop: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', paddingTop: '15px' }}>
                 <button
                   className={styles.finishBtn}
                   style={{ width: '100%', margin: 0, justifyContent: 'center' }}
@@ -1353,10 +1353,10 @@ export default function AdminDesktopView(props: any) {
           <div className={styles.overlay} style={{ zIndex: 9999 }}>
             <div className={styles.modal} style={{ maxWidth: '440px', textAlign: 'center', padding: '30px' }}>
               <div style={{ fontSize: '48px', marginBottom: '16px' }}>❓</div>
-              <h3 style={{ margin: '0 0 10px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b' }}>
+              <h3 style={{ margin: '0 0 10px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-text-heading, #E8F4F8)' }}>
                 {confirmDialog.title}
               </h3>
-              <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: '#64748b', lineHeight: 1.5 }}>
+              <p style={{ margin: '0 0 24px 0', fontSize: '14px', color: 'var(--color-text-secondary, #A0B4C8)', lineHeight: 1.5 }}>
                 {confirmDialog.message}
               </p>
               <div style={{ display: 'flex', gap: '12px' }}>
@@ -1389,33 +1389,33 @@ export default function AdminDesktopView(props: any) {
                 <button
                   onClick={() => { setIsBulkImportOpen(false); handleClearBulkImport(); }}
                   style={{ position: 'absolute', top: '20px', right: '20px', background: 'none', border: 'none', fontSize: '20px', color: '#94a3b8', cursor: 'pointer', transition: 'color 0.2s' }}
-                  onMouseEnter={(e) => e.currentTarget.style.color = '#1e293b'}
+                  onMouseEnter={(e) => e.currentTarget.style.color = '#ffffff'}
                   onMouseLeave={(e) => e.currentTarget.style.color = '#94a3b8'}
                 >
                   ✕
                 </button>
               )}
 
-              <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: '#1e293b', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              <h3 style={{ margin: '0 0 6px 0', fontSize: '20px', fontWeight: 800, letterSpacing: '-0.02em', color: 'var(--color-text-heading, #E8F4F8)', display: 'flex', alignItems: 'center', gap: '8px' }}>
                 <span>📥</span> NHẬP DỮ LIỆU TỔNG HỢP (EXCEL)
               </h3>
-              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: '#64748b' }}>
+              <p style={{ margin: '0 0 20px 0', fontSize: '13px', color: 'var(--color-text-secondary, #A0B4C8)' }}>
                 Tải lên một file Excel duy nhất chứa cả thông tin <strong>Đội Bóng</strong> và <strong>Cầu Thủ</strong> để thiết lập nhanh chóng.
               </p>
 
               {/* Guide and Download template */}
               {!bulkImportProgress && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: '#f8fafc', padding: '12px 16px', borderRadius: '10px', border: '1px solid #e2e8f0', marginBottom: '20px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '13px', color: '#475569' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: 'var(--color-surface-sidebar, #0A0F18)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))', marginBottom: '20px' }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--color-text-secondary, #A0B4C8)' }}>
                     <span style={{ fontWeight: 600 }}>Lưu ý:</span>
                     <span>Sử dụng cấu trúc nhiều sheet (Đội Bóng, Cầu Thủ) như trong file mẫu.</span>
                   </div>
                   <button
                     type="button"
                     onClick={handleDownloadBulkTemplate}
-                    style={{ background: 'none', border: 'none', color: '#0F766E', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = '#ae0011'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = '#0F766E'}
+                    style={{ background: 'none', border: 'none', color: 'var(--color-primary, #00D4B8)', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-accent, #00FFD4)'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-primary, #00D4B8)'}
                   >
                     ⬇️ Tải file mẫu (.xlsx)
                   </button>
@@ -1424,16 +1424,16 @@ export default function AdminDesktopView(props: any) {
 
               {/* Progress Bar Section */}
               {bulkImportProgress ? (
-                <div style={{ padding: '20px', background: '#f8fafc', borderRadius: '12px', border: '1px solid #e2e8f0' }}>
+                <div style={{ padding: '20px', background: 'var(--color-surface-sidebar, #0A0F18)', borderRadius: '12px', border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
-                    <span style={{ fontSize: '14px', fontWeight: 600, color: bulkImportProgress.step === 'error' ? '#ef4444' : '#1e293b' }}>
+                    <span style={{ fontSize: '14px', fontWeight: 600, color: bulkImportProgress.step === 'error' ? '#ef4444' : 'var(--color-text, #C8D8E8)' }}>
                       {bulkImportProgress.message}
                     </span>
                     <span style={{ fontSize: '14px', fontWeight: 700, color: 'var(--color-primary)' }}>
                       {bulkImportProgress.percent}%
                     </span>
                   </div>
-                  <div style={{ width: '100%', height: '8px', background: '#e2e8f0', borderRadius: '4px', overflow: 'hidden' }}>
+                  <div style={{ width: '100%', height: '8px', background: 'var(--color-surface-hover, #141C2A)', borderRadius: '4px', overflow: 'hidden' }}>
                     <div 
                       style={{ 
                         width: `${bulkImportProgress.percent}%`, 
@@ -1446,7 +1446,7 @@ export default function AdminDesktopView(props: any) {
                   {bulkImportProgress.step === 'error' && (
                     <button 
                       onClick={handleClearBulkImport}
-                      style={{ marginTop: '16px', padding: '8px 16px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600 }}
+                      style={{ marginTop: '16px', padding: '8px 16px', background: 'var(--color-surface-hover, #141C2A)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--color-text-heading, #ffffff)' }}
                     >
                       Thử lại
                     </button>
@@ -1469,8 +1469,8 @@ export default function AdminDesktopView(props: any) {
                       }
                     }}
                     style={{
-                      background: isBulkDragActive ? 'rgba(15, 118, 110, 0.04)' : '#fff',
-                      border: isBulkDragActive ? '2px dashed var(--color-primary)' : '2px dashed #cbd5e1',
+                      background: isBulkDragActive ? 'rgba(0, 212, 184, 0.08)' : 'var(--color-surface-sidebar, #0A0F18)',
+                      border: isBulkDragActive ? '2px dashed var(--color-primary)' : '2px dashed var(--color-border, rgba(0, 212, 184, 0.25))',
                       borderRadius: '12px',
                       padding: '40px 24px',
                       textAlign: 'center',
@@ -1509,11 +1509,11 @@ export default function AdminDesktopView(props: any) {
                       <path d="M12 12v9" />
                       <path d="m16 16-4-4-4 4" />
                     </svg>
-                    <p style={{ fontSize: '16px', color: '#1e293b', fontWeight: 600, margin: '0 0 6px 0' }}>
+                    <p style={{ fontSize: '16px', color: 'var(--color-text-heading, #E8F4F8)', fontWeight: 600, margin: '0 0 6px 0' }}>
                       Kéo thả file Excel vào đây để tự động import
                     </p>
-                    <p style={{ fontSize: '13px', color: '#64748b', margin: 0 }}>
-                      Hoặc bấm để chọn file từ máy tính <span style={{ fontWeight: 600, color: '#475569' }}>(Hỗ trợ .xls, .xlsx)</span>
+                    <p style={{ fontSize: '13px', color: 'var(--color-text-secondary, #A0B4C8)', margin: 0 }}>
+                      Hoặc bấm để chọn file từ máy tính <span style={{ fontWeight: 600, color: 'var(--color-text-muted, #4A6070)' }}>(Hỗ trợ .xls, .xlsx)</span>
                     </p>
                   </div>
                 ) : null
