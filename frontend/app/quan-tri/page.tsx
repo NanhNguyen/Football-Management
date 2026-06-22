@@ -194,24 +194,33 @@ export default function QuanTriPage() {
   const handleBulkSyncLogos = async () => {
     if (!selectedTournament?.id) return;
     try {
-      setToast({ message: `Đang đồng bộ logo đội bóng bằng AI...`, visible: true });
+      setToast({ message: `Đang đồng bộ logo đội bóng...`, visible: true });
       setIsSyncingLogos(true);
-      const { data: { session } } = await supabase.auth.getSession();
-      const res = await fetch(`http://localhost:3001/api/tournaments/${selectedTournament.id}/sync-team-logos`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+
+      let count = 0;
+      for (const team of teams) {
+        try {
+          const res = await fetch(`https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${encodeURIComponent(team.ten)}`);
+          if (!res.ok) continue;
+          const data = await res.json();
+          if (data && data.teams && data.teams.length > 0) {
+            const apiTeam = data.teams[0];
+            const updatedTeam = {
+              ...team,
+              logo: apiTeam.strBadge,
+              externalApiId: apiTeam.idTeam,
+              logoSource: 'SPORTSDB'
+            };
+            const { error } = await updateTeam(updatedTeam);
+            if (!error) count++;
+          }
+        } catch (err) {
+          console.error(`Error syncing logo for team ${team.ten}:`, err);
         }
-      });
-      const result = await res.json();
-      if (!res.ok) throw new Error(result.error || "Đồng bộ thất bại");
-      if (result.success) {
-        showToast(`⚡ Đã đồng bộ thành công ${result.count} đội bóng!`);
-        await fetchData(selectedTournament.id); // Refresh data
-      } else {
-        showToast(`❌ Đồng bộ thất bại: ${result.error}`);
       }
+
+      showToast(`⚡ Đã đồng bộ thành công ${count} đội bóng!`);
+      await fetchData(selectedTournament.id); // Refresh data
     } catch (err) {
       console.error("Bulk sync error:", err);
       showToast("❌ Lỗi khi đồng bộ logo");
