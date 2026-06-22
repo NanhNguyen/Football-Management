@@ -7,7 +7,8 @@ import {
   IconPlay,
   IconPause,
   IconStop,
-  IconReset
+  IconReset,
+  IconCalendar
 } from './RefereeIcons';
 
 export default function RefereeMobileView({ data, actions }: any) {
@@ -35,6 +36,7 @@ export default function RefereeMobileView({ data, actions }: any) {
     handleExecuteSubstitution,
     handleTemporaryPauseToggle,
     getMatchHalfState,
+    handleDelayMatchSchedule,
   } = actions;
 
   const parseVongDetails = (vongStr: string = '') => {
@@ -104,6 +106,8 @@ export default function RefereeMobileView({ data, actions }: any) {
     subType?: string;
     requiresPlayer?: boolean;
   } | null>(null);
+
+  const [delayModalState, setDelayModalState] = useState<{ isOpen: boolean, date: string, time: string }>({ isOpen: false, date: '', time: '' });
   const [activeTeamTab, setActiveTeamTab] = useState<'nha' | 'khach'>('nha');
 
   // React inline styles mapped directly from your Tailwind design specs
@@ -676,13 +680,24 @@ export default function RefereeMobileView({ data, actions }: any) {
 
     if (halfState === '1_not_started') {
       return (
-        <button
-          style={styles.controlButtonFull('#10b981')}
-          onClick={() => handleStartMatch(selectedMatch.id)}
-        >
-          <IconPlay size={18} color="#ffffff" />
-          Bắt đầu hiệp 1
-        </button>
+        <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
+          <button
+            style={{ ...styles.controlButtonFull('#10b981'), flex: 1 }}
+            onClick={() => handleStartMatch(selectedMatch.id)}
+          >
+            <IconPlay size={18} color="#ffffff" />
+            Bắt đầu hiệp 1
+          </button>
+          {handleDelayMatchSchedule && (
+            <button
+              style={{ ...styles.controlButtonFull('#f59e0b'), flex: 0.5 }}
+              onClick={() => setDelayModalState({ isOpen: true, date: selectedMatch.date || '', time: selectedMatch.time || '' })}
+            >
+              <IconCalendar size={18} color="#ffffff" />
+              Lùi lịch
+            </button>
+          )}
+        </div>
       );
     }
 

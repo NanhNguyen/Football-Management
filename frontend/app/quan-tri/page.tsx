@@ -1174,6 +1174,8 @@ export default function QuanTriPage() {
     return () => clearInterval(interval);
   }, []);
 
+
+
   const [searchTermList, setSearchTermList] = useState('');
   const selectedMatch = liveMatches.find(m => m.id === selectedMatchId);
   const filteredMatches = liveMatches.filter(m =>
@@ -1201,6 +1203,50 @@ export default function QuanTriPage() {
       showToast("Trận đấu đã bắt đầu!");
     }
   };
+
+  // Refs for auto-start polling
+  const liveMatchesRef = useRef(liveMatches);
+  const handleStartMatchRef = useRef(handleStartMatch);
+
+  useEffect(() => {
+    liveMatchesRef.current = liveMatches;
+    handleStartMatchRef.current = handleStartMatch;
+  }, [liveMatches, handleStartMatch]);
+
+  // Auto-Start polling logic
+  useEffect(() => {
+    const interval = setInterval(() => {
+      const now = new Date();
+      liveMatchesRef.current.forEach(match => {
+        if (match.trangThai === 'SAP_DIEN_RA' && match.date && match.time) {
+          const [hours, minutes] = match.time.split(':').map(Number);
+          const matchDateTime = new Date(match.date);
+          if (!isNaN(matchDateTime.getTime())) {
+            matchDateTime.setHours(hours, minutes, 0, 0);
+            if (now >= matchDateTime) {
+              handleStartMatchRef.current(match.id);
+            }
+          }
+        }
+      });
+    }, 10000); // Check every 10 seconds
+    return () => clearInterval(interval);
+  }, []);
+
+  const handleDelayMatchSchedule = async (matchId: string, newDate: string, newTime: string) => {
+    const match = liveMatches.find(m => m.id === matchId);
+    if (match && match.trangThai === 'SAP_DIEN_RA') {
+      const updated = {
+        ...match,
+        date: newDate,
+        time: newTime
+      };
+      await updateMatch(updated);
+      await fetchData(selectedTournament?.id);
+      showToast("Đã lùi lịch thi đấu thành công!");
+    }
+  };
+
 
   const handlePauseMatch = async (matchId: string) => {
     const match = liveMatches.find(m => m.id === matchId);
@@ -1910,6 +1956,7 @@ export default function QuanTriPage() {
     handleDeleteEvent,
     handleActionSelect,
     handleInlineUpdateMatch,
+    handleDelayMatchSchedule,
     calculateMatchMinute,
     handleTeamNameBlur,
     handleBulkSyncLogos,

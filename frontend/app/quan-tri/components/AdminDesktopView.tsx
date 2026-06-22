@@ -84,6 +84,7 @@ export default function AdminDesktopView(props: any) {
     handleResumeMatch,
     handleFinishMatch,
     handleResetMatch,
+    handleDelayMatchSchedule,
     handleDeleteEvent,
     handleActionSelect,
     handleInlineUpdateMatch,
@@ -523,6 +524,7 @@ export default function AdminDesktopView(props: any) {
               handleResumeMatch={handleResumeMatch}
               handleFinishMatch={handleFinishMatch}
               handleResetMatch={handleResetMatch}
+              handleDelayMatchSchedule={handleDelayMatchSchedule}
               handleDeleteEvent={handleDeleteEvent}
               isSelectingSubstitute={isSelectingSubstitute}
               setIsSelectingSubstitute={setIsSelectingSubstitute}

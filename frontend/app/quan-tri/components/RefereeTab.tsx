@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TeamLogo from '@/components/TeamLogo';
 import {
   IconGoal, IconCard, IconCardDouble, IconSwap, IconTimer, IconStop,
-  IconReset, IconMedal, IconEvent, IconHome, IconAway, IconPlay, IconPause
+  IconReset, IconMedal, IconEvent, IconHome, IconAway, IconPlay, IconPause, IconCalendar
 } from './RefereeIcons';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
@@ -336,6 +336,7 @@ interface RefereeTabProps {
   setIsSelectingSubstitute: (val: boolean) => void;
   handleActionSelect: (type: string, detail?: string, overrideParams?: any) => void;
   getMatchHalfState: (match: any) => '1_not_started' | '1_active' | 'half_time' | '2_active' | 'finished';
+  handleDelayMatchSchedule?: (id: string, date: string, time: string) => void;
 }
 
 export default function RefereeTab({
@@ -365,7 +366,8 @@ export default function RefereeTab({
   handleResetMatch,
   handleDeleteEvent,
   handleActionSelect,
-  getMatchHalfState
+  getMatchHalfState,
+  handleDelayMatchSchedule
 }: RefereeTabProps) {
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
@@ -452,6 +454,8 @@ export default function RefereeTab({
     subType: 'normal',
     step: 1
   });
+
+  const [delayModalState, setDelayModalState] = useState<{ isOpen: boolean, date: string, time: string }>({ isOpen: false, date: '', time: '' });
 
   useEffect(() => {
     // When match changes, ensure wizard resets
@@ -910,9 +914,16 @@ export default function RefereeTab({
                     {/* ROW 1: MATCH CONTROL */}
                     <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
                       {getMatchHalfState(selectedMatch) === '1_not_started' && (
-                        <button className="desktop-cta-btn" style={desktopStyles.ctaButton('var(--color-success, #22C55E)')} onClick={() => handleStartMatch(selectedMatch.id)}>
-                          <IconPlay size={18} /> BẮT ĐẦU HIỆP 1
-                        </button>
+                        <>
+                          <button className="desktop-cta-btn" style={desktopStyles.ctaButton('var(--color-success, #22C55E)')} onClick={() => handleStartMatch(selectedMatch.id)}>
+                            <IconPlay size={18} /> BẮT ĐẦU HIỆP 1
+                          </button>
+                          {handleDelayMatchSchedule && (
+                            <button className="desktop-cta-btn" style={{ ...desktopStyles.ctaButton('var(--color-warning, #F59E0B)'), flex: 0.5 }} onClick={() => setDelayModalState({ isOpen: true, date: selectedMatch.date || '', time: selectedMatch.time || '' })}>
+                              <IconCalendar size={18} /> LÙI LỊCH
+                            </button>
+                          )}
+                        </>
                       )}
                       {(getMatchHalfState(selectedMatch) === '1_active' || getMatchHalfState(selectedMatch) === '2_active') && (
                         <>
@@ -1380,6 +1391,59 @@ export default function RefereeTab({
               })()}
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* DELAY MATCH MODAL */}
+      {delayModalState.isOpen && selectedMatch && (
+        <div className={styles.mobileBottomSheetOverlay} onClick={() => setDelayModalState(prev => ({ ...prev, isOpen: false }))}>
+          <div className={styles.mobileBottomSheet} onClick={(e) => e.stopPropagation()} style={{ padding: '24px' }}>
+            <div className={styles.bottomSheetHandle}></div>
+            <div className={styles.bsHeaderTitle} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '24px' }}>
+              <IconCalendar size={20} /> LÙI LỊCH THI ĐẤU
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '8px', display: 'block' }}>Ngày thi đấu mới</label>
+                <input
+                  type="date"
+                  value={delayModalState.date}
+                  onChange={(e) => setDelayModalState(prev => ({ ...prev, date: e.target.value }))}
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', boxSizing: 'border-box' }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '8px', display: 'block' }}>Giờ thi đấu mới</label>
+                <input
+                  type="time"
+                  value={delayModalState.time}
+                  onChange={(e) => setDelayModalState(prev => ({ ...prev, time: e.target.value }))}
+                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', boxSizing: 'border-box' }}
+                />
+              </div>
+              
+              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+                <button
+                  onClick={() => setDelayModalState(prev => ({ ...prev, isOpen: false }))}
+                  style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Hủy
+                </button>
+                <button
+                  onClick={() => {
+                    if (handleDelayMatchSchedule) {
+                      handleDelayMatchSchedule(selectedMatch.id, delayModalState.date, delayModalState.time);
+                    }
+                    setDelayModalState(prev => ({ ...prev, isOpen: false }));
+                  }}
+                  style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+                >
+                  Xác nhận lùi
+                </button>
+              </div>
+            </div>
           </div>
         </div>
       )}

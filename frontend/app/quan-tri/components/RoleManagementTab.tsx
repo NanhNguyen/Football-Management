@@ -85,10 +85,10 @@ export default function RoleManagementTab({ showToast }: { showToast: (msg: stri
       if (error) throw error;
 
       setUserRoles((prev) => prev.filter((ur) => ur.id !== id));
-      showToast('✅ Đã xóa phân quyền người dùng!');
+      showToast('Đã xóa người dùng!');
     } catch (err: any) {
       console.error('Lỗi khi xóa phân quyền:', err);
-      showToast(`❌ Lỗi: ${err.message}`);
+      showToast(`Lỗi: ${err.message}`);
     }
   };
 
