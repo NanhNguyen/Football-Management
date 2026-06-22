@@ -34,4 +34,32 @@ export class TournamentController {
   async syncTeamLogos(@Param('id') id: string) {
     return this.tournamentService.syncTeamLogos(id);
   }
+
+  @Post(':id/postpone-day')
+  @Roles('admin')
+  async postponeDay(
+    @Param('id') id: string,
+    @Body('targetDate') targetDate: string,
+  ) {
+    return this.tournamentService.postponeMatchday(id, targetDate);
+  }
+
+  @Post(':id/reschedule-rolling')
+  @Roles('admin')
+  async rescheduleRolling(
+    @Param('id') id: string,
+    @Body('fromDate') fromDate: string,
+    @Body('daysToShift') daysToShift: number,
+  ) {
+    return this.tournamentService.rescheduleRolling(id, fromDate, daysToShift);
+  }
+
+  @Post(':id/move-to-pool')
+  @Roles('admin')
+  async moveToPool(
+    @Param('id') id: string,
+    @Body('matchIds') matchIds: string[],
+  ) {
+    return this.tournamentService.moveToPool(id, matchIds);
+  }
 }

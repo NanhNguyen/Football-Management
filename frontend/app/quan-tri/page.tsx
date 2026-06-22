@@ -160,9 +160,9 @@ export default function QuanTriPage() {
     }
   };
 
-  const [newTeamData, setNewTeamData] = useState({ 
-    ten: '', 
-    logo: '⚽', 
+  const [newTeamData, setNewTeamData] = useState({
+    ten: '',
+    logo: '⚽',
     bang: 'A',
     externalApiId: null as number | null,
     logoSource: 'DEFAULT'
@@ -238,6 +238,10 @@ export default function QuanTriPage() {
   };
   const [newBlackoutDate, setNewBlackoutDate] = useState('');
   const [isSchedulerConfigOpen, setIsSchedulerConfigOpen] = useState(false);
+  const [isPostponeModalOpen, setIsPostponeModalOpen] = useState(false);
+  const [postponeTargetDate, setPostponeTargetDate] = useState('');
+  const [isRescheduleDashboardOpen, setIsRescheduleDashboardOpen] = useState(false);
+
   const [schedulerConfig, setSchedulerConfig] = useState({
     startDate: '',
     endDate: '',
@@ -373,7 +377,7 @@ export default function QuanTriPage() {
       await processBulkImport(file, selectedTournament.id, (progress) => {
         setBulkImportProgress(progress);
       });
-      
+
       // On success, refresh data
       await fetchData(selectedTournament.id);
       setTimeout(() => {
@@ -403,18 +407,18 @@ export default function QuanTriPage() {
         router.push('/login');
         return;
       }
-      
+
       const { data: roleData } = await supabase
         .from('user_roles')
         .select('role_id')
         .eq('user_id', session.user.id)
         .single();
-        
+
       const roleId = roleData?.role_id || 3;
       const roleMap: Record<number, string> = { 1: 'admin', 2: 'ref', 3: 'user' };
       const role = roleMap[roleId] || 'user';
       setUserRole(role);
-      
+
       if (role === 'user') {
         // user thường không có quyền vào quản trị
         router.push('/');
@@ -483,7 +487,7 @@ export default function QuanTriPage() {
     if (!team || !team.cauThu) return { starters: [], bench: [] };
     let starters: any[] = [];
     let bench: any[] = [];
-    
+
     // Initial assignment
     team.cauThu.forEach((p: any, idx: number) => {
       if (idx < limit) starters.push(p);
@@ -497,10 +501,10 @@ export default function QuanTriPage() {
         const inPlayerId = sub.cauThuId;
         const outPlayerMatch = sub.moTa?.match(/cho (.*?)$/);
         const outPlayerName = outPlayerMatch ? outPlayerMatch[1].trim() : '';
-        
+
         const outIdx = starters.findIndex(p => p.ten === outPlayerName);
         const inIdx = bench.findIndex(p => p.id === inPlayerId);
-        
+
         if (outIdx >= 0 && inIdx >= 0) {
           const outP = starters[outIdx];
           starters.splice(outIdx, 1);
@@ -902,7 +906,7 @@ export default function QuanTriPage() {
     const { error } = await createTournament(payload);
     if (!error) {
       const selectedTemplate = tournamentTemplates.find(t => t.code === newTournamentData.templateCode);
-      
+
       let generalConfig: any = null;
       let schedulerConfigPayload: any = null;
 
@@ -1018,7 +1022,7 @@ export default function QuanTriPage() {
           showToast("⏳ Đang xếp lịch thi đấu tự động (CSP)...");
 
           const actualStartDate = baseStartDate || '2026-05-01';
-          
+
           // Dynamically compute end times for each slot based on start time + match duration + break buffer
           const timeSlotsWithEnd = schedulerConfig.timeSlots.map(slot => {
             const [hours, minutes] = slot.startTime.split(':').map(Number);
@@ -1051,7 +1055,7 @@ export default function QuanTriPage() {
               activeType = config.theThuc || 'tournament';
               activeGroupLegs = config.luotVongBang || 1;
               activeLeagueRounds = config.soVongLeague || 5;
-            } catch (e) {}
+            } catch (e) { }
           }
 
           const count = await runAutoSchedule(
@@ -1138,7 +1142,7 @@ export default function QuanTriPage() {
       const now = new Date().getTime();
       diffInSeconds = Math.floor((now - startTime) / 1000) + (match.thoiGianDaQua || 0);
     }
-    
+
     const m = Math.floor(diffInSeconds / 60);
     const s = diffInSeconds % 60;
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
@@ -1148,12 +1152,12 @@ export default function QuanTriPage() {
     if (!match) return '1_not_started';
     if (match.trangThai === 'SAP_DIEN_RA') return '1_not_started';
     if (match.trangThai === 'KET_THUC') return 'finished';
-    
+
     if (typeof window !== 'undefined') {
       const saved = localStorage.getItem(`match_hiep_${match.id}`);
       if (saved) return saved as any;
     }
-    
+
     if (match.dangTamDung) return 'half_time';
     return '1_active';
   };
@@ -1389,7 +1393,80 @@ export default function QuanTriPage() {
       return;
     }
     await supabase.auth.signOut();
-    router.push('/login');
+    window.location.href = '/login';
+  };
+
+  const handlePostponeMatchday = async () => {
+    if (!selectedTournament?.id || !postponeTargetDate) return;
+    try {
+      setToast({ message: `Đang hoãn các trận đấu ngày ${postponeTargetDate}...`, visible: true });
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`http://localhost:3001/api/tournaments/${selectedTournament.id}/postpone-day`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+        },
+        body: JSON.stringify({ targetDate: postponeTargetDate })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Hoãn lịch thất bại");
+      showToast(`Đã hoãn thành công ${result.affected || 0} trận đấu!`);
+      setIsPostponeModalOpen(false);
+      setIsRescheduleDashboardOpen(true);
+      await fetchData(selectedTournament.id);
+    } catch (err: any) {
+      console.error(err);
+      showToast(`Lỗi: ${err.message}`);
+    }
+  };
+
+  const handleRescheduleRolling = async (fromDate: string, daysToShift: number) => {
+    if (!selectedTournament?.id) return;
+    try {
+      setToast({ message: `Đang tịnh tiến lịch thi đấu...`, visible: true });
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`http://localhost:3001/api/tournaments/${selectedTournament.id}/reschedule-rolling`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+        },
+        body: JSON.stringify({ fromDate, daysToShift })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Tịnh tiến thất bại");
+      showToast(`Đã tịnh tiến thành công ${result.affected || 0} trận đấu!`);
+      setIsRescheduleDashboardOpen(false);
+      await fetchData(selectedTournament.id);
+    } catch (err: any) {
+      console.error(err);
+      showToast(`Lỗi: ${err.message}`);
+    }
+  };
+
+  const handleMoveToPool = async (matchIds: string[]) => {
+    if (!selectedTournament?.id || matchIds.length === 0) return;
+    try {
+      setToast({ message: `Đang đưa vào kho chờ...`, visible: true });
+      const { data: { session } } = await supabase.auth.getSession();
+      const res = await fetch(`http://localhost:3001/api/tournaments/${selectedTournament.id}/move-to-pool`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+        },
+        body: JSON.stringify({ matchIds })
+      });
+      const result = await res.json();
+      if (!res.ok) throw new Error(result.error || "Chuyển kho chờ thất bại");
+      showToast(`Đã đưa ${result.affected || 0} trận vào kho chờ!`);
+      // We don't close dashboard here because they might drag and drop right after
+      await fetchData(selectedTournament.id);
+    } catch (err: any) {
+      console.error(err);
+      showToast(`Lỗi: ${err.message}`);
+    }
   };
 
   const handleExecuteSubstitution = async (inPlayer: any, outPlayer: any, teamId: string) => {
@@ -1407,7 +1484,7 @@ export default function QuanTriPage() {
       // Wait, is addEvent signature like this? Let's check `handleActionSelect`.
       // `await addEvent({ matchId, teamId, playerId: player.id, type: eventType, minute: selectedMatch.phut || 0, description: ... });`
       // So no error field from res.
-      
+
       showToast(`🔄 Đã thay người: ${inPlayer.ten} vào thay ${outPlayer.ten}`);
       await fetchData(selectedTournament?.id);
       setIsSelectingSubstitute(false);
@@ -1588,7 +1665,7 @@ export default function QuanTriPage() {
     if (name.includes('bán kết')) return 300;
     if (name.includes('hạng ba')) return 400;
     if (name.includes('chung kết')) return 500;
-    
+
     const match = name.match(/vòng\s+(\d+)/);
     if (match) {
       return parseInt(match[1], 10);
@@ -1600,19 +1677,19 @@ export default function QuanTriPage() {
   const { uniqueRounds, uniqueGroups } = (() => {
     const roundsSet = new Set<string>();
     const groupsSet = new Set<string>();
-    
+
     liveMatches.forEach(m => {
       const { bang, vong } = parseVongDetails(m.vong);
       if (vong) roundsSet.add(vong);
       if (bang) groupsSet.add(bang);
     });
-    
+
     const sortedRounds = Array.from(roundsSet).sort((a, b) => {
       return getRoundPriority(a) - getRoundPriority(b);
     });
-    
+
     const sortedGroups = Array.from(groupsSet).sort();
-    
+
     return { uniqueRounds: sortedRounds, uniqueGroups: sortedGroups };
   })();
 
@@ -1710,7 +1787,7 @@ export default function QuanTriPage() {
     // Only set default once per tournament load
     const key = `has_set_default_round_${selectedTournament?.id}`;
     const hasSet = sessionStorage.getItem(key);
-    
+
     const needsRefereeReset = refereeFilterVong === 'NONE' || !uniqueRounds.includes(refereeFilterVong);
     const needsScheduleReset = scheduleFilterVong === 'NONE' || !uniqueRounds.includes(scheduleFilterVong);
 
@@ -1739,32 +1816,32 @@ export default function QuanTriPage() {
   const filteredAndSortedRefereeMatches = (() => {
     let list = liveMatches.filter(m => {
       const { bang, vong } = parseVongDetails(m.vong);
-      
+
       if (vong !== refereeFilterVong) {
         return false;
       }
-      
+
       if (!isKnockoutActive && refereeFilterBang !== 'all' && bang !== refereeFilterBang) {
         return false;
       }
-      
+
       return true;
     });
-    
+
     return list.sort((a, b) => {
       const isLiveA = a.trangThai === 'DANG_DIEN_RA';
       const isLiveB = b.trangThai === 'DANG_DIEN_RA';
       if (isLiveA && !isLiveB) return -1;
       if (!isLiveA && isLiveB) return 1;
-      
+
       const pA = getRoundPriority(parseVongDetails(a.vong).vong);
       const pB = getRoundPriority(parseVongDetails(b.vong).vong);
       if (pA !== pB) return pA - pB;
-      
+
       const gA = parseVongDetails(a.vong).bang || '';
       const gB = parseVongDetails(b.vong).bang || '';
       if (gA !== gB) return gA.localeCompare(gB);
-      
+
       return a.id.localeCompare(b.id);
     });
   })();
@@ -1792,11 +1869,11 @@ export default function QuanTriPage() {
       const pA = getRoundPriority(parseVongDetails(a.vong).vong);
       const pB = getRoundPriority(parseVongDetails(b.vong).vong);
       if (pA !== pB) return pA - pB;
-      
+
       const gA = parseVongDetails(a.vong).bang || '';
       const gB = parseVongDetails(b.vong).bang || '';
       if (gA !== gB) return gA.localeCompare(gB);
-      
+
       const nameA = a.doiNha?.ten || '';
       const nameB = b.doiNha?.ten || '';
       if (!nameA || !nameB) {
@@ -1917,7 +1994,10 @@ export default function QuanTriPage() {
     filteredAndSortedScheduleMatches,
     teamSuggestion,
     isSyncingLogos,
-    userRole
+    userRole,
+    isPostponeModalOpen,
+    postponeTargetDate,
+    isRescheduleDashboardOpen
   };
 
   const actions = {
@@ -1960,7 +2040,13 @@ export default function QuanTriPage() {
     calculateMatchMinute,
     handleTeamNameBlur,
     handleBulkSyncLogos,
-    setTeamSuggestion
+    setTeamSuggestion,
+    setIsPostponeModalOpen,
+    setPostponeTargetDate,
+    setIsRescheduleDashboardOpen,
+    handlePostponeMatchday,
+    handleRescheduleRolling,
+    handleMoveToPool
   };
 
   if (isMobile) {

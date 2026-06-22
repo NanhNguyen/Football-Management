@@ -14,6 +14,7 @@ import TeamLogo from '@/components/TeamLogo';
 import { IconTrophy } from './RefereeIcons';
 import { supabase } from '@/lib/supabase';
 import RoleManagementTab from './RoleManagementTab';
+import RescheduleDashboard from './RescheduleDashboard';
 
 export default function AdminDesktopView(props: any) {
   const { data, actions } = props;
@@ -46,7 +47,10 @@ export default function AdminDesktopView(props: any) {
     filteredAndSortedScheduleMatches,
     teamSuggestion,
     isSyncingLogos,
-    userRole
+    userRole,
+    isPostponeModalOpen,
+    postponeTargetDate,
+    isRescheduleDashboardOpen
   } = data;
 
   const {
@@ -92,7 +96,13 @@ export default function AdminDesktopView(props: any) {
     handleClearDraftSchedule,
     handleTeamNameBlur,
     handleBulkSyncLogos,
-    setTeamSuggestion
+    setTeamSuggestion,
+    setIsPostponeModalOpen,
+    setPostponeTargetDate,
+    setIsRescheduleDashboardOpen,
+    handlePostponeMatchday,
+    handleRescheduleRolling,
+    handleMoveToPool
   } = actions;
 
     return (
@@ -487,12 +497,47 @@ export default function AdminDesktopView(props: any) {
               handleEditMatch={handleEditMatch}
               liveMatches={liveMatches}
               handleClearDraftSchedule={handleClearDraftSchedule}
+              setIsPostponeModalOpen={setIsPostponeModalOpen}
             />
           )}
 
           {/* Modals are simplified versions for brevity in this response, but keep full logic from previous version */}
           {/* ... Modal implementations (isAddingTeam, editingTeam, editingMatch) using handleSaveTeam, handleSaveMatch ... */}
           {/* I will keep the modals logic consistent with the previous version but using the new save handlers */}
+
+          {isPostponeModalOpen && (
+            <div className={styles.overlay}>
+              <div className={styles.modal}>
+                <h3 style={{ color: '#e11d48' }}>❄️ Xác nhận hoãn toàn bộ ngày thi đấu</h3>
+                <p style={{ fontSize: '14px', color: '#475569', marginBottom: '16px' }}>
+                  Tính năng này sẽ đình chỉ <strong>tất cả</strong> các trận đấu trong một ngày cụ thể (do thiên tai, sự cố).
+                  Vui lòng chọn ngày muốn hoãn:
+                </p>
+                <input
+                  type="date"
+                  className={styles.modalInput}
+                  value={postponeTargetDate}
+                  onChange={(e) => setPostponeTargetDate(e.target.value)}
+                />
+                <div className={styles.modalActions}>
+                  <button className={styles.cancelBtn} onClick={() => setIsPostponeModalOpen(false)}>Hủy</button>
+                  <button className={styles.saveBtn} style={{ background: '#e11d48' }} onClick={handlePostponeMatchday} disabled={!postponeTargetDate}>
+                    Xác nhận Hoãn
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {isRescheduleDashboardOpen && (
+            <RescheduleDashboard 
+              onClose={() => setIsRescheduleDashboardOpen(false)}
+              onRescheduleRolling={handleRescheduleRolling}
+              onMoveToPool={handleMoveToPool}
+              postponeTargetDate={postponeTargetDate}
+              filteredAndSortedScheduleMatches={filteredAndSortedScheduleMatches}
+            />
+          )}
 
           {activeTab === 'referee' && (
             <RefereeTab

@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /* ============================================================
    SPARTA FOOTBALL LEAGUE — DESIGN SYSTEM v5.0
    Dark Gaming Theme — Cyber Teal
@@ -18,6 +22,7 @@
   --color-surface-hover: #141C2A;
   --color-surface-container: #0A0F18;
   --color-surface-high: #141C2A;
+  --color-card-bg: #0E1421;
 
   /* Typography */
   --color-text-heading: #E8F4F8;

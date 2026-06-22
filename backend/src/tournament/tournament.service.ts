@@ -7,13 +7,17 @@ import {
   BangXepHangItem,
 } from '../data/mock-data';
 import { TournamentRulesDto } from './dto/tournament-rules.dto';
+import { MatchTimerManager } from './match-timer.manager';
 import ws from 'ws';
 
 @Injectable()
 export class TournamentService {
   private readonly rulesMap = new Map<string, TournamentRulesDto>();
 
-  constructor(private readonly matchService: MatchService) {}
+  constructor(
+    private readonly matchService: MatchService,
+    private readonly matchTimerManager: MatchTimerManager,
+  ) {}
 
   getTournamentRules(tournamentId: string): TournamentRulesDto {
     if (!this.rulesMap.has(tournamentId)) {
@@ -213,7 +217,7 @@ export class TournamentService {
     return false;
   }
 
-  async syncTeamLogos(tournamentId: string) {
+  private getSupabaseClient() {
     const fs = require('fs');
     const path = require('path');
     const { createClient } = require('@supabase/supabase-js');
@@ -232,14 +236,19 @@ export class TournamentService {
 
     if (!supabaseUrl || !supabaseAnonKey) {
       console.error('Supabase credentials not found');
-      return { success: false, error: 'Supabase credentials not found' };
+      return null;
     }
 
-    const supabase = createClient(supabaseUrl, supabaseAnonKey, {
+    return createClient(supabaseUrl, supabaseAnonKey, {
       realtime: {
         transport: ws as any,
       },
     });
+  }
+
+  async syncTeamLogos(tournamentId: string) {
+    const supabase = this.getSupabaseClient();
+    if (!supabase) return { success: false, error: 'Supabase credentials not found' };
 
     const { data: dbTeams, error: dbError } = await supabase
       .from('doi_bong')
@@ -298,5 +307,109 @@ export class TournamentService {
     }
 
     return { success: true, count: syncCount };
+  }
+
+  async postponeMatchday(tournamentId: string, targetDate: string) {
+    const supabase = this.getSupabaseClient();
+    if (!supabase) return { success: false, error: 'Supabase credentials not found' };
+
+    // Find all matches on this date that are not finished
+    const { data: matches, error: fetchError } = await supabase
+      .from('tran_dau')
+      .select('id, trang_thai, bat_dau_luc')
+      .eq('giai_dau_id', tournamentId)
+      .eq('ngay', targetDate)
+      .neq('trang_thai', 'KET_THUC');
+
+    if (fetchError) {
+      return { success: false, error: fetchError.message };
+    }
+
+    if (!matches || matches.length === 0) {
+      return { success: true, affected: 0 };
+    }
+
+    const matchIds = matches.map((m: any) => m.id);
+
+    // Update status to POSTPONED
+    const { error: updateError } = await supabase
+      .from('tran_dau')
+      .update({ trang_thai: 'POSTPONED' })
+      .in('id', matchIds);
+
+    if (updateError) {
+      return { success: false, error: updateError.message };
+    }
+
+    for (const id of matchIds) {
+      this.matchTimerManager.clearMatchTimer(id);
+    }
+
+    // Emit WebSocket signal
+    const channel = supabase.channel('match-updates');
+    await channel.send({
+      type: 'broadcast',
+      event: 'MATCHDAY_POSTPONED',
+      payload: { tournamentId, targetDate, matchIds }
+    });
+
+    return { success: true, affected: matchIds.length, matchIds };
+  }
+
+  async rescheduleRolling(tournamentId: string, fromDate: string, daysToShift: number) {
+    const supabase = this.getSupabaseClient();
+    if (!supabase) return { success: false, error: 'Supabase credentials not found' };
+
+    // Get all matches from this date onwards that might need shifting
+    const { data: matches, error: fetchError } = await supabase
+      .from('tran_dau')
+      .select('*')
+      .eq('giai_dau_id', tournamentId)
+      .gte('ngay', fromDate);
+
+    if (fetchError) {
+      return { success: false, error: fetchError.message };
+    }
+
+    let updatedCount = 0;
+
+    // Shift days
+    for (const match of matches) {
+      if (!match.ngay) continue;
+      const currentDate = new Date(match.ngay);
+      currentDate.setDate(currentDate.getDate() + daysToShift);
+      const newDateStr = currentDate.toISOString().split('T')[0];
+
+      let newStatus = match.trang_thai;
+      if (newStatus === 'POSTPONED') {
+        newStatus = 'SAP_DIEN_RA'; // Restore status
+      }
+
+      const { error } = await supabase
+        .from('tran_dau')
+        .update({ ngay: newDateStr, trang_thai: newStatus })
+        .eq('id', match.id);
+
+      if (!error) updatedCount++;
+    }
+
+    return { success: true, affected: updatedCount };
+  }
+
+  async moveToPool(tournamentId: string, matchIds: string[]) {
+    const supabase = this.getSupabaseClient();
+    if (!supabase) return { success: false, error: 'Supabase credentials not found' };
+
+    const { error: updateError } = await supabase
+      .from('tran_dau')
+      .update({ ngay: null, gio: null, pitch_id: null, trang_thai: 'POSTPONED' })
+      .eq('giai_dau_id', tournamentId)
+      .in('id', matchIds);
+
+    if (updateError) {
+      return { success: false, error: updateError.message };
+    }
+
+    return { success: true, affected: matchIds.length };
   }
 }

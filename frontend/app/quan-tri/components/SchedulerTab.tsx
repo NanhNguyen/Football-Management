@@ -13,6 +13,7 @@ interface SchedulerTabProps {
   handleEditMatch: (match: any) => void;
   liveMatches: any[];
   handleClearDraftSchedule: () => void;
+  setIsPostponeModalOpen: (val: boolean) => void;
 }
 
 export default function SchedulerTab({
@@ -27,7 +28,8 @@ export default function SchedulerTab({
   handleDeleteMatch,
   handleEditMatch,
   liveMatches,
-  handleClearDraftSchedule
+  handleClearDraftSchedule,
+  setIsPostponeModalOpen
 }: SchedulerTabProps) {
 
   const parseVongDetails = (vongStr: string = '') => {
@@ -100,6 +102,14 @@ export default function SchedulerTab({
           <p className={styles.pageDesc}>Trung tâm điều khiển lịch thông minh tự động</p>
         </div>
         <div style={{ display: 'flex', gap: '12px' }}>
+          <button
+            className={styles.deleteBtnCompact}
+            style={{ padding: '8px 16px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#e11d48', color: '#ffffff', border: 'none' }}
+            onClick={() => setIsPostponeModalOpen(true)}
+            title="Hoãn toàn bộ ngày thi đấu (Freeze Matchday) do mưa bão, sự cố"
+          >
+            ❄️ Hoãn ngày thi đấu
+          </button>
           <button
             className={styles.deleteBtnCompact}
             style={{ padding: '8px 16px', height: 'auto', display: 'flex', alignItems: 'center', gap: '6px', backgroundColor: '#fee2e2', color: '#ef4444', border: '1px solid #fca5a5' }}
@@ -230,6 +240,42 @@ export default function SchedulerTab({
         )}
 
         {/* Khu vực Danh sách Lịch */}
+        {(() => {
+          const poolMatches = filteredAndSortedScheduleMatches.filter(m => m.trangThai === 'POSTPONED' && !m.date);
+          if (poolMatches.length > 0) {
+            return (
+              <div style={{ marginBottom: '32px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', background: '#f8fafc', borderBottom: '1px solid #cbd5e1', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: '#334155' }}>📦 Kho chờ xếp lịch ({poolMatches.length})</h3>
+                  <span style={{ fontSize: '12px', color: '#64748b' }}>Trận hoãn chưa xếp ngày</span>
+                </div>
+                <div style={{ padding: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  {poolMatches.map(m => (
+                    <div key={m.id} style={{ border: '1px dashed #94a3b8', background: '#f1f5f9', padding: '12px', borderRadius: '8px', width: '250px' }}>
+                      <div style={{ fontSize: '12px', color: '#64748b', marginBottom: '8px', fontWeight: 600 }}>{m.vong}</div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <span style={{ fontWeight: 600 }}>{m.doiNhaTen}</span>
+                        <span style={{ color: '#94a3b8', fontSize: '12px' }}>vs</span>
+                        <span style={{ fontWeight: 600 }}>{m.doiKhachTen}</span>
+                      </div>
+                      <div style={{ marginTop: '12px' }}>
+                        {/* A minimal hint for DND or manual edit */}
+                        <button 
+                          onClick={() => handleEditMatch(m)}
+                          style={{ width: '100%', padding: '6px', fontSize: '12px', background: '#fff', border: '1px solid #cbd5e1', borderRadius: '6px', cursor: 'pointer', color: '#3b82f6' }}
+                        >
+                          Xếp lịch thủ công
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          }
+          return null;
+        })()}
+
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px', gap: '16px', flexWrap: 'wrap' }}>
             <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>Danh sách Lịch đề xuất</h3>

@@ -336,7 +336,7 @@ interface RefereeTabProps {
   setIsSelectingSubstitute: (val: boolean) => void;
   handleActionSelect: (type: string, detail?: string, overrideParams?: any) => void;
   getMatchHalfState: (match: any) => '1_not_started' | '1_active' | 'half_time' | '2_active' | 'finished';
-  handleDelayMatchSchedule?: (id: string, date: string, time: string) => void;
+  handleDelayMatchSchedule?: (id: string, date: string, time: string, strategy: 'single' | 'shift' | 'postpone') => void;
 }
 
 export default function RefereeTab({
@@ -455,7 +455,7 @@ export default function RefereeTab({
     step: 1
   });
 
-  const [delayModalState, setDelayModalState] = useState<{ isOpen: boolean, date: string, time: string }>({ isOpen: false, date: '', time: '' });
+  const [delayModalState, setDelayModalState] = useState<{ isOpen: boolean, date: string, time: string, strategy: 'single' | 'shift' | 'postpone' }>({ isOpen: false, date: '', time: '', strategy: 'single' });
 
   useEffect(() => {
     // When match changes, ensure wizard resets
@@ -919,7 +919,7 @@ export default function RefereeTab({
                             <IconPlay size={18} /> BẮT ĐẦU HIỆP 1
                           </button>
                           {handleDelayMatchSchedule && (
-                            <button className="desktop-cta-btn" style={{ ...desktopStyles.ctaButton('var(--color-warning, #F59E0B)'), flex: 0.5 }} onClick={() => setDelayModalState({ isOpen: true, date: selectedMatch.date || '', time: selectedMatch.time || '' })}>
+                            <button className="desktop-cta-btn" style={{ ...desktopStyles.ctaButton('var(--color-warning, #F59E0B)'), flex: 0.5 }} onClick={() => setDelayModalState({ isOpen: true, date: selectedMatch.date || '', time: selectedMatch.time || '', strategy: 'single' })}>
                               <IconCalendar size={18} /> LÙI LỊCH
                             </button>
                           )}
@@ -1397,48 +1397,104 @@ export default function RefereeTab({
 
       {/* DELAY MATCH MODAL */}
       {delayModalState.isOpen && selectedMatch && (
-        <div className={styles.mobileBottomSheetOverlay} onClick={() => setDelayModalState(prev => ({ ...prev, isOpen: false }))}>
-          <div className={styles.mobileBottomSheet} onClick={(e) => e.stopPropagation()} style={{ padding: '24px' }}>
-            <div className={styles.bottomSheetHandle}></div>
-            <div className={styles.bsHeaderTitle} style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', marginBottom: '24px' }}>
+        <div className="fixed inset-0 bg-[#050810]/85 backdrop-blur-md z-[1000] flex flex-col justify-end md:justify-center md:items-center p-0 md:p-4 animate-fade-in" onClick={() => setDelayModalState(prev => ({ ...prev, isOpen: false }))}>
+          <div className="w-full max-w-lg md:max-w-xl mx-auto rounded-t-2xl md:rounded-2xl bg-[#0b1320] border-t md:border border-slate-800 p-6 shadow-2xl flex flex-col" onClick={(e) => e.stopPropagation()}>
+            <div className="w-10 h-1 bg-slate-700 rounded-full mx-auto mb-4 md:hidden"></div>
+            <div className="text-lg font-extrabold text-slate-100 flex items-center justify-center gap-2 mb-6 text-center">
               <IconCalendar size={20} /> LÙI LỊCH THI ĐẤU
             </div>
             
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              <div>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '8px', display: 'block' }}>Ngày thi đấu mới</label>
-                <input
-                  type="date"
-                  value={delayModalState.date}
-                  onChange={(e) => setDelayModalState(prev => ({ ...prev, date: e.target.value }))}
-                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', boxSizing: 'border-box' }}
-                />
+            <div className="flex flex-col gap-4">
+              {/* Form Layout: columns grid */}
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div>
+                  <label className="text-xs font-semibold text-slate-400 mb-2 block">Ngày thi đấu mới</label>
+                  <input
+                    type="date"
+                    value={delayModalState.date}
+                    onChange={(e) => setDelayModalState(prev => ({ ...prev, date: e.target.value }))}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-800 bg-[#080c10] text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors"
+                  />
+                </div>
+                <div style={{ opacity: delayModalState.strategy === 'postpone' ? 0.5 : 1, transition: 'opacity 0.2s' }}>
+                  <label className="text-xs font-semibold text-slate-400 mb-2 block">Giờ thi đấu mới</label>
+                  <input
+                    type="time"
+                    disabled={delayModalState.strategy === 'postpone'}
+                    value={delayModalState.time}
+                    onChange={(e) => setDelayModalState(prev => ({ ...prev, time: e.target.value }))}
+                    className="w-full px-4 py-3 rounded-xl border border-slate-800 bg-[#080c10] text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    style={{ cursor: delayModalState.strategy === 'postpone' ? 'not-allowed' : 'text' }}
+                  />
+                </div>
               </div>
+
+              {/* Rescheduling Strategy Radio Group */}
               <div>
-                <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-muted)', marginBottom: '8px', display: 'block' }}>Giờ thi đấu mới</label>
-                <input
-                  type="time"
-                  value={delayModalState.time}
-                  onChange={(e) => setDelayModalState(prev => ({ ...prev, time: e.target.value }))}
-                  style={{ width: '100%', padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'var(--color-surface)', color: 'var(--color-text)', boxSizing: 'border-box' }}
-                />
+                <span className="text-xs text-slate-400 mb-2 font-semibold block">
+                  Phương thức lùi lịch:
+                </span>
+                <div className="flex flex-col gap-3.5 bg-[#080c10] p-4 rounded-xl border border-slate-800">
+                  <label className="flex items-start gap-2.5 cursor-pointer text-slate-200 text-sm select-none">
+                    <input
+                      type="radio"
+                      name="postponeStrategyDesktop"
+                      checked={delayModalState.strategy === 'single'}
+                      onChange={() => setDelayModalState(prev => ({ ...prev, strategy: 'single' }))}
+                      className="mt-1 accent-emerald-400"
+                    />
+                    <div>
+                      <span className="font-semibold text-slate-200">Chỉ lùi giờ trận đấu này</span>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 cursor-pointer text-slate-200 text-sm select-none">
+                    <input
+                      type="radio"
+                      name="postponeStrategyDesktop"
+                      checked={delayModalState.strategy === 'shift'}
+                      onChange={() => setDelayModalState(prev => ({ ...prev, strategy: 'shift' }))}
+                      className="mt-1 accent-emerald-400"
+                    />
+                    <div>
+                      <span className="font-semibold text-slate-200">Tự động lùi tịnh tiến các trận sau (Cùng sân)</span>
+                      <p className="text-xs text-slate-400 mt-1 leading-normal">
+                        Hệ thống sẽ tự động cộng thêm số phút chênh lệch cho các trận ca sau diễn ra trên cùng sân này.
+                      </p>
+                    </div>
+                  </label>
+
+                  <label className="flex items-start gap-2.5 cursor-pointer text-slate-200 text-sm select-none">
+                    <input
+                      type="radio"
+                      name="postponeStrategyDesktop"
+                      checked={delayModalState.strategy === 'postpone'}
+                      onChange={() => setDelayModalState(prev => ({ ...prev, strategy: 'postpone' }))}
+                      className="mt-1 accent-emerald-400"
+                    />
+                    <div>
+                      <span className="font-semibold text-slate-200">Hoãn toàn bộ ngày thi đấu</span>
+                    </div>
+                  </label>
+                </div>
               </div>
               
-              <div style={{ display: 'flex', gap: '12px', marginTop: '16px' }}>
+              {/* Action Buttons wrapper */}
+              <div className="flex flex-col-reverse md:flex-row md:justify-end gap-3 mt-6">
                 <button
                   onClick={() => setDelayModalState(prev => ({ ...prev, isOpen: false }))}
-                  style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border)', background: 'transparent', color: 'var(--color-text)', fontWeight: 600, cursor: 'pointer' }}
+                  className="w-full md:w-auto px-6 py-2.5 rounded-xl font-semibold text-sm border border-slate-700 hover:bg-slate-800 text-slate-300 transition-colors cursor-pointer text-center"
                 >
                   Hủy
                 </button>
                 <button
                   onClick={() => {
                     if (handleDelayMatchSchedule) {
-                      handleDelayMatchSchedule(selectedMatch.id, delayModalState.date, delayModalState.time);
+                      handleDelayMatchSchedule(selectedMatch.id, delayModalState.date, delayModalState.time, delayModalState.strategy);
                     }
                     setDelayModalState(prev => ({ ...prev, isOpen: false }));
                   }}
-                  style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: 'var(--color-primary)', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
+                  className="w-full md:w-auto px-6 py-2.5 rounded-xl font-bold text-sm bg-[#00D4B8] hover:bg-[#00bda3] text-[#080C10] transition-colors cursor-pointer text-center"
                 >
                   Xác nhận lùi
                 </button>

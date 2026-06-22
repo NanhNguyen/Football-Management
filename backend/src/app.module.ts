@@ -9,12 +9,14 @@ import { TournamentService } from './tournament/tournament.service';
 import { TournamentController } from './tournament/tournament.controller';
 import { AuthModule } from './auth/auth.module';
 
+import { MatchTimerManager } from './tournament/match-timer.manager';
+
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     AuthModule
   ],
   controllers: [AppController, TournamentTemplatesController, TournamentController],
-  providers: [AppService, TournamentTemplatesService, MatchService, TournamentService],
+  providers: [AppService, TournamentTemplatesService, MatchService, TournamentService, MatchTimerManager],
 })
 export class AppModule {}
