@@ -95,9 +95,9 @@ export default function TeamsTab({
         </thead>
         <tbody>
           {teams.map(doi => (
-            <tr key={doi.id}>
+            <tr key={doi.id} onClick={() => setViewingTeam(doi)} className="cursor-pointer">
               <td>
-                <div className={styles.teamRow} onClick={() => setViewingTeam(doi)}>
+                <div className={styles.teamRow} style={{ pointerEvents: 'none' }}>
                   <div className={styles.teamLogoMini}><TeamLogo logo={doi.logo} /></div>
                   <span style={{ fontWeight: 600 }}>{doi.ten}</span>
                 </div>
@@ -107,8 +107,8 @@ export default function TeamsTab({
               <td><span className={`${styles.statusBadge} ${styles.badgeSuccess}`}>Đã đăng ký</span></td>
               <td>
                 <div className={styles.actionBtnGroup}>
-                  <button className={styles.editBtnCompact} onClick={() => handleEditTeam(doi)}>Sửa</button>
-                  <button className={styles.deleteBtnCompact} onClick={() => handleDeleteTeam(doi.id)}>Xóa</button>
+                  <button className={styles.editBtnCompact} onClick={(e) => { e.stopPropagation(); handleEditTeam(doi); }}>Sửa</button>
+                  <button className={styles.deleteBtnCompact} onClick={(e) => { e.stopPropagation(); handleDeleteTeam(doi.id); }}>Xóa</button>
                 </div>
               </td>
             </tr>
