@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import styles from './LiveMatchCard.module.css';
 import { supabase } from '@/lib/supabase';
-import { calculateMatchMinute } from '@/lib/api';
+import { calculateMatchMinute, getDisplayTime } from '@/lib/api';
 import TeamLogo from './TeamLogo';
 import { SoccerBallIcon } from './AppIcons';
 
@@ -63,7 +63,12 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
             san: newDoc.san,
             batDauLuc: newDoc.bat_dau_luc,
             dangTamDung: newDoc.dang_tam_dung,
-            thoiGianDaQua: newDoc.thoi_gian_da_qua
+            thoiGianDaQua: newDoc.thoi_gian_da_qua,
+            currentPeriod: newDoc.current_period || 'HALF_1',
+            half1StartTime: newDoc.half1_start_time,
+            half1EndTime: newDoc.half1_end_time,
+            half2StartTime: newDoc.half2_start_time,
+            half2EndTime: newDoc.half2_end_time,
           }));
         }
       )
@@ -110,7 +115,7 @@ export default function LiveMatchCard({ tran, onClick }: Props) {
           {isLive && (
             <span className={styles.liveBadge}>
               <span className={styles.livePulse} />
-              {match.dangTamDung ? 'NGHỈ GIỮA HIỆP' : `LIVE · ${match.phut}'`}
+              {match.dangTamDung ? 'NGHỈ GIỮA HIỆP' : `LIVE · ${getDisplayTime(match, match.matchDurationMinutes || 90)}`}
             </span>
           )}
           {isSapDienRa && (

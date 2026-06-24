@@ -295,28 +295,38 @@ function TongQuanContent() {
     }
   };
   
-  // Find the closest date to display below matchweek if available
+  // Find the date range of the active week to display below matchweek
   const getActiveWeekDate = () => {
     const matchesInWeek = allMatchesList.filter((m: any) => getGenericRoundKey(m.vong) === selectedMatchweek);
-    if (matchesInWeek.length === 0) return '';
+    if (matchesInWeek.length === 0) return 'Chưa xếp lịch';
     
-    // Sort by date to get the first date of the week
-    matchesInWeek.sort((a: any, b: any) => {
-      const tA = new Date(a.batDauLuc || a.date).getTime();
-      const tB = new Date(b.batDauLuc || b.date).getTime();
-      return tA - tB;
-    });
+    const dates = matchesInWeek
+      .map((m: any) => m.date || m.batDauLuc)
+      .filter(Boolean)
+      .map((dStr: string) => {
+        try {
+          const d = new Date(dStr);
+          return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        } catch (e) {
+          return 0;
+        }
+      })
+      .filter((t: number) => t > 0)
+      .sort((a: number, b: number) => a - b);
 
-    const firstMatch = matchesInWeek[0];
-    if (!firstMatch.date) return '';
+    if (dates.length === 0) return 'Chưa xếp lịch';
 
-    try {
-      const dateObj = new Date(firstMatch.date);
+    const formatDateLabel = (timeMs: number) => {
+      const dateObj = new Date(timeMs);
       const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
       return `${dayNames[dateObj.getDay()]}, ${dateObj.getDate()} Thg ${dateObj.getMonth() + 1}`;
-    } catch (e) {
-      return firstMatch.date;
+    };
+
+    if (dates.length === 1) {
+      return formatDateLabel(dates[0]);
     }
+
+    return `${formatDateLabel(dates[0])} - ${formatDateLabel(dates[dates.length - 1])}`;
   };
 
   return (
@@ -396,17 +406,20 @@ function TongQuanContent() {
 
             {/* Dropdown Matchweek selector to match Premier League filters */}
             {uniqueRounds.length > 0 && (
-              <div className={styles.filterSelectWrapper}>
-                <select 
-                  className={styles.filterSelect}
-                  value={selectedMatchweek}
-                  onChange={(e) => setSelectedMatchweek(e.target.value)}
-                >
-                  {uniqueRounds.map((rn) => (
-                    <option key={rn} value={rn}>{rn}</option>
-                  ))}
-                </select>
-                <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: 600 }}>Chọn nhanh vòng:</span>
+                <div className={styles.filterSelectWrapper}>
+                  <select 
+                    className={styles.filterSelect}
+                    value={selectedMatchweek}
+                    onChange={(e) => setSelectedMatchweek(e.target.value)}
+                  >
+                    {uniqueRounds.map((rn) => (
+                      <option key={rn} value={rn}>{rn}</option>
+                    ))}
+                  </select>
+                  <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                </div>
               </div>
             )}
 

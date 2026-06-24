@@ -1150,19 +1150,59 @@ export default function QuanTriPage() {
     if (!match) return '00:00';
     if (match.trangThai === 'SAP_DIEN_RA') return '00:00';
     if (match.trangThai === 'KET_THUC') return `${String(match.phut || 90).padStart(2, '0')}:00`;
-    if (!match.batDauLuc) return `${String(match.phut || 0).padStart(2, '0')}:00`;
+
+    const matchDuration = schedulerConfig?.matchDurationMinutes || 90;
+    const halfDuration = matchDuration / 2;
 
     let diffInSeconds = 0;
-    if (match.dangTamDung) {
-      diffInSeconds = match.thoiGianDaQua || 0;
+
+    if (match.currentPeriod === 'HALF_1') {
+      if (!match.half1StartTime) return '00:00';
+      if (match.dangTamDung) {
+        diffInSeconds = match.thoiGianDaQua || 0;
+      } else {
+        const startTime = new Date(match.half1StartTime).getTime();
+        const now = new Date().getTime();
+        diffInSeconds = Math.floor((now - startTime) / 1000) + (match.thoiGianDaQua || 0);
+      }
+    } else if (match.currentPeriod === 'BREAK') {
+      if (match.half1StartTime && match.half1EndTime) {
+        const start = new Date(match.half1StartTime).getTime();
+        const end = new Date(match.half1EndTime).getTime();
+        diffInSeconds = Math.floor((end - start) / 1000);
+      } else {
+        diffInSeconds = halfDuration * 60;
+      }
+    } else if (match.currentPeriod === 'HALF_2') {
+      const half1Duration = (match.half1StartTime && match.half1EndTime) ? 
+        Math.floor((new Date(match.half1EndTime).getTime() - new Date(match.half1StartTime).getTime()) / 1000) : 
+        halfDuration * 60;
+
+      if (!match.half2StartTime) {
+        diffInSeconds = half1Duration;
+      } else if (match.dangTamDung) {
+        diffInSeconds = half1Duration + (match.thoiGianDaQua || 0);
+      } else {
+        const startTime = new Date(match.half2StartTime).getTime();
+        const now = new Date().getTime();
+        diffInSeconds = half1Duration + Math.floor((now - startTime) / 1000) + (match.thoiGianDaQua || 0);
+      }
+    } else if (match.currentPeriod === 'FINISHED') {
+      return `${String(match.phut || matchDuration).padStart(2, '0')}:00`;
     } else {
-      const startTime = new Date(match.batDauLuc).getTime();
-      const now = new Date().getTime();
-      diffInSeconds = Math.floor((now - startTime) / 1000) + (match.thoiGianDaQua || 0);
+      // Legacy fallback
+      if (!match.batDauLuc) return `${String(match.phut || 0).padStart(2, '0')}:00`;
+      if (match.dangTamDung) {
+        diffInSeconds = match.thoiGianDaQua || 0;
+      } else {
+        const startTime = new Date(match.batDauLuc).getTime();
+        const now = new Date().getTime();
+        diffInSeconds = Math.floor((now - startTime) / 1000) + (match.thoiGianDaQua || 0);
+      }
     }
 
     const m = Math.floor(diffInSeconds / 60);
-    const s = diffInSeconds % 60;
+    const s = Math.floor(diffInSeconds % 60);
     return `${String(m).padStart(2, '0')}:${String(s).padStart(2, '0')}`;
   };
 
@@ -1185,15 +1225,13 @@ export default function QuanTriPage() {
       setLiveMatches(prev => prev.map(match => {
         if (match.trangThai === 'DANG_DIEN_RA' && !match.dangTamDung) {
           const currentPhut = calculateMatchMinute(match, schedulerConfig?.matchDurationMinutes || 90);
-          if (currentPhut !== match.phut) {
-            return { ...match, phut: currentPhut };
-          }
+          return { ...match, phut: currentPhut };
         }
         return match;
       }));
     }, 1000); // Check every 1s for UI updates
     return () => clearInterval(interval);
-  }, []);
+  }, [schedulerConfig]);
 
 
 
@@ -1965,11 +2003,11 @@ export default function QuanTriPage() {
   const handleClearDraftSchedule = () => {
     showConfirm(
       "XÓA LỊCH THI ĐẤU",
-      "🔄 Bạn có chắc muốn xóa lịch? Tất cả các trận đấu nháp hoặc chưa diễn ra của giải đấu hiện tại sẽ bị xóa.",
+      "🔄 Bạn có chắc muốn xóa lịch? Tất cả các trận đấu của giải đấu hiện tại sẽ bị xóa.",
       async () => {
         try {
           showToast("🧹 Đang dọn dẹp lịch cũ...");
-          const draftMatches = liveMatches.filter(m => m.trangThai === 'DRAFT' || m.trangThai === 'SAP_DIEN_RA');
+          const draftMatches = liveMatches;
           const matchIds = draftMatches.map(m => m.id);
           if (matchIds.length > 0) {
             const chunkSize = 100;
@@ -1983,7 +2021,7 @@ export default function QuanTriPage() {
             }
           }
           await fetchData(selectedTournament?.id);
-          showToast('Đã xóa toàn bộ lịch nháp!');
+          showToast('Đã xóa toàn bộ lịch thi đấu!');
         } catch (err: any) {
           showToast("❌ Lỗi khi xóa lịch: " + err.message);
         }

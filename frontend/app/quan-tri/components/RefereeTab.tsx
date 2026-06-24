@@ -337,6 +337,7 @@ interface RefereeTabProps {
   handleActionSelect: (type: string, detail?: string, overrideParams?: any) => void;
   getMatchHalfState: (match: any) => '1_not_started' | '1_active' | 'half_time' | '2_active' | 'finished';
   handleDelayMatchSchedule?: (id: string, date: string, time: string, strategy: 'single' | 'shift' | 'postpone') => void;
+  schedulerConfig?: any;
 }
 
 export default function RefereeTab({
@@ -367,7 +368,8 @@ export default function RefereeTab({
   handleDeleteEvent,
   handleActionSelect,
   getMatchHalfState,
-  handleDelayMatchSchedule
+  handleDelayMatchSchedule,
+  schedulerConfig
 }: RefereeTabProps) {
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
@@ -798,7 +800,7 @@ export default function RefereeTab({
                     ${m.trangThai === 'DANG_DIEN_RA' ? styles.statusLive : ''}
                     ${m.trangThai === 'KET_THUC' ? styles.statusFinished : ''}
                   `}>
-                      {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - ${calculateMatchMinute(m, schedulerConfig?.matchDurationMinutes)}'` : `LIVE - ${calculateMatchMinute(m, schedulerConfig?.matchDurationMinutes)}'`) :
+                      {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - HT` : `LIVE - ${calculateMatchMinute(m, schedulerConfig?.matchDurationMinutes)}'`) :
                         m.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ'}
                     </span>
                     <div style={{

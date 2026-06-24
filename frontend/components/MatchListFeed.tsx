@@ -1,7 +1,7 @@
 import { useRouter } from 'next/navigation';
 import React from 'react';
 import styles from './MatchListFeed.module.css';
-import { calculateMatchMinute } from '@/lib/api';
+import { calculateMatchMinute, getDisplayTime } from '@/lib/api';
 import TeamLogo from './TeamLogo';
 import { ShieldIcon } from './AppIcons';
 
@@ -205,7 +205,7 @@ export default function MatchListFeed({ data, onMatchClick, tournamentType = 'le
                 }
               } else if (isLive) {
                  if (match.dangTamDung) matchStatus = 'HT';
-                 else matchStatus = `${calculateMatchMinute(match)}'`;
+                 else matchStatus = getDisplayTime(match, match.matchDurationMinutes || 90);
               } else if (isUpcoming) {
                  const timeStr = match.time ? match.time.substring(0, 5) : '--:--';
                  matchStatus = timeStr;

@@ -44,13 +44,13 @@ export class MatchesController {
     // Fetch match duration
     const { data: match } = await this.supabase
       .from('tran_dau')
-      .select('giai_dau_id, giai_dau(cai_dat)')
+      .select('giai_dau_id, giai_dau(rules_config)')
       .eq('id', matchId)
       .single();
       
     let matchDuration = 90;
-    if (match?.giai_dau?.cai_dat?.matchDurationMinutes) {
-      matchDuration = Number(match.giai_dau.cai_dat.matchDurationMinutes);
+    if (match?.giai_dau?.rules_config?.matchFormat?.minutesPerHalf) {
+      matchDuration = Number(match.giai_dau.rules_config.matchFormat.minutesPerHalf) * 2;
     }
     
     const halfDuration = matchDuration / 2;

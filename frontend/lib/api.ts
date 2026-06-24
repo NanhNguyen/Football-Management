@@ -201,7 +201,7 @@ export async function layDanhSachTranDau(giaiDauId?: string) {
       *,
       doi_nha:doi_nha_id(*, cau_thu(*)),
       doi_khach:doi_khach_id(*, cau_thu(*)),
-      giai_dau:giai_dau_id(ten),
+      giai_dau:giai_dau_id(ten, rules_config),
       su_kien(
         *,
         cau_thu:cau_thu_id(id, ten, so_ao),
@@ -249,6 +249,9 @@ export async function layDanhSachTranDau(giaiDauId?: string) {
     phut: m.phut,
     vong: m.vong,
     giaiDauTen: m.giai_dau?.ten,
+    matchDurationMinutes: m.giai_dau?.rules_config?.matchFormat?.minutesPerHalf
+      ? m.giai_dau.rules_config.matchFormat.minutesPerHalf * 2
+      : 90,
     trangThai: m.trang_thai,
     time: m.gio,
     date: m.ngay,
@@ -454,7 +457,7 @@ export async function layChiTietTranDau(id: string) {
         cau_thu:cau_thu_id(id, ten, so_ao),
         doi:doi_id(id, ten)
       ),
-      giai_dau:giai_dau_id(cai_dat)
+      giai_dau:giai_dau_id(rules_config)
     `)
     .eq('id', id)
     .single();
@@ -489,7 +492,9 @@ export async function layChiTietTranDau(id: string) {
     doiKhach: parseTeam(data.doi_khach),
     tyDoiNha: data.ty_doi_nha,
     tyDoiKhach: data.ty_doi_khach,
-    matchDurationMinutes: data.giai_dau?.cai_dat?.matchDurationMinutes || 90,
+    matchDurationMinutes: data.giai_dau?.rules_config?.matchFormat?.minutesPerHalf
+      ? data.giai_dau.rules_config.matchFormat.minutesPerHalf * 2
+      : 90,
     time: data.gio,
     date: data.ngay,
     san: data.san,
