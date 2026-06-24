@@ -5,6 +5,7 @@ import {
   IconReset, IconMedal, IconEvent, IconHome, IconAway, IconPlay, IconPause, IconCalendar, IconTrash
 } from './RefereeIcons';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
+import { getDisplayTime } from '@/lib/api';
 
 const desktopStyles = {
   wrapper: {
@@ -800,7 +801,7 @@ export default function RefereeTab({
                     ${m.trangThai === 'DANG_DIEN_RA' ? styles.statusLive : ''}
                     ${m.trangThai === 'KET_THUC' ? styles.statusFinished : ''}
                   `}>
-                      {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - HT` : `LIVE - ${calculateMatchMinute(m, schedulerConfig?.matchDurationMinutes)}'`) :
+                      {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - HT` : `LIVE - ${getDisplayTime(m, schedulerConfig?.matchDurationMinutes || 90)}`) :
                         m.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ'}
                     </span>
                     <div style={{

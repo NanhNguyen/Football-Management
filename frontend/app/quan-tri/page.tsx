@@ -1277,11 +1277,29 @@ export default function QuanTriPage() {
   const liveMatchesRef = useRef(liveMatches);
   const handleStartMatchRef = useRef(handleStartMatch);
   const handleAutoFinishMatchRef = useRef(handleAutoFinishMatch);
+  const handleAutoStartHalf2Ref = useRef<((matchId: string) => Promise<void>) | null>(null);
+
+  const handleAutoStartHalf2 = async (matchId: string) => {
+    const match = liveMatchesRef.current.find(m => m.id === matchId);
+    if (match) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`match_hiep_${matchId}`, '2_active');
+      }
+      try {
+        await startHalf2(matchId);
+        await fetchData(selectedTournament?.id);
+        showToast(`⏰ Tự động bắt đầu Hiệp 2 - ${match.doiNha?.ten} vs ${match.doiKhach?.ten}`);
+      } catch (e) {
+        // Silently fail - referee can still start manually
+      }
+    }
+  };
 
   useEffect(() => {
     liveMatchesRef.current = liveMatches;
     handleStartMatchRef.current = handleStartMatch;
     handleAutoFinishMatchRef.current = handleAutoFinishMatch;
+    handleAutoStartHalf2Ref.current = handleAutoStartHalf2;
   }, [liveMatches, handleStartMatch, handleAutoFinishMatch]);
 
   // Auto-Start and Auto-Finish polling logic
@@ -1303,7 +1321,24 @@ export default function QuanTriPage() {
         }
       });
 
-      // 2. Auto-Finish logic
+      // 2. Auto-Start Half 2 logic (after break duration elapsed)
+      const breakMinutes = schedulerConfig?.breakTimeMinutes ?? 15;
+      liveMatchesRef.current.forEach(match => {
+        if (
+          match.trangThai === 'DANG_DIEN_RA' &&
+          match.currentPeriod === 'BREAK' &&
+          match.half1EndTime
+        ) {
+          const half1EndMs = new Date(match.half1EndTime).getTime();
+          const breakElapsedMs = now.getTime() - half1EndMs;
+          const breakElapsedMinutes = breakElapsedMs / 60000;
+          if (breakElapsedMinutes >= breakMinutes) {
+            handleAutoStartHalf2Ref.current?.(match.id);
+          }
+        }
+      });
+
+      // 3. Auto-Finish logic
       const minutesPerHalf = selectedTournament?.rules_config?.matchFormat?.minutesPerHalf || 45;
       const totalDuration = minutesPerHalf * 2;
 
@@ -1317,7 +1352,7 @@ export default function QuanTriPage() {
       });
     }, 10000); // Check every 10 seconds
     return () => clearInterval(interval);
-  }, [selectedTournament]);
+  }, [selectedTournament, schedulerConfig]);
 
   const handleDelayMatchSchedule = async (matchId: string, newDate: string, newTime: string) => {
     const match = liveMatches.find(m => m.id === matchId);
