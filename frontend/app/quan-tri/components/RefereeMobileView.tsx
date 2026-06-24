@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getDisplayMinute } from '@/lib/api';
+import { getDisplayTime } from '@/lib/api';
 import TeamLogo from '@/components/TeamLogo';
 import {
   IconGoal,
@@ -21,6 +21,7 @@ export default function RefereeMobileView({ data, actions }: any) {
     uniqueRounds,
     starterCount,
     customEvents,
+    schedulerConfig,
   } = data;
 
   const {
@@ -1004,7 +1005,7 @@ export default function RefereeMobileView({ data, actions }: any) {
             : isFinished ? 'Trận đấu kết thúc' : 'Chưa bắt đầu'}
         </div>
         <div style={styles.timerClock}>
-          {getDisplayMinute(selectedMatch)}
+          {getDisplayTime(selectedMatch, schedulerConfig?.matchDurationMinutes || 90)}
         </div>
 
         {/* Controls Container */}

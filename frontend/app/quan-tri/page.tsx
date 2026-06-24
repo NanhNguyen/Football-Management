@@ -24,6 +24,7 @@ import {
   createTournament,
   layDanhSachTournamentTemplates,
   deleteTournament,
+  startHalf1,
   endHalf1,
   startHalf2,
   endMatchPeriod
@@ -1183,7 +1184,7 @@ export default function QuanTriPage() {
     const interval = setInterval(() => {
       setLiveMatches(prev => prev.map(match => {
         if (match.trangThai === 'DANG_DIEN_RA' && !match.dangTamDung) {
-          const currentPhut = calculateMatchMinute(match);
+          const currentPhut = calculateMatchMinute(match, schedulerConfig?.matchDurationMinutes || 90);
           if (currentPhut !== match.phut) {
             return { ...match, phut: currentPhut };
           }
@@ -1207,25 +1208,23 @@ export default function QuanTriPage() {
   const handleStartMatch = async (matchId: string) => {
     const match = liveMatches.find(m => m.id === matchId);
     if (match) {
-      const updated = {
-        ...match,
-        trangThai: 'DANG_DIEN_RA',
-        currentPeriod: 'HALF_1',
-        half1StartTime: new Date().toISOString()
-      };
       if (typeof window !== 'undefined') {
         localStorage.setItem(`match_hiep_${matchId}`, '1_active');
       }
-      await updateMatch(updated);
-      await fetchData(selectedTournament?.id);
-      showToast("Trận đấu đã bắt đầu!");
+      try {
+        await startHalf1(matchId);
+        await fetchData(selectedTournament?.id);
+        showToast("Trận đấu đã bắt đầu!");
+      } catch (e) {
+        showToast("Lỗi bắt đầu trận đấu");
+      }
     }
   };
 
   const handleAutoFinishMatch = async (matchId: string) => {
     const match = liveMatchesRef.current.find(m => m.id === matchId);
     if (match) {
-      const finalPhut = calculateMatchMinute(match);
+      const finalPhut = calculateMatchMinute(match, schedulerConfig?.matchDurationMinutes || 90);
       const updated = { ...match, trangThai: 'KET_THUC', phut: finalPhut };
       if (typeof window !== 'undefined') {
         localStorage.setItem(`match_hiep_${matchId}`, 'finished');
@@ -1272,7 +1271,7 @@ export default function QuanTriPage() {
 
       liveMatchesRef.current.forEach(match => {
         if (match.trangThai === 'DANG_DIEN_RA' && !match.dangTamDung) {
-          const currentPhut = calculateMatchMinute(match);
+          const currentPhut = calculateMatchMinute(match, schedulerConfig?.matchDurationMinutes || 90);
           if (currentPhut > totalDuration) {
             handleAutoFinishMatchRef.current(match.id);
           }

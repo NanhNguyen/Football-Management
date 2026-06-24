@@ -314,7 +314,7 @@ interface RefereeTabProps {
   uniqueGroups: string[];
   isKnockoutActive: boolean;
   filteredAndSortedRefereeMatches: any[];
-  calculateMatchMinute: (match: any) => number;
+  calculateMatchMinute: (match: any, matchDuration?: number) => number;
   formatMatchTime: (match: any) => string;
   selectedMatch: any;
   starterCount: number;
@@ -798,7 +798,7 @@ export default function RefereeTab({
                     ${m.trangThai === 'DANG_DIEN_RA' ? styles.statusLive : ''}
                     ${m.trangThai === 'KET_THUC' ? styles.statusFinished : ''}
                   `}>
-                      {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - ${calculateMatchMinute(m)}'` : `LIVE - ${calculateMatchMinute(m)}'`) :
+                      {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - ${calculateMatchMinute(m, schedulerConfig?.matchDurationMinutes)}'` : `LIVE - ${calculateMatchMinute(m, schedulerConfig?.matchDurationMinutes)}'`) :
                         m.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ'}
                     </span>
                     <div style={{

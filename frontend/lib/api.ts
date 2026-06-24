@@ -256,6 +256,11 @@ export async function layDanhSachTranDau(giaiDauId?: string) {
     batDauLuc: m.bat_dau_luc,
     dangTamDung: m.dang_tam_dung,
     thoiGianDaQua: m.thoi_gian_da_qua,
+    currentPeriod: m.current_period || 'HALF_1',
+    half1StartTime: m.half1_start_time,
+    half1EndTime: m.half1_end_time,
+    half2StartTime: m.half2_start_time,
+    half2EndTime: m.half2_end_time,
     suKien: (m.su_kien || []).map((sk: any) => ({
       id: sk.id,
       loai: sk.loai,
@@ -275,21 +280,68 @@ export async function layDanhSachTranDau(giaiDauId?: string) {
   }));
 }
 
-export function calculateMatchMinute(match: any) {
-  if (match.trangThai === 'SAP_DIEN_RA') return 0;
-  if (match.trangThai === 'KET_THUC') return match.phut;
-  if (!match.batDauLuc) return match.phut || 0;
+export function getDisplayTime(match: any, matchDuration: number = 90): string {
+  if (match.trangThai === 'SAP_DIEN_RA') return "0'";
+  if (match.trangThai === 'KET_THUC') return "FT";
 
-  if (match.dangTamDung) {
-    return Math.floor((match.thoiGianDaQua || 0) / 60);
+  const now = new Date().getTime();
+  const halfDuration = matchDuration / 2;
+
+  if (match.currentPeriod === 'HALF_1') {
+    if (!match.half1StartTime) return "0'";
+    const start = new Date(match.half1StartTime).getTime();
+    const elapsedSeconds = (now - start) / 1000;
+    
+    if (elapsedSeconds < halfDuration * 60) {
+      return `${Math.floor(elapsedSeconds / 60) + 1}'`;
+    } else {
+      const extraMinute = Math.floor((elapsedSeconds - halfDuration * 60) / 60) + 1;
+      return `${halfDuration} + ${extraMinute}'`;
+    }
   }
 
-  const startTime = new Date(match.batDauLuc).getTime();
-  const now = new Date().getTime();
-  const diffInSeconds = Math.floor((now - startTime) / 1000) + (match.thoiGianDaQua || 0);
-  const minute = Math.floor(diffInSeconds / 60) + 1; // Football minutes start at 1
+  if (match.currentPeriod === 'HALF_2') {
+    if (!match.half2StartTime) return `${halfDuration}'`;
+    const start = new Date(match.half2StartTime).getTime();
+    const elapsedSeconds = ((now - start) / 1000) + (halfDuration * 60);
+    
+    if (elapsedSeconds < matchDuration * 60) {
+      return `${Math.floor(elapsedSeconds / 60) + 1}'`;
+    } else {
+      const extraMinute = Math.floor((elapsedSeconds - matchDuration * 60) / 60) + 1;
+      return `${matchDuration} + ${extraMinute}'`;
+    }
+  }
 
-  return Math.min(minute, 120); // Cap at 120 just in case
+  if (match.currentPeriod === 'BREAK') {
+    return "HT";
+  }
+
+  return "0'";
+}
+
+export function calculateMatchMinute(match: any, matchDuration: number = 90) {
+  if (match.trangThai === 'SAP_DIEN_RA') return 0;
+  if (match.trangThai === 'KET_THUC') return match.phut || matchDuration;
+
+  const now = new Date().getTime();
+  const halfDuration = matchDuration / 2;
+
+  if (match.currentPeriod === 'HALF_1') {
+    if (!match.half1StartTime) return 0;
+    const start = new Date(match.half1StartTime).getTime();
+    const elapsedSeconds = (now - start) / 1000;
+    return Math.floor(elapsedSeconds / 60) + 1;
+  }
+
+  if (match.currentPeriod === 'HALF_2') {
+    if (!match.half2StartTime) return halfDuration;
+    const start = new Date(match.half2StartTime).getTime();
+    const elapsedSeconds = ((now - start) / 1000) + (halfDuration * 60);
+    return Math.floor(elapsedSeconds / 60) + 1;
+  }
+
+  return 0;
 }
 
 export async function updateMatch(match: any) {
@@ -309,6 +361,46 @@ export async function updateMatch(match: any) {
       thoi_gian_da_qua: match.thoiGianDaQua
     })
     .eq('id', match.id);
+}
+
+export async function startHalf1(matchId: string) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const res = await fetch(`${apiUrl}/api/matches/${matchId}/start-half1`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error("Failed to start half 1");
+  return await res.json();
+}
+
+export async function endHalf1(matchId: string) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const res = await fetch(`${apiUrl}/api/matches/${matchId}/end-half1`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error("Failed to end half 1");
+  return await res.json();
+}
+
+export async function startHalf2(matchId: string) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const res = await fetch(`${apiUrl}/api/matches/${matchId}/start-half2`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error("Failed to start half 2");
+  return await res.json();
+}
+
+export async function endMatchPeriod(matchId: string) {
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const res = await fetch(`${apiUrl}/api/matches/${matchId}/end-match`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' }
+  });
+  if (!res.ok) throw new Error("Failed to end match period");
+  return await res.json();
 }
 
 export async function addEvent(event: any) {
@@ -361,7 +453,8 @@ export async function layChiTietTranDau(id: string) {
         *,
         cau_thu:cau_thu_id(id, ten, so_ao),
         doi:doi_id(id, ten)
-      )
+      ),
+      giai_dau:giai_dau_id(cai_dat)
     `)
     .eq('id', id)
     .single();
@@ -396,12 +489,18 @@ export async function layChiTietTranDau(id: string) {
     doiKhach: parseTeam(data.doi_khach),
     tyDoiNha: data.ty_doi_nha,
     tyDoiKhach: data.ty_doi_khach,
+    matchDurationMinutes: data.giai_dau?.cai_dat?.matchDurationMinutes || 90,
     time: data.gio,
     date: data.ngay,
     san: data.san,
     batDauLuc: data.bat_dau_luc,
     dangTamDung: data.dang_tam_dung,
     thoiGianDaQua: data.thoi_gian_da_qua,
+    currentPeriod: data.current_period || 'HALF_1',
+    half1StartTime: data.half1_start_time,
+    half1EndTime: data.half1_end_time,
+    half2StartTime: data.half2_start_time,
+    half2EndTime: data.half2_end_time,
     suKien: (data.su_kien || []).sort((a: any, b: any) => a.phut - b.phut).map((sk: any) => ({
       id: sk.id,
       loai: sk.loai,
