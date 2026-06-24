@@ -228,25 +228,35 @@ export default function ScheduleClient({ groupedMatches }: Props) {
   const getActiveRoundDate = () => {
     const rawRounds = targetParsedRounds.map(r => r.rawRound);
     const matchesInRound = rawRounds.flatMap(raw => groupedMatches[raw] || []);
-    if (matchesInRound.length === 0) return '';
+    if (matchesInRound.length === 0) return 'Chưa xếp lịch';
 
-    matchesInRound.sort((a: any, b: any) => {
-      const tA = new Date(a.batDauLuc || a.date || 0).getTime();
-      const tB = new Date(b.batDauLuc || b.date || 0).getTime();
-      return tA - tB;
-    });
+    const dates = matchesInRound
+      .map((m: any) => m.date || m.batDauLuc)
+      .filter(Boolean)
+      .map((dStr: string) => {
+        try {
+          const d = new Date(dStr);
+          return new Date(d.getFullYear(), d.getMonth(), d.getDate()).getTime();
+        } catch (e) {
+          return 0;
+        }
+      })
+      .filter((t: number) => t > 0)
+      .sort((a: number, b: number) => a - b);
 
-    const firstMatch = matchesInRound[0];
-    const dateStr = firstMatch.date || firstMatch.batDauLuc;
-    if (!dateStr) return '';
+    if (dates.length === 0) return 'Chưa xếp lịch';
 
-    try {
-      const dateObj = new Date(dateStr);
+    const formatDateLabel = (timeMs: number) => {
+      const dateObj = new Date(timeMs);
       const dayNames = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
       return `${dayNames[dateObj.getDay()]}, ${dateObj.getDate()} Thg ${dateObj.getMonth() + 1}`;
-    } catch (e) {
-      return dateStr;
+    };
+
+    if (dates.length === 1) {
+      return formatDateLabel(dates[0]);
     }
+
+    return `${formatDateLabel(dates[0])} - ${formatDateLabel(dates[dates.length - 1])}`;
   };
 
   // Get selected raw round keys

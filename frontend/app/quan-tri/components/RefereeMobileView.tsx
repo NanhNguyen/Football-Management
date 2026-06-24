@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { getDisplayTime } from '@/lib/api';
 import TeamLogo from '@/components/TeamLogo';
 import {
   IconGoal,
@@ -20,6 +21,7 @@ export default function RefereeMobileView({ data, actions }: any) {
     uniqueRounds,
     starterCount,
     customEvents,
+    schedulerConfig,
   } = data;
 
   const {
@@ -708,22 +710,11 @@ export default function RefereeMobileView({ data, actions }: any) {
       return (
         <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
           <button
-            style={{ ...styles.controlButtonFull(selectedMatch.dangTamDung ? '#10b981' : 'var(--color-primary)'), flex: 1 }}
-            onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}
-          >
-            {selectedMatch.dangTamDung ? (
-              <><IconPlay size={18} color="#ffffff" /> Tiếp tục</>
-            ) : (
-              <><IconPause size={18} color="#ffffff" /> Tạm dừng</>
-            )}
-          </button>
-
-          <button
             style={{ ...styles.controlButtonFull('#f59e0b'), flex: 1 }}
             onClick={() => handlePauseMatch(selectedMatch.id)}
           >
             <IconPause size={18} color="#ffffff" />
-            Hết H1
+            Kết thúc Hiệp 1
           </button>
         </div>
       );
@@ -740,7 +731,7 @@ export default function RefereeMobileView({ data, actions }: any) {
             onClick={() => handleResumeMatch(selectedMatch.id)}
           >
             <IconPlay size={18} color="#ffffff" />
-            Bắt đầu hiệp 2
+            Bắt đầu Hiệp 2
           </button>
         </div>
       );
@@ -750,22 +741,11 @@ export default function RefereeMobileView({ data, actions }: any) {
       return (
         <div style={{ display: 'flex', gap: '8px', width: '100%' }}>
           <button
-            style={{ ...styles.controlButtonFull(selectedMatch.dangTamDung ? '#10b981' : 'var(--color-primary)'), flex: 1 }}
-            onClick={() => handleTemporaryPauseToggle(selectedMatch.id)}
-          >
-            {selectedMatch.dangTamDung ? (
-              <><IconPlay size={18} color="#ffffff" /> Tiếp tục</>
-            ) : (
-              <><IconPause size={18} color="#ffffff" /> Tạm dừng</>
-            )}
-          </button>
-
-          <button
             style={{ ...styles.controlButtonFull('#ef4444'), flex: 1 }}
             onClick={() => handleFinishMatch(selectedMatch.id)}
           >
             <IconStop size={18} color="#ffffff" />
-            Kết thúc
+            Kết thúc trận đấu
           </button>
         </div>
       );
@@ -1019,15 +999,13 @@ export default function RefereeMobileView({ data, actions }: any) {
 
         {/* Timer State & Clock */}
         <div style={styles.timerPeriod}>
-          {selectedMatch.trangThai === 'DANG_DIEN_RA'
-            ? `Hiệp ${selectedMatch.hiepHienTai || 1} ${selectedMatch.dangTamDung ? '(Tạm dừng)' : '(Đang đá)'}`
-            : isFinished
-              ? 'Trận đấu kết thúc'
-              : 'Chưa bắt đầu'
-          }
+          {selectedMatch.currentPeriod === 'HALF_1' ? 'Hiệp 1'
+            : selectedMatch.currentPeriod === 'BREAK' ? 'Nghỉ giữa hiệp'
+            : selectedMatch.currentPeriod === 'HALF_2' ? 'Hiệp 2'
+            : isFinished ? 'Trận đấu kết thúc' : 'Chưa bắt đầu'}
         </div>
         <div style={styles.timerClock}>
-          {formatMatchTime(selectedMatch)}
+          {getDisplayTime(selectedMatch, schedulerConfig?.matchDurationMinutes || 90)}
         </div>
 
         {/* Controls Container */}
@@ -1136,7 +1114,18 @@ export default function RefereeMobileView({ data, actions }: any) {
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
                   <span style={styles.timelineTime}>{ev.phut || 0}'</span>
                   <span style={styles.timelineIcon}>
-                    {ev.loai?.includes('GOAL') ? '⚽' : ev.loai?.includes('VANG') ? '🟨' : ev.loai?.includes('DO') ? '🟥' : ev.loai?.includes('SUB') || ev.loai?.includes('THAY') ? '🔄' : '📌'}
+                    {(() => {
+                      if (ev.loai?.includes('GOAL')) return '⚽';
+                      if (ev.loai?.includes('VANG')) return '🟨';
+                      if (ev.loai?.includes('DO')) return '🟥';
+                      if (ev.loai?.includes('SUB') || ev.loai?.includes('THAY')) return '🔄';
+                      if (ev.loai?.startsWith('CUSTOM_')) {
+                        const code = ev.loai.replace('CUSTOM_', '');
+                        const customEvt = customEvents?.find((e: any) => e.code === code);
+                        return customEvt?.icon || '📌';
+                      }
+                      return '📌';
+                    })()}
                   </span>
                   <span style={styles.timelineText}>
                     <strong>{ev.cauThu?.ten || 'Cầu thủ'}</strong> - {ev.moTa || ev.loai}

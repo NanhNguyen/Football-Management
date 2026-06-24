@@ -17,12 +17,11 @@ export const runAutoSchedule = async (
 
   showToast("Đang chuẩn bị cơ sở dữ liệu lịch đấu...");
 
-  // 1. Delete draft and scheduled matches (only those that are not started/live/finished)
+  // 1. Delete all matches of the tournament
   const { data: allCurrentMatches, error: fetchErr } = await supabase
     .from('tran_dau')
     .select('id')
-    .eq('giai_dau_id', selectedTournament?.id)
-    .in('trang_thai', ['DRAFT', 'SAP_DIEN_RA']);
+    .eq('giai_dau_id', selectedTournament?.id);
   if (fetchErr) throw fetchErr;
 
   if (allCurrentMatches && allCurrentMatches.length > 0) {

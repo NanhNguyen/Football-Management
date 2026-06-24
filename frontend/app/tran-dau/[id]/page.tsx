@@ -7,7 +7,7 @@ import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import TeamLogo from '@/components/TeamLogo';
 import styles from './page.module.css';
 import { supabase } from '@/lib/supabase';
-import { layChiTietTranDau, calculateMatchMinute } from '@/lib/api';
+import { layChiTietTranDau, calculateMatchMinute, getDisplayTime } from '@/lib/api';
 import { 
   ArrowLeftIcon, 
   SoccerBallIcon, 
@@ -54,7 +54,7 @@ export default function ChiTietTranDauPage() {
     if (!tran || tran.trangThai !== 'DANG_DIEN_RA' || tran.dangTamDung) return;
 
     const interval = setInterval(() => {
-      const currentPhut = calculateMatchMinute(tran);
+      const currentPhut = calculateMatchMinute(tran, tran.matchDurationMinutes || 90);
       if (currentPhut !== tran.phut) {
         setTran((prev: any) => prev ? { ...prev, phut: currentPhut } : null);
       }
@@ -175,7 +175,7 @@ export default function ChiTietTranDauPage() {
           {isLive && (
             <span className={styles.liveBadge}>
               <span className={styles.livePulse} />
-              {matchData.dangTamDung ? 'NGHỈ GIỮA HIỆP' : `LIVE · ${matchData.phut}'`}
+              {matchData.dangTamDung ? 'NGHỈ GIỮA HIỆP' : `LIVE · ${getDisplayTime(matchData, matchData.matchDurationMinutes)}`}
             </span>
           )}
           {isSapDienRa && (

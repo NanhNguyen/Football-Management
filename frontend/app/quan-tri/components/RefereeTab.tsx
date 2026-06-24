@@ -314,7 +314,7 @@ interface RefereeTabProps {
   uniqueGroups: string[];
   isKnockoutActive: boolean;
   filteredAndSortedRefereeMatches: any[];
-  calculateMatchMinute: (match: any) => number;
+  calculateMatchMinute: (match: any, matchDuration?: number) => number;
   formatMatchTime: (match: any) => string;
   selectedMatch: any;
   starterCount: number;
@@ -337,6 +337,7 @@ interface RefereeTabProps {
   handleActionSelect: (type: string, detail?: string, overrideParams?: any) => void;
   getMatchHalfState: (match: any) => '1_not_started' | '1_active' | 'half_time' | '2_active' | 'finished';
   handleDelayMatchSchedule?: (id: string, date: string, time: string, strategy: 'single' | 'shift' | 'postpone') => void;
+  schedulerConfig?: any;
 }
 
 export default function RefereeTab({
@@ -367,7 +368,8 @@ export default function RefereeTab({
   handleDeleteEvent,
   handleActionSelect,
   getMatchHalfState,
-  handleDelayMatchSchedule
+  handleDelayMatchSchedule,
+  schedulerConfig
 }: RefereeTabProps) {
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
@@ -460,7 +462,7 @@ export default function RefereeTab({
 
   const [quickAddState, setQuickAddState] = useState<{
     isOpen: boolean;
-    action: 'goal' | 'card' | 'sub';
+    action: 'goal' | 'card' | 'sub' | 'custom' | string;
     teamId: string;
     subType: string;
     playerId: string;
@@ -798,7 +800,7 @@ export default function RefereeTab({
                     ${m.trangThai === 'DANG_DIEN_RA' ? styles.statusLive : ''}
                     ${m.trangThai === 'KET_THUC' ? styles.statusFinished : ''}
                   `}>
-                      {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - ${calculateMatchMinute(m)}'` : `LIVE - ${calculateMatchMinute(m)}'`) :
+                      {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - HT` : `LIVE - ${calculateMatchMinute(m, schedulerConfig?.matchDurationMinutes)}'`) :
                         m.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ'}
                     </span>
                     <div style={{
@@ -1134,31 +1136,50 @@ export default function RefereeTab({
                     ) : (
                       <div className="ref-timeline-container">
                         {(() => {
-                          const chronologicalEvents = selectedMatch.suKien
-                            .slice()
-                            .sort((a: any, b: any) => a.phut - b.phut || a.id.localeCompare(b.id));
+                           const sortedEvents = selectedMatch.suKien ? selectedMatch.suKien.slice().sort((a: any, b: any) => a.phut - b.phut || a.id.localeCompare(b.id)) : [];
+                           let homeScore = 0;
+                           let awayScore = 0;
+                           const eventsWithScores = sortedEvents.map((sk: any) => {
+                             const isGoal = sk.loai?.startsWith('GOAL') || sk.loai === 'BAN_THANG';
+                             const isOwnGoal = sk.loai === 'GOAL_OG';
+                             const isCustom = sk.loai?.startsWith('CUSTOM_');
+                             let customScoreImpact: { enabled: boolean; value: number; side: 'own' | 'opponent' } | null = null;
 
-                          let homeScore = 0;
-                          let awayScore = 0;
-
-                          const eventsWithScores = chronologicalEvents.map((sk: any) => {
-                            const isGoal = sk.loai?.startsWith('GOAL') || sk.loai === 'BAN_THANG';
-                            const isOwnGoal = sk.loai === 'GOAL_OG';
-                            
-                            if (isGoal) {
-                              const isHomeScorer = sk.doiId === selectedMatch.doiNha?.id || sk.doi?.ten === selectedMatch.doiNha?.ten;
-                              if (isOwnGoal) {
-                                if (isHomeScorer) awayScore++; else homeScore++;
-                              } else {
-                                if (isHomeScorer) homeScore++; else awayScore++;
-                              }
-                            }
-                            
-                            return {
-                              ...sk,
-                              score: `${homeScore} - ${awayScore}`
-                            };
-                          });
+                             if (isCustom) {
+                               const code = sk.loai.replace('CUSTOM_', '');
+                               const customEvt = customEvents?.find((e: any) => e.code === code);
+                               if (customEvt && customEvt.score_impact?.enabled) {
+                                 customScoreImpact = {
+                                   enabled: true,
+                                   value: Number(customEvt.score_impact.value || 0),
+                                   side: customEvt.score_impact.side || 'own'
+                                 };
+                               }
+                             }
+                             
+                             if (isGoal) {
+                               const isHomeScorer = sk.doiId === selectedMatch.doiNha?.id || sk.doi?.ten === selectedMatch.doiNha?.ten;
+                               if (isOwnGoal) {
+                                 if (isHomeScorer) awayScore++; else homeScore++;
+                               } else {
+                                 if (isHomeScorer) homeScore++; else awayScore++;
+                               }
+                             } else if (isCustom && customScoreImpact) {
+                               const isHomeScorer = sk.doiId === selectedMatch.doiNha?.id || sk.doi?.ten === selectedMatch.doiNha?.ten;
+                               const value = customScoreImpact.value;
+                               const isOwn = customScoreImpact.side === 'own';
+                               if (isOwn) {
+                                 if (isHomeScorer) homeScore += value; else awayScore += value;
+                               } else {
+                                 if (isHomeScorer) awayScore += value; else homeScore += value;
+                               }
+                             }
+                             
+                             return {
+                               ...sk,
+                               score: `${homeScore} - ${awayScore}`
+                             };
+                           });
 
                           const listItems: any[] = [];
                           let htInserted = false;
@@ -1252,6 +1273,13 @@ export default function RefereeTab({
                             const isGoal = sk.loai?.startsWith('GOAL') || sk.loai === 'BAN_THANG';
                             const isOwnGoal = sk.loai === 'GOAL_OG';
                             const isSub = sk.loai === 'SUB' || sk.loai === 'THAY_NGUOI';
+                            const isCustom = sk.loai?.startsWith('CUSTOM_');
+                            let customIcon = '⚡';
+                            if (isCustom) {
+                              const code = sk.loai.replace('CUSTOM_', '');
+                              const customEvt = customEvents?.find((e: any) => e.code === code);
+                              customIcon = customEvt?.icon || '📌';
+                            }
 
                             const isHomeTeamEvent = isOwnGoal
                               ? !(sk.doiId === selectedMatch.doiNha?.id || sk.doi?.ten === selectedMatch.doiNha?.ten)
@@ -1306,7 +1334,7 @@ export default function RefereeTab({
                                       </>
                                     )
                                   ) : (
-                                    <span>{eventIconsMap[sk.loai] ?? '⚡'}</span>
+                                    <span>{isCustom ? customIcon : (eventIconsMap[sk.loai] ?? '⚡')}</span>
                                   )}
                                 </div>
 
@@ -1865,19 +1893,25 @@ export default function RefereeTab({
                 <label className="text-xs font-semibold text-slate-400">Loại sự kiện</label>
                 <select
                   className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
-                  value={quickAddState.action}
+                  value={quickAddState.action === 'custom' ? quickAddState.subType : quickAddState.action}
                   onChange={(e) => {
-                    const val = e.target.value as any;
+                    const val = e.target.value;
+                    const isCustom = customEvents.some((evt: any) => evt.code === val);
                     setQuickAddState(prev => ({ 
                       ...prev, 
-                      action: val, 
-                      subType: val === 'card' ? 'yellow' : val === 'goal' ? 'normal' : '' 
+                      action: isCustom ? 'custom' : val, 
+                      subType: isCustom ? val : (val === 'card' ? 'yellow' : val === 'goal' ? 'normal' : ''),
+                      playerId: '',
+                      subOutPlayerId: ''
                     }));
                   }}
                 >
                   <option value="goal">Bàn thắng</option>
                   <option value="card">Thẻ phạt</option>
                   <option value="sub">Thay người</option>
+                  {customEvents.map((evt: any) => (
+                    <option key={evt.code} value={evt.code}>{evt.name}</option>
+                  ))}
                 </select>
               </div>
 
@@ -1966,17 +2000,19 @@ export default function RefereeTab({
                         </div>
                       </>
                     ) : (
-                      <div className="flex flex-col gap-1.5">
-                        <label className="text-xs font-semibold text-slate-400">Cầu thủ thực hiện</label>
-                        <select
-                          className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
-                          value={quickAddState.playerId}
-                          onChange={(e) => setQuickAddState(prev => ({ ...prev, playerId: e.target.value }))}
-                        >
-                          <option value="">-- Chọn cầu thủ --</option>
-                          {allPlayers.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten}</option>)}
-                        </select>
-                      </div>
+                      !(quickAddState.action === 'custom' && customEvents.find((e: any) => e.code === quickAddState.subType)?.target_scope === 'none') && (
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-semibold text-slate-400">Cầu thủ thực hiện</label>
+                          <select
+                            className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                            value={quickAddState.playerId}
+                            onChange={(e) => setQuickAddState(prev => ({ ...prev, playerId: e.target.value }))}
+                          >
+                            <option value="">-- Chọn cầu thủ --</option>
+                            {allPlayers.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten}</option>)}
+                          </select>
+                        </div>
+                      )
                     )}
                   </div>
                 );
@@ -2001,10 +2037,19 @@ export default function RefereeTab({
                   const { starters, bench } = calculateCurrentRoster(team, selectedMatch.suKien, starterCount);
                   const allPlayers = [...starters, ...bench];
                   
-                  const targetPlayer = allPlayers.find((p: any) => p.id === quickAddState.playerId);
+                  const isCustom = quickAddState.action === 'custom';
+                  const customEvt = isCustom ? customEvents.find((e: any) => e.code === quickAddState.subType) : null;
+                  const requiresPlayer = isCustom ? (customEvt && customEvt.target_scope !== 'none') : true;
+
+                  const targetPlayer = allPlayers.find((p: any) => p.id === quickAddState.playerId) || { id: null, ten: 'Toàn Đội' };
                   
-                  if (!targetPlayer || !quickAddState.minute) {
-                    alert('Vui lòng chọn cầu thủ và điền phút thi đấu!');
+                  if (requiresPlayer && !quickAddState.playerId) {
+                    alert(quickAddState.action === 'sub' ? 'Vui lòng chọn cầu thủ vào sân!' : 'Vui lòng chọn cầu thủ thực hiện!');
+                    return;
+                  }
+
+                  if (!quickAddState.minute) {
+                    alert('Vui lòng điền phút thi đấu!');
                     return;
                   }
 

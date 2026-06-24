@@ -576,6 +576,7 @@ export default function AdminDesktopView(props: any) {
               setIsSelectingSubstitute={setIsSelectingSubstitute}
               handleActionSelect={handleActionSelect}
               getMatchHalfState={getMatchHalfState}
+              schedulerConfig={schedulerConfig}
             />
           )}
         </main>
