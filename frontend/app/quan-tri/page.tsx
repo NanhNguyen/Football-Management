@@ -265,6 +265,7 @@ export default function QuanTriPage() {
     endDate: '',
     matchDurationMinutes: 90,
     breakTimeMinutes: 15,
+    maxExtraTimeMinutes: 15,
     playDays: [
       { dayOfWeek: 1, enabled: false },
       { dayOfWeek: 2, enabled: false },
@@ -616,11 +617,13 @@ export default function QuanTriPage() {
           }
         }
 
+        const minutesPerHalf = currentTourney?.rules_config?.matchFormat?.minutesPerHalf || 45;
         const defaultSchedulerConfig = {
           startDate: currentTourney.ngay_bat_dau || '',
           endDate: '',
-          matchDurationMinutes: 90,
+          matchDurationMinutes: minutesPerHalf * 2,
           breakTimeMinutes: 15,
+          maxExtraTimeMinutes: 15,
           playDays: [
             { dayOfWeek: 1, enabled: false },
             { dayOfWeek: 2, enabled: false },
@@ -1278,6 +1281,7 @@ export default function QuanTriPage() {
   const handleStartMatchRef = useRef(handleStartMatch);
   const handleAutoFinishMatchRef = useRef(handleAutoFinishMatch);
   const handleAutoStartHalf2Ref = useRef<((matchId: string) => Promise<void>) | null>(null);
+  const handleAutoEndHalf1Ref = useRef<((matchId: string) => Promise<void>) | null>(null);
 
   const handleAutoStartHalf2 = async (matchId: string) => {
     const match = liveMatchesRef.current.find(m => m.id === matchId);
@@ -1295,11 +1299,28 @@ export default function QuanTriPage() {
     }
   };
 
+  const handleAutoEndHalf1 = async (matchId: string) => {
+    const match = liveMatchesRef.current.find(m => m.id === matchId);
+    if (match) {
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`match_hiep_${matchId}`, 'half_time');
+      }
+      try {
+        await endHalf1(matchId);
+        await fetchData(selectedTournament?.id);
+        showToast(`⏰ Tự động kết thúc Hiệp 1 - ${match.doiNha?.ten} vs ${match.doiKhach?.ten}`);
+      } catch (e) {
+        // Silently fail - referee can still end manually
+      }
+    }
+  };
+
   useEffect(() => {
     liveMatchesRef.current = liveMatches;
     handleStartMatchRef.current = handleStartMatch;
     handleAutoFinishMatchRef.current = handleAutoFinishMatch;
     handleAutoStartHalf2Ref.current = handleAutoStartHalf2;
+    handleAutoEndHalf1Ref.current = handleAutoEndHalf1;
   }, [liveMatches, handleStartMatch, handleAutoFinishMatch]);
 
   // Auto-Start and Auto-Finish polling logic
@@ -1321,7 +1342,26 @@ export default function QuanTriPage() {
         }
       });
 
-      // 2. Auto-Start Half 2 logic (after break duration elapsed)
+      // 2. Auto-End Half 1 logic (after halfDuration + maxExtraTime elapsed)
+      const matchDurationMinutes = schedulerConfig?.matchDurationMinutes || 90;
+      const halfDurationMinutes = matchDurationMinutes / 2;
+      const maxExtraTimeMinutes = schedulerConfig?.maxExtraTimeMinutes ?? 15;
+      liveMatchesRef.current.forEach(match => {
+        if (
+          match.trangThai === 'DANG_DIEN_RA' &&
+          match.currentPeriod === 'HALF_1' &&
+          match.half1StartTime &&
+          !match.dangTamDung
+        ) {
+          const half1StartMs = new Date(match.half1StartTime).getTime();
+          const elapsedMinutes = (now.getTime() - half1StartMs) / 60000;
+          if (elapsedMinutes >= halfDurationMinutes + maxExtraTimeMinutes) {
+            handleAutoEndHalf1Ref.current?.(match.id);
+          }
+        }
+      });
+
+      // 3. Auto-Start Half 2 logic (after break duration elapsed)
       const breakMinutes = schedulerConfig?.breakTimeMinutes ?? 15;
       liveMatchesRef.current.forEach(match => {
         if (
@@ -1338,14 +1378,17 @@ export default function QuanTriPage() {
         }
       });
 
-      // 3. Auto-Finish logic
-      const minutesPerHalf = selectedTournament?.rules_config?.matchFormat?.minutesPerHalf || 45;
-      const totalDuration = minutesPerHalf * 2;
-
+      // 4. Auto-Finish logic (end of Half 2 + maxExtraTime)
       liveMatchesRef.current.forEach(match => {
-        if (match.trangThai === 'DANG_DIEN_RA' && !match.dangTamDung) {
-          const currentPhut = calculateMatchMinute(match, schedulerConfig?.matchDurationMinutes || 90);
-          if (currentPhut > totalDuration) {
+        if (
+          match.trangThai === 'DANG_DIEN_RA' &&
+          match.currentPeriod === 'HALF_2' &&
+          match.half2StartTime &&
+          !match.dangTamDung
+        ) {
+          const half2StartMs = new Date(match.half2StartTime).getTime();
+          const elapsedMinutes = (now.getTime() - half2StartMs) / 60000;
+          if (elapsedMinutes >= halfDurationMinutes + maxExtraTimeMinutes) {
             handleAutoFinishMatchRef.current(match.id);
           }
         }
