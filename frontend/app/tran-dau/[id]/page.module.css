@@ -263,3 +263,107 @@
   color: var(--color-text-muted);
   font-weight: 500;
 }
+
+/* Template Timeline Styling */
+.templateContainer {
+  background: var(--color-surface, #0B1320);
+  border: 1px solid var(--color-border-light, #1e293b);
+  border-radius: 12px;
+  overflow: hidden;
+  padding: 8px 0;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+}
+
+.templateRow {
+  display: flex;
+  align-items: center;
+  padding: 14px 20px;
+  border-bottom: 1px solid var(--color-border-light, #1e293b);
+  min-height: 52px;
+}
+
+.templateRow:last-child {
+  border-bottom: none;
+}
+
+.templateMinCol {
+  width: 52px;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text-muted, #94a3b8);
+  flex-shrink: 0;
+}
+
+.templateHomeCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  text-align: right;
+  padding-right: 16px;
+}
+
+.templateCenterCol {
+  width: 104px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.templateAwayCol {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  text-align: left;
+  padding-left: 16px;
+}
+
+.playerName {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--color-text, #f1f5f9);
+}
+
+.playerSub {
+  font-size: 11px;
+  color: var(--color-text-muted, #64748b);
+  margin-top: 2px;
+}
+
+.templateScore {
+  font-family: 'Poppins', sans-serif;
+  font-size: 12px;
+  font-weight: 800;
+  color: var(--color-primary, #ffffff);
+  background: var(--color-primary-light, rgba(239, 68, 68, 0.15));
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  padding: 2px 8px;
+  border-radius: 4px;
+  min-width: 44px;
+  text-align: center;
+}
+
+.periodRow {
+  background: rgba(30, 41, 59, 0.2);
+  border-bottom: 1px solid var(--color-border-light, #1e293b);
+  border-top: 1px solid var(--color-border-light, #1e293b);
+}
+
+.periodRow:first-child {
+  border-top: none;
+}
+
+.periodScore {
+  font-family: 'Poppins', sans-serif;
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--color-text, #f1f5f9);
+  letter-spacing: 0.05em;
+  background: var(--color-border-light, #1e293b);
+  padding: 4px 12px;
+  border-radius: 6px;
+}

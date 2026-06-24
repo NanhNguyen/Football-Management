@@ -261,9 +261,15 @@ export async function layDanhSachTranDau(giaiDauId?: string) {
       loai: sk.loai,
       phut: sk.phut,
       moTa: sk.mo_ta,
-      cauThu: sk.cau_thu,
+      cauThu: sk.cau_thu ? {
+        id: sk.cau_thu.id,
+        ten: sk.cau_thu.ten,
+        soAo: sk.cau_thu.so_ao,
+        so_ao: sk.cau_thu.so_ao
+      } : null,
       doi: sk.doi,
       doiId: sk.doi_id,
+      teamId: sk.doi_id,
       cauThuId: sk.cau_thu_id
     }))
   }));
@@ -306,18 +312,26 @@ export async function updateMatch(match: any) {
 }
 
 export async function addEvent(event: any) {
-  const eventId = event.id || `event-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-  return await supabase
-    .from('su_kien')
-    .insert([{
-      id: eventId,
-      tran_dau_id: event.matchId,
-      doi_id: event.teamId,
-      cau_thu_id: event.playerId,
-      loai: event.type,
-      phut: event.minute,
-      mo_ta: event.description
-    }]);
+  const { data: { session } } = await supabase.auth.getSession();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const res = await fetch(`${apiUrl}/api/match-events`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+    },
+    body: JSON.stringify({
+      matchId: event.matchId,
+      teamId: event.teamId,
+      playerId: event.playerId,
+      type: event.type,
+      eventMinute: event.minute,
+      description: event.description
+    })
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.message || result.error || "Failed to add event");
+  return { data: result, error: null };
 }
 
 export async function updatePlayerGoals(playerId: string, increment: number) {
@@ -393,9 +407,15 @@ export async function layChiTietTranDau(id: string) {
       loai: sk.loai,
       phut: sk.phut,
       moTa: sk.mo_ta,
-      cauThu: sk.cau_thu,
+      cauThu: sk.cau_thu ? {
+        id: sk.cau_thu.id,
+        ten: sk.cau_thu.ten,
+        soAo: sk.cau_thu.so_ao,
+        so_ao: sk.cau_thu.so_ao
+      } : null,
       doi: sk.doi,
       doiId: sk.doi_id,
+      teamId: sk.doi_id,
       cauThuId: sk.cau_thu_id
     }))
   };
@@ -657,6 +677,7 @@ export async function layDuLieuKnockout(giaiDauId?: string) {
   ];
 
   const allMatches = await layDanhSachTranDau(giaiDauId);
+  const tournamentId = giaiDauId || (allMatches[0]?.giaiDauId) || 'default';
 
   const groupMatches = allMatches.filter(m => m.vong?.startsWith('Vòng bảng') || m.vong?.toLowerCase().includes('bảng'));
   const allGroupCompleted = groupMatches.length > 0 && groupMatches.every(m => m.trangThai === 'KET_THUC');
@@ -667,10 +688,10 @@ export async function layDuLieuKnockout(giaiDauId?: string) {
       if (!allGroupCompleted) {
         // Reset all knockout matches in DB to null
         const knockoutIds = [
-          'match-k16-1', 'match-k16-2', 'match-k16-3', 'match-k16-4', 'match-k16-5', 'match-k16-6', 'match-k16-7', 'match-k16-8',
-          'match-tk-1', 'match-tk-2', 'match-tk-3', 'match-tk-4',
-          'match-bk-1', 'match-bk-2',
-          'match-ck-1'
+          `match-${tournamentId}-k16-1`, `match-${tournamentId}-k16-2`, `match-${tournamentId}-k16-3`, `match-${tournamentId}-k16-4`, `match-${tournamentId}-k16-5`, `match-${tournamentId}-k16-6`, `match-${tournamentId}-k16-7`, `match-${tournamentId}-k16-8`,
+          `match-${tournamentId}-tk-1`, `match-${tournamentId}-tk-2`, `match-${tournamentId}-tk-3`, `match-${tournamentId}-tk-4`,
+          `match-${tournamentId}-bk-1`, `match-${tournamentId}-bk-2`,
+          `match-${tournamentId}-ck-1`
         ];
         for (const matchId of knockoutIds) {
           const dbMatch = allMatches.find(m => m.id === matchId);
@@ -698,7 +719,7 @@ export async function layDuLieuKnockout(giaiDauId?: string) {
           const teamAId = pair[0]?.id;
           const teamBId = pair[1]?.id;
           if (teamAId && teamBId) {
-            const matchId = `match-k16-${i + 1}`;
+            const matchId = `match-${tournamentId}-k16-${i + 1}`;
             const dbMatch = allMatches.find(m => m.id === matchId);
             if (dbMatch && (!dbMatch.doiNha?.id || !dbMatch.doiKhach?.id)) {
               await supabase
@@ -726,10 +747,10 @@ export async function layDuLieuKnockout(giaiDauId?: string) {
         // QF 3: Winner V1/8-5 vs Winner V1/8-6
         // QF 4: Winner V1/8-7 vs Winner V1/8-8
         for (let i = 0; i < 4; i++) {
-          const wA = getWinnerOfMatch(`match-k16-${i * 2 + 1}`);
-          const wB = getWinnerOfMatch(`match-k16-${i * 2 + 2}`);
+          const wA = getWinnerOfMatch(`match-${tournamentId}-k16-${i * 2 + 1}`);
+          const wB = getWinnerOfMatch(`match-${tournamentId}-k16-${i * 2 + 2}`);
           if (wA && wB) {
-            const matchId = `match-tk-${i + 1}`;
+            const matchId = `match-${tournamentId}-tk-${i + 1}`;
             const dbMatch = allMatches.find(m => m.id === matchId);
             if (dbMatch && (!dbMatch.doiNha?.id || !dbMatch.doiKhach?.id)) {
               await supabase
@@ -746,10 +767,10 @@ export async function layDuLieuKnockout(giaiDauId?: string) {
         // SF 1: Winner QF-1 vs Winner QF-2
         // SF 2: Winner QF-3 vs Winner QF-4
         for (let i = 0; i < 2; i++) {
-          const wA = getWinnerOfMatch(`match-tk-${i * 2 + 1}`);
-          const wB = getWinnerOfMatch(`match-tk-${i * 2 + 2}`);
+          const wA = getWinnerOfMatch(`match-${tournamentId}-tk-${i * 2 + 1}`);
+          const wB = getWinnerOfMatch(`match-${tournamentId}-tk-${i * 2 + 2}`);
           if (wA && wB) {
-            const matchId = `match-bk-${i + 1}`;
+            const matchId = `match-${tournamentId}-bk-${i + 1}`;
             const dbMatch = allMatches.find(m => m.id === matchId);
             if (dbMatch && (!dbMatch.doiNha?.id || !dbMatch.doiKhach?.id)) {
               await supabase
@@ -764,10 +785,10 @@ export async function layDuLieuKnockout(giaiDauId?: string) {
         }
 
         // Final: Winner SF-1 vs Winner SF-2
-        const wA = getWinnerOfMatch(`match-bk-1`);
-        const wB = getWinnerOfMatch(`match-bk-2`);
+        const wA = getWinnerOfMatch(`match-${tournamentId}-bk-1`);
+        const wB = getWinnerOfMatch(`match-${tournamentId}-bk-2`);
         if (wA && wB) {
-          const matchId = `match-ck-1`;
+          const matchId = `match-${tournamentId}-ck-1`;
           const dbMatch = allMatches.find(m => m.id === matchId);
           if (dbMatch && (!dbMatch.doiNha?.id || !dbMatch.doiKhach?.id)) {
             await supabase
@@ -834,7 +855,7 @@ export async function layDuLieuKnockout(giaiDauId?: string) {
     const tA = allGroupCompleted && pair[0] ? { id: pair[0].id, ten: pair[0].doi.ten, logo: pair[0].doi.logo } : { id: null, ...placeholder.A };
     const tB = allGroupCompleted && pair[1] ? { id: pair[1].id, ten: pair[1].doi.ten, logo: pair[1].doi.logo } : { id: null, ...placeholder.B };
 
-    const res = getMatchForTeams(`match-k16-${i + 1}`, tA, tB, defaultTimes16[i]);
+    const res = getMatchForTeams(`match-${tournamentId}-k16-${i + 1}`, tA, tB, defaultTimes16[i]);
     return {
       id: `k16-${i+1}`,
       ...res,
@@ -853,7 +874,7 @@ export async function layDuLieuKnockout(giaiDauId?: string) {
     const placeholderA = { id: null, ten: `Thắng Trận 1/8 [${i * 2 + 1}]`, logo: '⚔️' };
     const placeholderB = { id: null, ten: `Thắng Trận 1/8 [${i * 2 + 2}]`, logo: '⚔️' };
 
-    const res = getMatchForTeams(`match-tk-${i + 1}`, tA || placeholderA, tB || placeholderB, defaultTimesQF[i]);
+    const res = getMatchForTeams(`match-${tournamentId}-tk-${i + 1}`, tA || placeholderA, tB || placeholderB, defaultTimesQF[i]);
     return {
       id: `kqf-${i+1}`,
       ...res,
@@ -872,7 +893,7 @@ export async function layDuLieuKnockout(giaiDauId?: string) {
     const placeholderA = { id: null, ten: `Thắng Tứ Kết ${i * 2 + 1}`, logo: '🏆' };
     const placeholderB = { id: null, ten: `Thắng Tứ Kết ${i * 2 + 2}`, logo: '🏆' };
 
-    const res = getMatchForTeams(`match-bk-${i + 1}`, tA || placeholderA, tB || placeholderB, defaultTimesSF[i]);
+    const res = getMatchForTeams(`match-${tournamentId}-bk-${i + 1}`, tA || placeholderA, tB || placeholderB, defaultTimesSF[i]);
     return {
       id: `ksf-${i+1}`,
       ...res,
@@ -889,7 +910,7 @@ export async function layDuLieuKnockout(giaiDauId?: string) {
   const placeholderA = { id: null, ten: 'Thắng Bán Kết 1', logo: '👑' };
   const placeholderB = { id: null, ten: 'Thắng Bán Kết 2', logo: '👑' };
 
-  const res = getMatchForTeams(`match-ck-1`, tA || placeholderA, tB || placeholderB, "24/05 • 20:00");
+  const res = getMatchForTeams(`match-${tournamentId}-ck-1`, tA || placeholderA, tB || placeholderB, "24/05 • 20:00");
   const chungKet = [{
     id: `kf-1`,
     ...res,

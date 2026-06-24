@@ -230,47 +230,187 @@ export default function ChiTietTranDauPage() {
             <p style={{ color: '#64748b', fontWeight: 500, margin: 0 }}>Chưa có sự kiện nào được ghi nhận cho trận đấu này.</p>
           </div>
         ) : (
-          <div className={styles.timeline}>
-            {(matchData.suKien || []).map((sk: any) => {
-              const isHomeTeamEvent = sk.doi?.ten === matchData.doiNha?.ten;
-              return (
-                <div key={sk.id} className={`${styles.timelineItem} ${sk.loai === 'CHOT' ? styles.timelineItemDeal : ''}`}>
-                  <div className={styles.timelineDot} style={{ display: 'flex', alignItems: 'center', gap: '6px' }}>
-                    <span className={styles.timelineIcon} style={{ display: 'inline-flex' }}>{eventIcons[sk.loai] ?? <ZapIcon size={14} />}</span>
-                    <span className={styles.timelineMinute}>{sk.phut}&apos;</span>
-                  </div>
-                  <div className={styles.timelineContent}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                      <span className={styles.timelineLabel}>{eventLabels[sk.loai] ?? sk.loai}</span>
-                      {sk.doi?.ten && (
-                        <span style={{ fontSize: '11px', fontWeight: 700, color: isHomeTeamEvent ? '#fca5a5' : '#93c5fd', background: isHomeTeamEvent ? 'rgba(239, 68, 68, 0.2)' : 'rgba(59, 130, 246, 0.2)', padding: '2px 8px', borderRadius: '4px' }}>
-                          {sk.doi.ten}
-                        </span>
-                      )}
+          <div className={styles.templateContainer}>
+            {(() => {
+              const chronologicalEvents = (matchData.suKien || [])
+                .slice()
+                .sort((a: any, b: any) => a.phut - b.phut || a.id.localeCompare(b.id));
+
+              let homeScore = 0;
+              let awayScore = 0;
+
+              const eventsWithScores = chronologicalEvents.map((sk: any) => {
+                const isGoal = sk.loai?.startsWith('GOAL') || sk.loai === 'BAN_THANG';
+                const isOwnGoal = sk.loai === 'GOAL_OG';
+                
+                if (isGoal) {
+                  const isHomeScorer = sk.doiId === matchData.doiNha?.id || sk.doi?.ten === matchData.doiNha?.ten;
+                  if (isOwnGoal) {
+                    if (isHomeScorer) {
+                      awayScore++;
+                    } else {
+                      homeScore++;
+                    }
+                  } else {
+                    if (isHomeScorer) {
+                      homeScore++;
+                    } else {
+                      awayScore++;
+                    }
+                  }
+                }
+                
+                return {
+                  ...sk,
+                  score: `${homeScore} - ${awayScore}`
+                };
+              });
+
+              const listItems: any[] = [];
+              let htInserted = false;
+
+              eventsWithScores.forEach((sk: any) => {
+                if (sk.phut > 45 && !htInserted) {
+                  const goalsBeforeHT = eventsWithScores.filter((e: any) => e.phut <= 45 && (e.loai?.startsWith('GOAL') || e.loai === 'BAN_THANG'));
+                  let htHome = 0;
+                  let htAway = 0;
+                  goalsBeforeHT.forEach((g: any) => {
+                    const isHomeScorer = g.doiId === matchData.doiNha?.id || g.doi?.ten === matchData.doiNha?.ten;
+                    const isOG = g.loai === 'GOAL_OG';
+                    if (isOG) {
+                      if (isHomeScorer) htAway++; else htHome++;
+                    } else {
+                      if (isHomeScorer) htHome++; else htAway++;
+                    }
+                  });
+                  listItems.push({
+                    type: 'PERIOD',
+                    id: 'ht-row',
+                    label: 'HT',
+                    score: `${htHome} - ${htAway}`
+                  });
+                  htInserted = true;
+                }
+                listItems.push({
+                  type: 'EVENT',
+                  ...sk
+                });
+              });
+
+              if (!htInserted && (isKetThuc || (isLive && matchData.phut > 45))) {
+                const goalsBeforeHT = eventsWithScores.filter((e: any) => e.phut <= 45 && (e.loai?.startsWith('GOAL') || e.loai === 'BAN_THANG'));
+                let htHome = 0;
+                let htAway = 0;
+                goalsBeforeHT.forEach((g: any) => {
+                  const isHomeScorer = g.doiId === matchData.doiNha?.id || g.doi?.ten === matchData.doiNha?.ten;
+                  const isOG = g.loai === 'GOAL_OG';
+                  if (isOG) {
+                    if (isHomeScorer) htAway++; else htHome++;
+                  } else {
+                    if (isHomeScorer) htHome++; else htAway++;
+                  }
+                });
+                listItems.push({
+                  type: 'PERIOD',
+                  id: 'ht-row',
+                  label: 'HT',
+                  score: `${htHome} - ${htAway}`
+                });
+              }
+
+              if (isKetThuc) {
+                listItems.push({
+                  type: 'PERIOD',
+                  id: 'ft-row',
+                  label: 'FT',
+                  score: `${tyDoiNha} - ${tyDoiKhach}`
+                });
+              }
+
+              return listItems.map((item: any) => {
+                if (item.type === 'PERIOD') {
+                  return (
+                    <div key={item.id} className={`${styles.templateRow} ${styles.periodRow}`}>
+                      <div className={styles.templateMinCol}>{item.label}</div>
+                      <div className={styles.templateHomeCol}></div>
+                      <div className={styles.templateCenterCol}>
+                        <span className={styles.periodScore}>{item.score}</span>
+                      </div>
+                      <div className={styles.templateAwayCol}></div>
                     </div>
-                    {(sk.loai === 'SUB' || sk.loai === 'THAY_NGUOI') ? (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '6px' }}>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ color: '#10b981', fontWeight: 900, fontSize: '13px' }}>▲</span>
-                          <span style={{ fontWeight: 600, color: '#f8fafc' }}>{sk.cauThu?.ten || 'Không rõ'} (Vào sân)</span>
-                        </div>
-                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                          <span style={{ color: '#ef4444', fontWeight: 900, fontSize: '13px' }}>▼</span>
-                          <span style={{ color: '#64748b' }}>
-                            {sk.moTa ? sk.moTa.replace('Vào sân thay cho ', '') : 'Chưa rõ'} (Ra sân)
+                  );
+                }
+
+                const sk = item;
+                const isGoal = sk.loai?.startsWith('GOAL') || sk.loai === 'BAN_THANG';
+                const isOwnGoal = sk.loai === 'GOAL_OG';
+                const isSub = sk.loai === 'SUB' || sk.loai === 'THAY_NGUOI';
+
+                const isHomeTeamEvent = isOwnGoal
+                  ? !(sk.doiId === matchData.doiNha?.id || sk.doi?.ten === matchData.doiNha?.ten)
+                  : (sk.doiId === matchData.doiNha?.id || sk.doi?.ten === matchData.doiNha?.ten);
+
+                let actionDesc = sk.moTa || '';
+                if (sk.cauThu?.ten && actionDesc.startsWith(sk.cauThu.ten)) {
+                  actionDesc = actionDesc.substring(sk.cauThu.ten.length).trim();
+                  actionDesc = actionDesc.replace(/^[\s—\-\(\)]+/, '').replace(/[\(\)]+$/, '');
+                }
+                
+                if (actionDesc) {
+                  actionDesc = actionDesc.charAt(0).toUpperCase() + actionDesc.slice(1);
+                }
+
+                const playerDisplay = (
+                  <div>
+                    <div className={styles.playerName}>{sk.cauThu?.ten || 'Cầu thủ'}</div>
+                    {isSub ? (
+                      <div className={styles.playerSub}>
+                        <span style={{ color: '#10b981' }}>▲</span> Vào sân
+                        {sk.moTa && (
+                          <span style={{ marginLeft: '6px', color: '#64748b' }}>
+                            (ra: {sk.moTa.replace('Vào sân thay cho ', '')})
                           </span>
-                        </div>
+                        )}
                       </div>
                     ) : (
-                      <p className={styles.timelineDesc}>
-                        <strong>{sk.cauThu?.ten ?? 'Không rõ'}</strong>
-                        {sk.moTa && ` — ${sk.moTa}`}
-                      </p>
+                      actionDesc && <div className={styles.playerSub}>{actionDesc}</div>
                     )}
                   </div>
-                </div>
-              );
-            })}
+                );
+
+                return (
+                  <div key={sk.id} className={styles.templateRow}>
+                    <div className={styles.templateMinCol}>{sk.phut}&apos;</div>
+
+                    <div className={styles.templateHomeCol}>
+                      {isHomeTeamEvent && playerDisplay}
+                    </div>
+
+                    <div className={styles.templateCenterCol}>
+                      {isGoal ? (
+                        isHomeTeamEvent ? (
+                          <>
+                            <span style={{ display: 'flex' }}>{eventIcons[sk.loai] ?? <SoccerBallIcon size={14} />}</span>
+                            <span className={styles.templateScore}>{sk.score}</span>
+                          </>
+                        ) : (
+                          <>
+                            <span className={styles.templateScore}>{sk.score}</span>
+                            <span style={{ display: 'flex' }}>{eventIcons[sk.loai] ?? <SoccerBallIcon size={14} />}</span>
+                          </>
+                        )
+                      ) : (
+                        <span style={{ display: 'flex' }}>{eventIcons[sk.loai] ?? <ZapIcon size={14} />}</span>
+                      )}
+                    </div>
+
+                    <div className={styles.templateAwayCol}>
+                      {!isHomeTeamEvent && playerDisplay}
+                    </div>
+                  </div>
+                );
+              });
+            })()}
           </div>
         )}
       </div>

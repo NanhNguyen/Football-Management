@@ -23,6 +23,7 @@ export default function AdminMobileView(props: any) {
     tournamentType, tournamentVenueType, tournamentGroupLegs,
     tournamentLeagueRounds, standingsConfig, customEvents,
     teamSuggestion,
+    syncProgress,
     userRole
   } = data;
 
@@ -987,6 +988,29 @@ export default function AdminMobileView(props: any) {
                 Hủy
               </button>
             </div>
+          </div>
+        </div>
+      )}
+      {/* Sync Progress Card */}
+      {syncProgress && (
+        <div className={styles.syncProgressCard}>
+          <div className={styles.syncProgressHeader}>
+            <div className={styles.syncProgressSpinner}></div>
+            <span className={styles.syncProgressTitle}>Đang đồng bộ logo</span>
+          </div>
+          <div className={styles.syncProgressDetails}>
+            <span className={styles.syncProgressText}>
+              Đang xử lý: <strong>{syncProgress.currentTeamName || '...'}</strong>
+            </span>
+            <span className={styles.syncProgressPercent}>
+              {syncProgress.current}/{syncProgress.total}
+            </span>
+          </div>
+          <div className={styles.syncProgressBarBg}>
+            <div 
+              className={styles.syncProgressBarFill} 
+              style={{ width: `${(syncProgress.current / syncProgress.total) * 100}%` }}
+            />
           </div>
         </div>
       )}

@@ -329,6 +329,27 @@ export default function SchedulerTab({
                         </td>
                         <td>
                           <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                            {m.date && (
+                              <span style={{
+                                padding: '6px 8px',
+                                borderRadius: '6px',
+                                background: 'var(--color-surface-hover, #141C2A)',
+                                border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
+                                fontSize: '12px',
+                                fontWeight: 700,
+                                color: 'var(--color-primary, #00D4B8)',
+                                minWidth: '45px',
+                                textAlign: 'center',
+                                display: 'inline-block'
+                              }}>
+                                {(() => {
+                                  const d = new Date(m.date);
+                                  if (isNaN(d.getTime())) return '';
+                                  const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
+                                  return days[d.getDay()];
+                                })()}
+                              </span>
+                            )}
                             <input
                               type="date"
                               value={m.date}

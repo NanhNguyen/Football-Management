@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import TeamLogo from '@/components/TeamLogo';
 import {
   IconGoal, IconCard, IconCardDouble, IconSwap, IconTimer, IconStop,
-  IconReset, IconMedal, IconEvent, IconHome, IconAway, IconPlay, IconPause, IconCalendar
+  IconReset, IconMedal, IconEvent, IconHome, IconAway, IconPlay, IconPause, IconCalendar, IconTrash
 } from './RefereeIcons';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
 
@@ -321,7 +321,7 @@ interface RefereeTabProps {
   calculateCurrentRoster: (team: any, suKien: any[], limit: number) => { starters: any[]; bench: any[] };
   pendingSubOut: any;
   setPendingSubOut: (val: any) => void;
-  handleExecuteSubstitution: (inPlayer: any, outPlayer: any, teamId: string) => void;
+  handleExecuteSubstitution: (inPlayer: any, outPlayer: any, teamId: string, minute?: number | string) => void;
   setActivePlayerParams: (val: any) => void;
   activePlayerParams: any;
   customEvents: any[];
@@ -447,6 +447,7 @@ export default function RefereeTab({
     subType: string; // 'normal' | 'pen' | 'og' | 'yellow' | 'red'
     step: 1 | 2; // For substitution
     subOutPlayer?: any;
+    minute?: number | string;
   }>({
     isOpen: false,
     action: null,
@@ -456,6 +457,24 @@ export default function RefereeTab({
   });
 
   const [delayModalState, setDelayModalState] = useState<{ isOpen: boolean, date: string, time: string, strategy: 'single' | 'shift' | 'postpone' }>({ isOpen: false, date: '', time: '', strategy: 'single' });
+
+  const [quickAddState, setQuickAddState] = useState<{
+    isOpen: boolean;
+    action: 'goal' | 'card' | 'sub';
+    teamId: string;
+    subType: string;
+    playerId: string;
+    subOutPlayerId: string;
+    minute: string;
+  }>({
+    isOpen: false,
+    action: 'goal',
+    teamId: '',
+    subType: 'normal',
+    playerId: '',
+    subOutPlayerId: '',
+    minute: ''
+  });
 
   useEffect(() => {
     // When match changes, ensure wizard resets
@@ -486,16 +505,14 @@ export default function RefereeTab({
 
     if (wizardState.action === 'sub') {
       if (wizardState.step === 1) {
-        // Selected player to sub out. Now show bench to select player in.
-        setWizardState(prev => ({ ...prev, step: 2, subOutPlayer: player }));
+        setWizardState({ ...wizardState, step: 2, subOutPlayer: player });
       } else {
-        // Selected player to sub in. Execute sub.
-        handleExecuteSubstitution(player, wizardState.subOutPlayer, wizardState.teamId);
+        handleExecuteSubstitution(player, wizardState.subOutPlayer, wizardState.teamId, wizardState.minute);
         closeWizard();
       }
     } else {
       // Goal, Card, Custom
-      const overrideParams = {
+      const overrideParams: any = {
         matchId: selectedMatch.id,
         teamId: wizardState.teamId,
         player
@@ -503,7 +520,8 @@ export default function RefereeTab({
 
       let detail = wizardState.subType;
       if (wizardState.action === 'custom') detail = wizardState.customActionId || '';
-
+      
+      overrideParams.minute = wizardState.minute;
       handleActionSelect(wizardState.action!, detail, overrideParams);
       closeWizard();
     }
@@ -543,13 +561,13 @@ export default function RefereeTab({
                   <button
                     onClick={(e) => {
                       e.stopPropagation();
-                      if (!isRedCarded) {
+                      if (!isRedCarded && selectedMatch.trangThai !== 'KET_THUC') {
                         setActivePopover(isPopoverOpen ? null : { playerId: p.id, teamId: team.id });
                       }
                     }}
-                    disabled={isRedCarded}
+                    disabled={isRedCarded || selectedMatch.trangThai === 'KET_THUC'}
                     className="desktop-player-btn"
-                    style={desktopStyles.playerButton(isPopoverOpen, isRedCarded)}
+                    style={{ ...desktopStyles.playerButton(isPopoverOpen, isRedCarded), opacity: (isRedCarded || selectedMatch.trangThai === 'KET_THUC') ? 0.5 : 1, cursor: (isRedCarded || selectedMatch.trangThai === 'KET_THUC') ? 'not-allowed' : 'pointer' }}
                   >
                     #{p.soAo} {p.ten}
                   </button>
@@ -842,6 +860,105 @@ export default function RefereeTab({
           .desktop-timeline-row:hover .desktop-undo-btn {
             opacity: 1 !important;
           }
+          
+          /* Split Template Styles */
+          .ref-timeline-container {
+            display: flex;
+            flex-direction: column;
+            background: #080c14; /* Sleek dark card background */
+            border: 1px solid #1e293b;
+            border-radius: 12px;
+            overflow: hidden;
+            width: 100%;
+          }
+          .ref-timeline-row {
+            display: flex;
+            align-items: center;
+            padding: 10px 14px;
+            border-bottom: 1px solid #1e293b;
+            min-height: 52px;
+            position: relative;
+          }
+          .ref-timeline-row:last-child {
+            border-bottom: none;
+          }
+          .ref-min-col {
+            width: 44px;
+            font-size: 13px;
+            font-weight: 700;
+            color: #94a3b8;
+            flex-shrink: 0;
+          }
+          .ref-home-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            text-align: right;
+            padding-right: 12px;
+          }
+          .ref-center-col {
+            width: 96px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 8px;
+            flex-shrink: 0;
+          }
+          .ref-away-col {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: flex-start;
+            text-align: left;
+            padding-left: 12px;
+          }
+          .ref-player-name {
+            font-size: 13px;
+            font-weight: 700;
+            color: #f1f5f9;
+          }
+          .ref-player-sub {
+            font-size: 10px;
+            color: #64748b;
+            margin-top: 2px;
+          }
+          .ref-score-badge {
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            font-weight: 800;
+            color: #ffffff;
+            background: rgba(239, 68, 68, 0.15);
+            border: 1px solid rgba(239, 68, 68, 0.2);
+            padding: 1px 6px;
+            border-radius: 4px;
+            min-width: 38px;
+            text-align: center;
+          }
+          .ref-delete-col {
+            width: 32px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-shrink: 0;
+          }
+          .ref-period-row {
+            background: rgba(30, 41, 59, 0.2);
+            border-top: 1px solid #1e293b;
+            border-bottom: 1px solid #1e293b;
+          }
+          .ref-period-row:first-child {
+            border-top: none;
+          }
+          .ref-period-score {
+            font-family: 'Poppins', sans-serif;
+            font-size: 12px;
+            font-weight: 800;
+            color: #f1f5f9;
+            background: #1e293b;
+            padding: 2px 8px;
+            border-radius: 4px;
+          }
         `}</style>
           {isDesktop ? (
             /* DESKTOP VIEW (>= 1024px) */
@@ -990,58 +1107,239 @@ export default function RefereeTab({
                         ))}
                       </div>
                     )}
+
+                    {/* POST MATCH QUICK ADD */}
+                    {selectedMatch.trangThai === 'KET_THUC' && (
+                      <div style={{ display: 'flex', width: '100%', marginTop: '16px' }}>
+                        <button
+                          className="desktop-cta-btn"
+                          style={{ ...desktopStyles.ctaButton('var(--color-primary, #0F766E)'), width: '100%', background: '#f8fafc', color: 'var(--color-primary, #0F766E)', border: '2px dashed var(--color-primary, #0F766E)' }}
+                          onClick={() => setQuickAddState({ ...quickAddState, isOpen: true, teamId: selectedMatch.doiNha?.id || '' })}
+                        >
+                          <IconEvent size={18} /> NHẬP NHANH SỰ KIỆN (SAU TRẬN)
+                        </button>
+                      </div>
+                    )}
                   </div>
                 </div>
 
                 {/* TIMELINE */}
                 <div style={desktopStyles.timelineCard}>
                   <div style={desktopStyles.timelineHeader}>
-                    <IconEvent size={16} /> Diễn biễn trận đấu
+                    <IconEvent size={16} /> Diễn biến trận đấu
                   </div>
-                  <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  <div style={{ flex: 1, overflowY: 'auto' }}>
                     {(!selectedMatch.suKien || selectedMatch.suKien.length === 0) ? (
                       <div style={{ textAlign: 'center', color: '#94a3b8', fontStyle: 'italic', padding: '32px 0' }}>Chưa có sự kiện nào</div>
                     ) : (
-                      selectedMatch.suKien.slice().sort((a: any, b: any) => b.phut - a.phut || b.id.localeCompare(a.id)).map((ev: any) => {
-                        const isGoal = ev.loai.startsWith('GOAL');
-                        const isSub = ev.loai === 'THAY_NGUOI';
-                        const isYellow = ev.loai === 'THE_VANG';
-                        const isRed = ev.loai === 'THE_DO';
+                      <div className="ref-timeline-container">
+                        {(() => {
+                          const chronologicalEvents = selectedMatch.suKien
+                            .slice()
+                            .sort((a: any, b: any) => a.phut - b.phut || a.id.localeCompare(b.id));
 
-                        let iconStr = '⚡';
-                        if (isGoal) iconStr = '⚽ BÀN THẮNG';
-                        else if (isSub) iconStr = '🔄 THAY NGƯỜI';
-                        else if (isYellow) iconStr = '🟨 THẺ VÀNG';
-                        else if (isRed) iconStr = '🟥 THẺ ĐỎ';
+                          let homeScore = 0;
+                          let awayScore = 0;
 
-                        const teamShort = ev.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha?.ma || 'NHA' : selectedMatch.doiKhach?.ma || 'KHA';
+                          const eventsWithScores = chronologicalEvents.map((sk: any) => {
+                            const isGoal = sk.loai?.startsWith('GOAL') || sk.loai === 'BAN_THANG';
+                            const isOwnGoal = sk.loai === 'GOAL_OG';
+                            
+                            if (isGoal) {
+                              const isHomeScorer = sk.doiId === selectedMatch.doiNha?.id || sk.doi?.ten === selectedMatch.doiNha?.ten;
+                              if (isOwnGoal) {
+                                if (isHomeScorer) awayScore++; else homeScore++;
+                              } else {
+                                if (isHomeScorer) homeScore++; else awayScore++;
+                              }
+                            }
+                            
+                            return {
+                              ...sk,
+                              score: `${homeScore} - ${awayScore}`
+                            };
+                          });
 
-                        let descStr = '';
-                        if (isGoal) {
-                          descStr = `${ev.cauThu?.ten} (#${ev.cauThu?.soAo || '?'} ${teamShort}) đệm bóng cận thành`;
-                        } else if (isSub) {
-                          descStr = `(${teamShort}): ${ev.cauThuIn?.ten || 'Vào'} (vào) - ${ev.cauThu?.ten || 'Ra'} (ra)`;
-                        } else if (isYellow || isRed) {
-                          descStr = `${ev.cauThu?.ten} (#${ev.cauThu?.soAo || '?'} ${teamShort}) phạm lỗi`;
-                        } else {
-                          descStr = ev.moTa || ev.loai;
-                        }
+                          const listItems: any[] = [];
+                          let htInserted = false;
 
-                        return (
-                          <div key={ev.id} className="desktop-timeline-row" style={desktopStyles.timelineRow}>
-                            <div style={desktopStyles.timelineText}>
-                              {ev.phut || 0}' - {iconStr}: {descStr}
-                            </div>
-                            <button
-                              className="desktop-undo-btn"
-                              style={{ background: 'none', border: 'none', color: '#cbd5e1', cursor: 'pointer', opacity: 0, transition: 'opacity 0.15s, color 0.15s' }}
-                              onClick={() => handleDeleteEvent(ev.id, ev.loai, ev.diemCong, ev.isIndividual, ev.cauThuId)}
-                            >
-                              ✕
-                            </button>
-                          </div>
-                        )
-                      })
+                          eventsWithScores.forEach((sk: any) => {
+                            if (sk.phut > 45 && !htInserted) {
+                              const goalsBeforeHT = eventsWithScores.filter((e: any) => e.phut <= 45 && (e.loai?.startsWith('GOAL') || e.loai === 'BAN_THANG'));
+                              let htHome = 0;
+                              let htAway = 0;
+                              goalsBeforeHT.forEach((g: any) => {
+                                const isHomeScorer = g.doiId === selectedMatch.doiNha?.id || g.doi?.ten === selectedMatch.doiNha?.ten;
+                                const isOG = g.loai === 'GOAL_OG';
+                                if (isOG) {
+                                  if (isHomeScorer) htAway++; else htHome++;
+                                } else {
+                                  if (isHomeScorer) htHome++; else htAway++;
+                                }
+                              });
+                              listItems.push({
+                                type: 'PERIOD',
+                                id: 'ht-row',
+                                label: 'HT',
+                                score: `${htHome} - ${htAway}`
+                              });
+                              htInserted = true;
+                            }
+                            listItems.push({
+                              type: 'EVENT',
+                              ...sk
+                            });
+                          });
+
+                          if (!htInserted && (selectedMatch.trangThai === 'KET_THUC' || (selectedMatch.trangThai === 'DANG_DIEN_RA' && selectedMatch.phut > 45))) {
+                            const goalsBeforeHT = eventsWithScores.filter((e: any) => e.phut <= 45 && (e.loai?.startsWith('GOAL') || e.loai === 'BAN_THANG'));
+                            let htHome = 0;
+                            let htAway = 0;
+                            goalsBeforeHT.forEach((g: any) => {
+                              const isHomeScorer = g.doiId === selectedMatch.doiNha?.id || g.doi?.ten === selectedMatch.doiNha?.ten;
+                              const isOG = g.loai === 'GOAL_OG';
+                              if (isOG) {
+                                if (isHomeScorer) htAway++; else htHome++;
+                              } else {
+                                if (isHomeScorer) htHome++; else htAway++;
+                              }
+                            });
+                            listItems.push({
+                              type: 'PERIOD',
+                              id: 'ht-row',
+                              label: 'HT',
+                              score: `${htHome} - ${htAway}`
+                            });
+                          }
+
+                          if (selectedMatch.trangThai === 'KET_THUC') {
+                            listItems.push({
+                              type: 'PERIOD',
+                              id: 'ft-row',
+                              label: 'FT',
+                              score: `${selectedMatch.tyNha ?? 0} - ${selectedMatch.tyKhach ?? 0}`
+                            });
+                          }
+
+                          const eventIconsMap: Record<string, string> = {
+                            'BAN_THANG': '⚽',
+                            'GOAL_NORMAL': '⚽',
+                            'GOAL_PEN': '⚽',
+                            'GOAL_OG': '⚽',
+                            'THE_VANG': '🟨',
+                            'THE_DO': '🟥',
+                            'THAY_NGUOI': '🔄',
+                            'SUB': '🔄',
+                            'CARD': '🟨',
+                          };
+
+                          return listItems.map((item: any) => {
+                            if (item.type === 'PERIOD') {
+                              return (
+                                <div key={item.id} className="ref-timeline-row ref-period-row">
+                                  <div className="ref-min-col">{item.label}</div>
+                                  <div className="ref-home-col"></div>
+                                  <div className="ref-center-col">
+                                    <span className="ref-period-score">{item.score}</span>
+                                  </div>
+                                  <div className="ref-away-col"></div>
+                                  <div className="ref-delete-col"></div>
+                                </div>
+                              );
+                            }
+
+                            const sk = item;
+                            const isGoal = sk.loai?.startsWith('GOAL') || sk.loai === 'BAN_THANG';
+                            const isOwnGoal = sk.loai === 'GOAL_OG';
+                            const isSub = sk.loai === 'SUB' || sk.loai === 'THAY_NGUOI';
+
+                            const isHomeTeamEvent = isOwnGoal
+                              ? !(sk.doiId === selectedMatch.doiNha?.id || sk.doi?.ten === selectedMatch.doiNha?.ten)
+                              : (sk.doiId === selectedMatch.doiNha?.id || sk.doi?.ten === selectedMatch.doiNha?.ten);
+
+                            let actionDesc = sk.moTa || '';
+                            if (sk.cauThu?.ten && actionDesc.startsWith(sk.cauThu.ten)) {
+                              actionDesc = actionDesc.substring(sk.cauThu.ten.length).trim();
+                              actionDesc = actionDesc.replace(/^[\s—\-\(\)]+/, '').replace(/[\(\)]+$/, '');
+                            }
+
+                            const playerDisplay = (
+                              <div>
+                                <div className="ref-player-name">
+                                  {sk.cauThu?.ten || 'Cầu thủ'}
+                                  {sk.cauThu?.soAo && <span style={{ color: '#94a3b8', marginLeft: '4px', fontSize: '11px' }}>(#{sk.cauThu.soAo})</span>}
+                                </div>
+                                {isSub ? (
+                                  <div className="ref-player-sub">
+                                    <span style={{ color: '#10b981' }}>▲</span> Vào sân
+                                    {sk.moTa && (
+                                      <span style={{ marginLeft: '4px', color: '#64748b' }}>
+                                        (ra: {sk.moTa.replace('Vào sân thay cho ', '')})
+                                      </span>
+                                    )}
+                                  </div>
+                                ) : (
+                                  actionDesc && <div className="ref-player-sub">{actionDesc}</div>
+                                )}
+                              </div>
+                            );
+
+                            return (
+                              <div key={sk.id} className="ref-timeline-row">
+                                <div className="ref-min-col">{sk.phut}&apos;</div>
+
+                                <div className="ref-home-col">
+                                  {isHomeTeamEvent && playerDisplay}
+                                </div>
+
+                                <div className="ref-center-col">
+                                  {isGoal ? (
+                                    isHomeTeamEvent ? (
+                                      <>
+                                        <span>{eventIconsMap[sk.loai] ?? '⚽'}</span>
+                                        <span className="ref-score-badge">{sk.score}</span>
+                                      </>
+                                    ) : (
+                                      <>
+                                        <span className="ref-score-badge">{sk.score}</span>
+                                        <span>{eventIconsMap[sk.loai] ?? '⚽'}</span>
+                                      </>
+                                    )
+                                  ) : (
+                                    <span>{eventIconsMap[sk.loai] ?? '⚡'}</span>
+                                  )}
+                                </div>
+
+                                <div className="ref-away-col">
+                                  {!isHomeTeamEvent && playerDisplay}
+                                </div>
+
+                                <div className="ref-delete-col">
+                                  <button
+                                    className="desktop-undo-btn"
+                                    style={{
+                                      background: 'none',
+                                      border: 'none',
+                                      color: '#ef4444',
+                                      cursor: 'pointer',
+                                      opacity: 0.7,
+                                      transition: 'opacity 0.15s, color 0.15s',
+                                      padding: '4px',
+                                      display: 'flex',
+                                      alignItems: 'center',
+                                      justifyContent: 'center'
+                                    }}
+                                    onClick={() => handleDeleteEvent(sk.id, sk.loai, sk.diemCong, sk.isIndividual, sk.cauThuId)}
+                                    title="Xóa sự kiện"
+                                  >
+                                    <IconTrash size={15} />
+                                  </button>
+                                </div>
+                              </div>
+                            );
+                          });
+                        })()}
+                      </div>
                     )}
                   </div>
                 </div>
@@ -1169,8 +1467,8 @@ export default function RefereeTab({
                   <button
                     className={`${styles.hugeActionBtn} ${styles.hugeActionGoal}`}
                     onClick={() => openWizard('goal')}
-                    disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC'}
-                    style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC') ? 0.5 : 1 }}
+                    disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
+                    style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA') ? 0.5 : 1 }}
                   >
                     <span className={styles.hugeActionIcon} style={{ display: 'flex', justifyContent: 'center' }}><IconGoal size={40} /></span>
                     <span>Bàn thắng</span>
@@ -1180,8 +1478,8 @@ export default function RefereeTab({
                     <button
                       className={`${styles.hugeActionBtn} ${styles.hugeActionCard}`}
                       onClick={() => openWizard('card')}
-                      disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC'}
-                      style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC') ? 0.5 : 1 }}
+                      disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
+                      style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA') ? 0.5 : 1 }}
                     >
                       <span className={styles.hugeActionIcon} style={{ display: 'flex', justifyContent: 'center' }}><IconCardDouble size={40} /></span>
                       <span>Thẻ phạt</span>
@@ -1190,8 +1488,8 @@ export default function RefereeTab({
                     <button
                       className={`${styles.hugeActionBtn} ${styles.hugeActionSub}`}
                       onClick={() => openWizard('sub')}
-                      disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC'}
-                      style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA' && selectedMatch.trangThai !== 'KET_THUC') ? 0.5 : 1 }}
+                      disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
+                      style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA') ? 0.5 : 1 }}
                     >
                       <span className={styles.hugeActionIcon} style={{ display: 'flex', justifyContent: 'center' }}><IconSwap size={40} /></span>
                       <span>Thay người</span>
@@ -1203,13 +1501,22 @@ export default function RefereeTab({
                 {(customEvents.length > 0 || selectedMatch.trangThai === 'KET_THUC') && (
                   <div className={styles.mobileSecondaryActionArea}>
                     {selectedMatch.trangThai === 'KET_THUC' && (
-                      <button
-                        className={styles.secondaryActionBtn}
-                        onClick={() => openWizard('motm', 'normal')}
-                        style={{ gridColumn: '1 / -1', background: '#faf5ff', borderColor: '#c084fc', color: '#7e22ce', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                      >
-                        <IconMedal size={20} /> Bầu xuất sắc nhất (MOTM)
-                      </button>
+                      <>
+                        <button
+                          className={styles.secondaryActionBtn}
+                          onClick={() => setQuickAddState({ ...quickAddState, isOpen: true, teamId: selectedMatch.doiNha?.id || '' })}
+                          style={{ gridColumn: '1 / -1', background: '#f3f4f6', borderColor: '#9ca3af', color: '#1f2937', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: 700, padding: '16px', borderStyle: 'dashed' }}
+                        >
+                          <IconEvent size={20} /> NHẬP NHANH SỰ KIỆN (SAU TRẬN)
+                        </button>
+                        <button
+                          className={styles.secondaryActionBtn}
+                          onClick={() => openWizard('motm', 'normal')}
+                          style={{ gridColumn: '1 / -1', background: '#faf5ff', borderColor: '#c084fc', color: '#7e22ce', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                        >
+                          <IconMedal size={20} /> Bầu xuất sắc nhất (MOTM)
+                        </button>
+                      </>
                     )}
                     {customEvents.map((evt) => (
                       <button
@@ -1242,9 +1549,19 @@ export default function RefereeTab({
                             </span>
                             <button
                               className={styles.consoleUndoBtn}
+                              style={{
+                                color: '#ef4444',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                padding: '4px',
+                                border: 'none',
+                                background: 'none'
+                              }}
                               onClick={() => handleDeleteEvent(ev.id, ev.loai, ev.diemCong, ev.isIndividual, ev.cauThuId)}
+                              title="Xóa sự kiện"
                             >
-                              ✕
+                              <IconTrash size={16} />
                             </button>
                           </div>
                         );
@@ -1294,6 +1611,19 @@ export default function RefereeTab({
                 >
                   <IconAway size={16} /> {selectedMatch.doiKhach?.ten}
                 </button>
+              </div>
+            )}
+
+            {wizardState.action !== 'motm' && (
+              <div style={{ padding: '0 20px', marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+                <label style={{ fontSize: '14px', fontWeight: 600, color: '#475569', minWidth: '100px' }}>Phút thi đấu:</label>
+                <input 
+                  type="number" 
+                  placeholder={selectedMatch.trangThai === 'DANG_DIEN_RA' ? String(selectedMatch.phut || 0) : 'Ví dụ: 45'}
+                  value={wizardState.minute || ''}
+                  onChange={e => setWizardState(prev => ({...prev, minute: e.target.value}))}
+                  style={{ flex: 1, padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '16px' }}
+                />
               </div>
             )}
 
@@ -1499,6 +1829,206 @@ export default function RefereeTab({
                   Xác nhận lùi
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* QUICK ADD MODAL */}
+      {quickAddState.isOpen && selectedMatch && (
+        <div className="fixed inset-0 bg-[#050810]/85 backdrop-blur-md z-[1000] flex flex-col justify-end md:justify-center md:items-center p-0 md:p-4 animate-fade-in" onClick={() => setQuickAddState(prev => ({ ...prev, isOpen: false }))}>
+          <div className="w-full max-w-md mx-auto rounded-t-2xl md:rounded-2xl bg-[#0b1320] border-t md:border border-slate-800 p-6 shadow-2xl flex flex-col text-slate-200" onClick={e => e.stopPropagation()}>
+            <div className="flex justify-between items-center pb-4 border-b border-slate-800 mb-6">
+              <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
+                📝 Nhập sự kiện bổ sung (Sau trận)
+              </h3>
+              <button className="text-slate-400 hover:text-slate-200 text-lg font-semibold cursor-pointer" onClick={() => setQuickAddState(prev => ({ ...prev, isOpen: false }))}>✕</button>
+            </div>
+            
+            <div className="flex flex-col gap-4">
+              {/* TEAM SELECT */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-400">Đội bóng</label>
+                <select
+                  className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                  value={quickAddState.teamId}
+                  onChange={(e) => setQuickAddState(prev => ({ ...prev, teamId: e.target.value, playerId: '', subOutPlayerId: '' }))}
+                >
+                  <option value="">-- Chọn đội bóng --</option>
+                  <option value={selectedMatch.doiNha?.id}>{selectedMatch.doiNha?.ten}</option>
+                  <option value={selectedMatch.doiKhach?.id}>{selectedMatch.doiKhach?.ten}</option>
+                </select>
+              </div>
+
+              {/* ACTION TYPE */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-400">Loại sự kiện</label>
+                <select
+                  className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                  value={quickAddState.action}
+                  onChange={(e) => {
+                    const val = e.target.value as any;
+                    setQuickAddState(prev => ({ 
+                      ...prev, 
+                      action: val, 
+                      subType: val === 'card' ? 'yellow' : val === 'goal' ? 'normal' : '' 
+                    }));
+                  }}
+                >
+                  <option value="goal">Bàn thắng</option>
+                  <option value="card">Thẻ phạt</option>
+                  <option value="sub">Thay người</option>
+                </select>
+              </div>
+
+              {quickAddState.action === 'card' && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-slate-400">Loại thẻ</label>
+                  <select
+                    className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                    value={quickAddState.subType}
+                    onChange={(e) => setQuickAddState(prev => ({ ...prev, subType: e.target.value }))}
+                  >
+                    <option value="yellow">Thẻ vàng 🟨</option>
+                    <option value="red">Thẻ đỏ 🟥</option>
+                  </select>
+                </div>
+              )}
+
+              {quickAddState.action === 'goal' && (
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-xs font-semibold text-slate-400">Chi tiết bàn thắng</label>
+                  <select
+                    className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                    value={quickAddState.subType}
+                    onChange={(e) => setQuickAddState(prev => ({ ...prev, subType: e.target.value }))}
+                  >
+                    <option value="normal">Bình thường</option>
+                    <option value="pen">Penalty</option>
+                    <option value="og">Phản lưới nhà</option>
+                  </select>
+                </div>
+              )}
+
+              {/* MINUTE */}
+              <div className="flex flex-col gap-1.5">
+                <label className="text-xs font-semibold text-slate-400">Phút thi đấu</label>
+                <input
+                  type="number"
+                  min="1"
+                  max="120"
+                  placeholder="Ví dụ: 90"
+                  className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors"
+                  value={quickAddState.minute}
+                  onChange={(e) => setQuickAddState(prev => ({ ...prev, minute: e.target.value }))}
+                />
+              </div>
+
+              {/* PLAYERS */}
+              {(() => {
+                const team = quickAddState.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha : selectedMatch.doiKhach;
+                if (!team) {
+                  return (
+                    <div className="text-xs text-slate-400 italic bg-[#141d2f]/50 border border-dashed border-slate-800 rounded-xl p-4 text-center mt-2">
+                      Vui lòng chọn đội bóng trước để chọn danh sách cầu thủ.
+                    </div>
+                  );
+                }
+                const { starters, bench } = calculateCurrentRoster(team, selectedMatch.suKien, starterCount);
+                const allPlayers = [...starters, ...bench];
+
+                return (
+                  <div className="flex flex-col gap-4">
+                    {quickAddState.action === 'sub' ? (
+                      <>
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-semibold text-slate-400">Cầu thủ ra sân</label>
+                          <select
+                            className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                            value={quickAddState.subOutPlayerId}
+                            onChange={(e) => setQuickAddState(prev => ({ ...prev, subOutPlayerId: e.target.value }))}
+                          >
+                            <option value="">-- Chọn cầu thủ ra sân --</option>
+                            {starters.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten}</option>)}
+                          </select>
+                        </div>
+
+                        <div className="flex flex-col gap-1.5">
+                          <label className="text-xs font-semibold text-slate-400">Cầu thủ vào sân</label>
+                          <select
+                            className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                            value={quickAddState.playerId}
+                            onChange={(e) => setQuickAddState(prev => ({ ...prev, playerId: e.target.value }))}
+                          >
+                            <option value="">-- Chọn cầu thủ vào sân --</option>
+                            {bench.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten}</option>)}
+                          </select>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex flex-col gap-1.5">
+                        <label className="text-xs font-semibold text-slate-400">Cầu thủ thực hiện</label>
+                        <select
+                          className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                          value={quickAddState.playerId}
+                          onChange={(e) => setQuickAddState(prev => ({ ...prev, playerId: e.target.value }))}
+                        >
+                          <option value="">-- Chọn cầu thủ --</option>
+                          {allPlayers.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten}</option>)}
+                        </select>
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
+            </div>
+
+            <div className="flex flex-col-reverse md:flex-row md:justify-end gap-3 mt-8 pt-4 border-t border-slate-800">
+              <button 
+                className="w-full md:w-auto px-6 py-2.5 rounded-xl font-semibold text-sm border border-slate-700 hover:bg-slate-800 text-slate-300 transition-colors cursor-pointer text-center" 
+                onClick={() => setQuickAddState(prev => ({ ...prev, isOpen: false, minute: '', playerId: '', subOutPlayerId: '' }))}
+              >
+                Hủy bỏ
+              </button>
+              <button 
+                className="w-full md:w-auto px-6 py-2.5 rounded-xl font-bold text-sm bg-[#00D4B8] hover:bg-[#00bda3] text-[#080C10] transition-colors cursor-pointer text-center" 
+                onClick={() => {
+                  const team = quickAddState.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha : selectedMatch.doiKhach;
+                  if (!team) {
+                    alert('Vui lòng chọn đội bóng!');
+                    return;
+                  }
+                  const { starters, bench } = calculateCurrentRoster(team, selectedMatch.suKien, starterCount);
+                  const allPlayers = [...starters, ...bench];
+                  
+                  const targetPlayer = allPlayers.find((p: any) => p.id === quickAddState.playerId);
+                  
+                  if (!targetPlayer || !quickAddState.minute) {
+                    alert('Vui lòng chọn cầu thủ và điền phút thi đấu!');
+                    return;
+                  }
+
+                  if (quickAddState.action === 'sub') {
+                    const outPlayer = starters.find((p: any) => p.id === quickAddState.subOutPlayerId);
+                    if (!outPlayer) {
+                      alert('Vui lòng chọn cầu thủ ra sân!');
+                      return;
+                    }
+                    handleExecuteSubstitution(targetPlayer, outPlayer, team.id, quickAddState.minute);
+                  } else {
+                    handleActionSelect(quickAddState.action, quickAddState.subType, {
+                      matchId: selectedMatch.id,
+                      teamId: quickAddState.teamId,
+                      player: targetPlayer,
+                      minute: quickAddState.minute
+                    });
+                  }
+                  
+                  setQuickAddState(prev => ({ ...prev, isOpen: false, minute: '', playerId: '', subOutPlayerId: '' }));
+                }}
+              >
+                Xác nhận lưu
+              </button>
             </div>
           </div>
         </div>

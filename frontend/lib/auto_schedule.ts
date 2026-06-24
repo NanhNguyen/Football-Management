@@ -157,22 +157,22 @@ export const runAutoSchedule = async (
     if (roundNameLower.includes('vòng 1/8')) {
       const trMatch = roundNameLower.match(/trận\s+(\d+)/);
       if (trMatch) {
-        matchId = `match-k16-${trMatch[1]}`;
+        matchId = `match-${selectedTournament.id}-k16-${trMatch[1]}`;
       }
     } else if (roundNameLower.includes('tứ kết')) {
       const trMatch = roundNameLower.match(/trận\s+(\d+)/);
       if (trMatch) {
-        matchId = `match-tk-${trMatch[1]}`;
+        matchId = `match-${selectedTournament.id}-tk-${trMatch[1]}`;
       }
     } else if (roundNameLower.includes('bán kết')) {
       const trMatch = roundNameLower.match(/trận\s+(\d+)/);
       if (trMatch) {
-        matchId = `match-bk-${trMatch[1]}`;
+        matchId = `match-${selectedTournament.id}-bk-${trMatch[1]}`;
       }
     } else if (roundNameLower.includes('chung kết') && !roundNameLower.includes('tranh hạng ba') && !roundNameLower.includes('hạng ba')) {
-      matchId = `match-ck-1`;
+      matchId = `match-${selectedTournament.id}-ck-1`;
     } else if (roundNameLower.includes('tranh hạng ba') || roundNameLower.includes('hạng ba')) {
-      matchId = `match-th3-1`;
+      matchId = `match-${selectedTournament.id}-th3-1`;
     }
 
     return {

@@ -8,7 +8,8 @@ import {
   IconPause,
   IconStop,
   IconReset,
-  IconCalendar
+  IconCalendar,
+  IconTrash
 } from './RefereeIcons';
 
 export default function RefereeMobileView({ data, actions }: any) {
@@ -37,6 +38,7 @@ export default function RefereeMobileView({ data, actions }: any) {
     handleTemporaryPauseToggle,
     getMatchHalfState,
     handleDelayMatchSchedule,
+    handleDeleteEvent,
   } = actions;
 
   const parseVongDetails = (vongStr: string = '') => {
@@ -105,6 +107,7 @@ export default function RefereeMobileView({ data, actions }: any) {
     subOutPlayer?: any;
     subType?: string;
     requiresPlayer?: boolean;
+    minute?: number | string;
   } | null>(null);
 
   const [delayModalState, setDelayModalState] = useState<{ isOpen: boolean, date: string, time: string, strategy: 'single' | 'shift' | 'postpone' }>({ isOpen: false, date: '', time: '', strategy: 'single' });
@@ -809,26 +812,27 @@ export default function RefereeMobileView({ data, actions }: any) {
 
       try {
         if (type === 'goal') {
-          await handleActionSelect('goal', 'normal', { teamId, matchId: selectedMatch.id, player });
+          await handleActionSelect('goal', 'normal', { teamId, matchId: selectedMatch.id, player, minute: activeWizard.minute });
           setActiveWizard(null);
         } else if (type === 'yellow') {
-          await handleActionSelect('card', 'yellow', { teamId, matchId: selectedMatch.id, player });
+          await handleActionSelect('card', 'yellow', { teamId, matchId: selectedMatch.id, player, minute: activeWizard.minute });
           setActiveWizard(null);
         } else if (type === 'red') {
-          await handleActionSelect('card', 'red', { teamId, matchId: selectedMatch.id, player });
+          await handleActionSelect('card', 'red', { teamId, matchId: selectedMatch.id, player, minute: activeWizard.minute });
           setActiveWizard(null);
         } else if (type === 'custom') {
-          await handleActionSelect('custom', activeWizard.subType, { teamId, matchId: selectedMatch.id, player });
+          await handleActionSelect('custom', activeWizard.subType, { teamId, matchId: selectedMatch.id, player, minute: activeWizard.minute });
           setActiveWizard(null);
         } else if (type === 'sub') {
           if (step === 1) {
             setActiveWizard({
+              ...activeWizard,
               type: 'sub',
               step: 2,
               subOutPlayer: player
             });
           } else {
-            await handleExecuteSubstitution(player, subOutPlayer, teamId);
+            await handleExecuteSubstitution(player, subOutPlayer, teamId, activeWizard.minute);
             setActiveWizard(null);
           }
         }
@@ -843,7 +847,7 @@ export default function RefereeMobileView({ data, actions }: any) {
       try {
         if (type === 'custom') {
           // Send a dummy player since requires_player is false
-          await handleActionSelect('custom', activeWizard.subType, { teamId, matchId: selectedMatch.id, player: { id: null, ten: 'Toàn Đội' } });
+          await handleActionSelect('custom', activeWizard.subType, { teamId, matchId: selectedMatch.id, player: { id: null, ten: 'Toàn Đội' }, minute: activeWizard.minute });
           setActiveWizard(null);
         }
       } catch (e) {
@@ -886,6 +890,17 @@ export default function RefereeMobileView({ data, actions }: any) {
               Đội bóng: {activeTeam?.ten} (Thay {subOutPlayer?.ten} ra)
             </div>
           )}
+
+          <div style={{ padding: '0 16px', marginTop: '16px', display: 'flex', alignItems: 'center', gap: '12px' }}>
+            <label style={{ fontSize: '14px', fontWeight: 600, color: '#475569', minWidth: '90px' }}>Phút thi đấu:</label>
+            <input 
+              type="number" 
+              placeholder={selectedMatch.trangThai === 'DANG_DIEN_RA' ? String(selectedMatch.phut || 0) : 'Ví dụ: 45'}
+              value={activeWizard.minute || ''}
+              onChange={e => setActiveWizard({...activeWizard, minute: e.target.value} as any)}
+              style={{ flex: 1, padding: '10px 12px', border: '1px solid #cbd5e1', borderRadius: '8px', fontSize: '16px', backgroundColor: '#fff' }}
+            />
+          </div>
 
           {/* Player List or Apply Button */}
           {isCustomNoPlayer ? (
@@ -1117,14 +1132,35 @@ export default function RefereeMobileView({ data, actions }: any) {
         <ul style={styles.timelineList}>
           {selectedMatch.suKien && selectedMatch.suKien.length > 0 ? (
             selectedMatch.suKien.slice().sort((a: any, b: any) => b.phut - a.phut).map((ev: any) => (
-              <li key={ev.id} style={styles.timelineItem}>
-                <span style={styles.timelineTime}>{ev.phut || 0}'</span>
-                <span style={styles.timelineIcon}>
-                  {ev.loai?.includes('GOAL') ? '⚽' : ev.loai?.includes('VANG') ? '🟨' : ev.loai?.includes('DO') ? '🟥' : ev.loai?.includes('SUB') || ev.loai?.includes('THAY') ? '🔄' : '📌'}
-                </span>
-                <span style={styles.timelineText}>
-                  <strong>{ev.cauThu?.ten || 'Cầu thủ'}</strong> - {ev.moTa || ev.loai}
-                </span>
+              <li key={ev.id} style={{ ...styles.timelineItem, display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                  <span style={styles.timelineTime}>{ev.phut || 0}'</span>
+                  <span style={styles.timelineIcon}>
+                    {ev.loai?.includes('GOAL') ? '⚽' : ev.loai?.includes('VANG') ? '🟨' : ev.loai?.includes('DO') ? '🟥' : ev.loai?.includes('SUB') || ev.loai?.includes('THAY') ? '🔄' : '📌'}
+                  </span>
+                  <span style={styles.timelineText}>
+                    <strong>{ev.cauThu?.ten || 'Cầu thủ'}</strong> - {ev.moTa || ev.loai}
+                  </span>
+                </div>
+                <button
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    color: '#ef4444',
+                    cursor: 'pointer',
+                    opacity: 0.8,
+                    padding: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    borderRadius: '4px',
+                    flexShrink: 0
+                  }}
+                  onClick={() => handleDeleteEvent(ev.id, ev.loai, ev.diemCong, ev.isIndividual, ev.cauThuId)}
+                  title="Xóa sự kiện"
+                >
+                  <IconTrash size={16} />
+                </button>
               </li>
             ))
           ) : (

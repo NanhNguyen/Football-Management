@@ -169,6 +169,7 @@ export default function QuanTriPage() {
   });
   const [teamSuggestion, setTeamSuggestion] = useState<{ name: string; logo: string; id: number } | null>(null);
   const [isSyncingLogos, setIsSyncingLogos] = useState(false);
+  const [syncProgress, setSyncProgress] = useState<{ current: number; total: number; currentTeamName: string } | null>(null);
 
   const handleTeamNameBlur = async (name: string) => {
     if (!name || name.trim().length < 3) return;
@@ -194,11 +195,14 @@ export default function QuanTriPage() {
   const handleBulkSyncLogos = async () => {
     if (!selectedTournament?.id) return;
     try {
-      setToast({ message: `Đang đồng bộ logo đội bóng...`, visible: true });
       setIsSyncingLogos(true);
+      setSyncProgress({ current: 0, total: teams.length, currentTeamName: '' });
 
       let count = 0;
+      let idx = 0;
       for (const team of teams) {
+        idx++;
+        setSyncProgress({ current: idx, total: teams.length, currentTeamName: team.ten });
         try {
           const res = await fetch(`https://www.thesportsdb.com/api/v1/json/3/searchteams.php?t=${encodeURIComponent(team.ten)}`);
           if (!res.ok) continue;
@@ -226,6 +230,7 @@ export default function QuanTriPage() {
       showToast("❌ Lỗi khi đồng bộ logo");
     } finally {
       setIsSyncingLogos(false);
+      setSyncProgress(null);
     }
   };
 
@@ -1217,19 +1222,37 @@ export default function QuanTriPage() {
     }
   };
 
-  // Refs for auto-start polling
+  const handleAutoFinishMatch = async (matchId: string) => {
+    const match = liveMatchesRef.current.find(m => m.id === matchId);
+    if (match) {
+      const finalPhut = calculateMatchMinute(match);
+      const updated = { ...match, trangThai: 'KET_THUC', phut: finalPhut };
+      if (typeof window !== 'undefined') {
+        localStorage.setItem(`match_hiep_${matchId}`, 'finished');
+      }
+      await updateMatch(updated);
+      await fetchData(selectedTournament?.id, true);
+      showToast(`Trận đấu giữa ${match.doiNha?.ten} và ${match.doiKhach?.ten} đã tự động kết thúc!`);
+    }
+  };
+
+  // Refs for auto-start and auto-finish polling
   const liveMatchesRef = useRef(liveMatches);
   const handleStartMatchRef = useRef(handleStartMatch);
+  const handleAutoFinishMatchRef = useRef(handleAutoFinishMatch);
 
   useEffect(() => {
     liveMatchesRef.current = liveMatches;
     handleStartMatchRef.current = handleStartMatch;
-  }, [liveMatches, handleStartMatch]);
+    handleAutoFinishMatchRef.current = handleAutoFinishMatch;
+  }, [liveMatches, handleStartMatch, handleAutoFinishMatch]);
 
-  // Auto-Start polling logic
+  // Auto-Start and Auto-Finish polling logic
   useEffect(() => {
     const interval = setInterval(() => {
       const now = new Date();
+      
+      // 1. Auto-Start logic
       liveMatchesRef.current.forEach(match => {
         if (match.trangThai === 'SAP_DIEN_RA' && match.date && match.time) {
           const [hours, minutes] = match.time.split(':').map(Number);
@@ -1242,9 +1265,22 @@ export default function QuanTriPage() {
           }
         }
       });
+
+      // 2. Auto-Finish logic
+      const minutesPerHalf = selectedTournament?.rules_config?.matchFormat?.minutesPerHalf || 45;
+      const totalDuration = minutesPerHalf * 2;
+
+      liveMatchesRef.current.forEach(match => {
+        if (match.trangThai === 'DANG_DIEN_RA' && !match.dangTamDung) {
+          const currentPhut = calculateMatchMinute(match);
+          if (currentPhut > totalDuration) {
+            handleAutoFinishMatchRef.current(match.id);
+          }
+        }
+      });
     }, 10000); // Check every 10 seconds
     return () => clearInterval(interval);
-  }, []);
+  }, [selectedTournament]);
 
   const handleDelayMatchSchedule = async (matchId: string, newDate: string, newTime: string) => {
     const match = liveMatches.find(m => m.id === matchId);
@@ -1478,20 +1514,21 @@ export default function QuanTriPage() {
     }
   };
 
-  const handleExecuteSubstitution = async (inPlayer: any, outPlayer: any, teamId: string) => {
+  const handleExecuteSubstitution = async (inPlayer: any, outPlayer: any, teamId: string, minute?: string | number) => {
     if (!selectedMatch) return;
     try {
       const description = `Vào sân thay cho ${outPlayer.ten}`;
+      const eventMinute = minute !== undefined && minute !== '' ? Number(minute) : (selectedMatch.phut || 0);
       const res = await addEvent({
         matchId: selectedMatch.id,
         type: 'SUB',
-        minute: selectedMatch.phut || 0,
+        minute: eventMinute,
         teamId: teamId,
         playerId: inPlayer.id,
         description: description
       });
       // Wait, is addEvent signature like this? Let's check `handleActionSelect`.
-      // `await addEvent({ matchId, teamId, playerId: player.id, type: eventType, minute: selectedMatch.phut || 0, description: ... });`
+      // `await addEvent({ matchId, teamId, playerId: player.id, type: eventType, minute: eventMinute, description: ... });`
       // So no error field from res.
 
       showToast(`🔄 Đã thay người: ${inPlayer.ten} vào thay ${outPlayer.ten}`);
@@ -1508,7 +1545,7 @@ export default function QuanTriPage() {
   const handleActionSelect = async (type: string, subType?: string, overrideParams?: any) => {
     const params = overrideParams || activePlayerParams;
     if (!params || !selectedMatch) return;
-    const { teamId, matchId, player } = params;
+    const { teamId, matchId, player, minute } = params;
     let typeLabel = '';
     let eventType = type.toUpperCase();
     let increment = 0;
@@ -1540,6 +1577,8 @@ export default function QuanTriPage() {
       }
     }
 
+    const eventMinute = minute !== undefined && minute !== '' ? Number(minute) : (selectedMatch.phut || 0);
+
     // 1. Add Event to DB
     if (isSecondYellow) {
       await addEvent({
@@ -1547,7 +1586,7 @@ export default function QuanTriPage() {
         teamId,
         playerId: player.id,
         type: 'THE_VANG',
-        minute: selectedMatch.phut || 0,
+        minute: eventMinute,
         description: `${player.ten} (Phạt thẻ vàng 🟨)`
       });
       await addEvent({
@@ -1555,7 +1594,7 @@ export default function QuanTriPage() {
         teamId,
         playerId: player.id,
         type: 'THE_DO',
-        minute: selectedMatch.phut || 0,
+        minute: eventMinute,
         description: `${player.ten} (Thẻ đỏ gián tiếp - 2 thẻ vàng) 🟥`
       });
     } else {
@@ -1564,7 +1603,7 @@ export default function QuanTriPage() {
         teamId,
         playerId: player.id,
         type: eventType,
-        minute: selectedMatch.phut || 0,
+        minute: eventMinute,
         description: `${player.ten} (${typeLabel})`
       });
     }
@@ -1879,10 +1918,22 @@ export default function QuanTriPage() {
       const pB = getRoundPriority(parseVongDetails(b.vong).vong);
       if (pA !== pB) return pA - pB;
 
+      // Chronological sort: Date first
+      const dateA = a.date || '';
+      const dateB = b.date || '';
+      if (dateA !== dateB) return dateA.localeCompare(dateB);
+
+      // Time second
+      const timeA = a.time || '';
+      const timeB = b.time || '';
+      if (timeA !== timeB) return timeA.localeCompare(timeB);
+
+      // Group third
       const gA = parseVongDetails(a.vong).bang || '';
       const gB = parseVongDetails(b.vong).bang || '';
       if (gA !== gB) return gA.localeCompare(gB);
 
+      // Team name fourth
       const nameA = a.doiNha?.ten || '';
       const nameB = b.doiNha?.ten || '';
       if (!nameA || !nameB) {
@@ -2003,6 +2054,7 @@ export default function QuanTriPage() {
     filteredAndSortedScheduleMatches,
     teamSuggestion,
     isSyncingLogos,
+    syncProgress,
     userRole,
     isPostponeModalOpen,
     postponeTargetDate,
