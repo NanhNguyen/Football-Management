@@ -2162,6 +2162,22 @@ export default function QuanTriPage() {
     return true; // Admin thấy hết
   });
 
+  const handleQuickAddPlayerSuccess = (teamId: string, player: any) => {
+    setLiveMatches(prev => prev.map(m => {
+      let updated = false;
+      let newM = { ...m };
+      if (m.doiNha?.id === teamId) {
+        newM.doiNha = { ...m.doiNha, cauThu: [...(m.doiNha.cauThu || []), player] };
+        updated = true;
+      }
+      if (m.doiKhach?.id === teamId) {
+        newM.doiKhach = { ...m.doiKhach, cauThu: [...(m.doiKhach.cauThu || []), player] };
+        updated = true;
+      }
+      return updated ? newM : m;
+    }));
+  };
+
   const data = {
     activeTab, mobileMenuOpen, runTour, runRefereeTour,
     liveMatches, teams, loading, selectedMatchId,
@@ -2242,7 +2258,8 @@ export default function QuanTriPage() {
     setIsRescheduleDashboardOpen,
     handlePostponeMatchday,
     handleRescheduleRolling,
-    handleMoveToPool
+    handleMoveToPool,
+    handleQuickAddPlayerSuccess
   };
 
   if (isMobile) {

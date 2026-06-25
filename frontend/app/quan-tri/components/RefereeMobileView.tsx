@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { getDisplayTime } from '@/lib/api';
+import { getDisplayTime, quickAddPlayer } from '@/lib/api';
 import TeamLogo from '@/components/TeamLogo';
 import {
   IconGoal,
@@ -10,7 +10,9 @@ import {
   IconStop,
   IconReset,
   IconCalendar,
-  IconTrash
+  IconTrash,
+  IconHome,
+  IconAway
 } from './RefereeIcons';
 
 export default function RefereeMobileView({ data, actions }: any) {
@@ -41,6 +43,7 @@ export default function RefereeMobileView({ data, actions }: any) {
     getMatchHalfState,
     handleDelayMatchSchedule,
     handleDeleteEvent,
+    handleQuickAddPlayerSuccess,
   } = actions;
 
   const parseVongDetails = (vongStr: string = '') => {
@@ -110,10 +113,48 @@ export default function RefereeMobileView({ data, actions }: any) {
     subType?: string;
     requiresPlayer?: boolean;
     minute?: number | string;
+    presetTeamId?: string; // auto-locked team when opened from team row button
   } | null>(null);
 
   const [delayModalState, setDelayModalState] = useState<{ isOpen: boolean, date: string, time: string, strategy: 'single' | 'shift' | 'postpone' }>({ isOpen: false, date: '', time: '', strategy: 'single' });
   const [activeTeamTab, setActiveTeamTab] = useState<'nha' | 'khach'>('nha');
+
+  const [quickAddPlayerModalState, setQuickAddPlayerModalState] = useState<{
+    isOpen: boolean;
+    teamId: string;
+    name: string;
+    jerseyNumber: string;
+    isSaving: boolean;
+  }>({
+    isOpen: false,
+    teamId: '',
+    name: '',
+    jerseyNumber: '',
+    isSaving: false
+  });
+
+  const handleSaveQuickPlayer = async () => {
+    if (!quickAddPlayerModalState.name || !quickAddPlayerModalState.jerseyNumber) return;
+    if (!selectedMatch) return;
+    setQuickAddPlayerModalState(prev => ({ ...prev, isSaving: true }));
+    try {
+      const { data } = await quickAddPlayer(
+        selectedMatch.id,
+        quickAddPlayerModalState.teamId,
+        quickAddPlayerModalState.name,
+        parseInt(quickAddPlayerModalState.jerseyNumber)
+      );
+      if (handleQuickAddPlayerSuccess) {
+        handleQuickAddPlayerSuccess(quickAddPlayerModalState.teamId, data);
+      }
+      setQuickAddPlayerModalState(prev => ({ ...prev, isOpen: false, name: '', jerseyNumber: '' }));
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi khi thêm nhanh cầu thủ");
+    } finally {
+      setQuickAddPlayerModalState(prev => ({ ...prev, isSaving: false }));
+    }
+  };
 
   // React inline styles mapped directly from your Tailwind design specs
   const styles = {
@@ -849,8 +890,8 @@ export default function RefereeMobileView({ data, actions }: any) {
             </button>
           </div>
 
-          {/* Segment Control / Tabs */}
-          {showSegmentControl ? (
+          {/* Segment Control / Tabs - chỉ hiện khi chưa lock team */}
+          {showSegmentControl && !activeWizard.presetTeamId ? (
             <div style={styles.segmentControl}>
               <button
                 style={styles.segmentBtn(activeTeamTab === 'nha')}
@@ -865,9 +906,53 @@ export default function RefereeMobileView({ data, actions }: any) {
                 {awayTeam?.ten || 'Đội khách'}
               </button>
             </div>
+          ) : showSegmentControl && activeWizard.presetTeamId ? (
+            // Locked pill - show which team is pre-selected
+            <div style={{
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '8px 16px',
+              borderRadius: '10px',
+              background: activeTeamTab === 'nha' ? 'rgba(59,130,246,0.12)' : 'rgba(249,115,22,0.12)',
+              border: `1px solid ${activeTeamTab === 'nha' ? 'rgba(59,130,246,0.3)' : 'rgba(249,115,22,0.3)'}`,
+              gap: '8px',
+              fontSize: '13px',
+              fontWeight: 700,
+              color: activeTeamTab === 'nha' ? '#93c5fd' : '#fdba74',
+              marginBottom: '12px',
+            }}>
+              {activeTeamTab === 'nha'
+                ? <>{homeTeam?.ten || 'Đội nhà'}</>
+                : <>{awayTeam?.ten || 'Đội khách'}</>}
+            </div>
           ) : (
             <div style={{ textAlign: 'center', fontWeight: 'bold', marginBottom: '16px', color: 'var(--color-primary, #0f766e)' }}>
               Đội bóng: {activeTeam?.ten} (Thay {subOutPlayer?.ten} ra)
+            </div>
+          )}
+
+          {/* Nút Thêm Nhanh Cầu Thủ */}
+          {showSegmentControl && selectedMatch.trangThai !== 'KET_THUC' && (
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '12px', padding: '0 4px' }}>
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setQuickAddPlayerModalState({
+                    isOpen: true,
+                    teamId: activeTeam?.id || '',
+                    name: '',
+                    jerseyNumber: '',
+                    isSaving: false
+                  });
+                }}
+                style={{
+                  background: 'none', border: 'none', color: 'var(--color-primary, #00D4B8)',
+                  fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
+                }}
+              >
+                ➕ Thêm nhanh cầu thủ
+              </button>
             </div>
           )}
 
@@ -1023,83 +1108,149 @@ export default function RefereeMobileView({ data, actions }: any) {
         </div>
       </div>
 
-      {/* 3. Khu vực Nút Thao tác (Action Grid) */}
+      {/* 3. Khu vực Nút Thao tác - Chia theo từng Đội */}
       {(() => {
         const actionsDisabled = selectedMatch.trangThai !== 'DANG_DIEN_RA';
-        return (
-          <div style={styles.actionZoneGrid}>
-            <button
-              disabled={actionsDisabled}
-              style={{
-                ...styles.actionButton('rgba(16, 185, 129, 0.1)', '#10b981', '1px solid rgba(16, 185, 129, 0.3)'),
-                opacity: actionsDisabled ? 0.5 : 1,
-                cursor: actionsDisabled ? 'not-allowed' : 'pointer'
-              }}
-              onClick={() => setActiveWizard({ type: 'goal' })}
-            >
-              <IconGoal size={32} color="#10b981" />
-              <span style={styles.actionButtonLabel}>GHI BÀN</span>
-            </button>
 
-            <button
-              disabled={actionsDisabled}
-              style={{
-                ...styles.actionButton('rgba(251, 191, 36, 0.1)', '#fbbf24', '1px solid rgba(251, 191, 36, 0.3)'),
-                opacity: actionsDisabled ? 0.5 : 1,
-                cursor: actionsDisabled ? 'not-allowed' : 'pointer'
-              }}
-              onClick={() => setActiveWizard({ type: 'yellow' })}
-            >
-              <IconCard size={32} color="#fbbf24" />
-              <span style={styles.actionButtonLabel}>THẺ VÀNG</span>
-            </button>
+        const renderTeamRow = (team: any, isHome: boolean) => {
+          const teamId = team?.id;
+          const teamName = team?.ten || (isHome ? 'Đội nhà' : 'Đội khách');
+          const accentColor = isHome ? '#60a5fa' : '#fb923c';
+          const accentBg = isHome ? 'rgba(59,130,246,0.07)' : 'rgba(249,115,22,0.07)';
+          const accentBorder = isHome ? 'rgba(59,130,246,0.18)' : 'rgba(249,115,22,0.18)';
 
-            <button
-              disabled={actionsDisabled}
-              style={{
-                ...styles.actionButton('rgba(244, 63, 94, 0.1)', '#f43f5e', '1px solid rgba(244, 63, 94, 0.3)'),
-                opacity: actionsDisabled ? 0.5 : 1,
-                cursor: actionsDisabled ? 'not-allowed' : 'pointer'
-              }}
-              onClick={() => setActiveWizard({ type: 'red' })}
-            >
-              <IconCard size={32} color="#f43f5e" />
-              <span style={styles.actionButtonLabel}>THẺ ĐỎ</span>
-            </button>
+          const openTeamWizard = (type: 'goal' | 'yellow' | 'red' | 'sub', subType?: string) => {
+            // Set the team tab to match the team row clicked
+            setActiveTeamTab(isHome ? 'nha' : 'khach');
+            setActiveWizard({
+              type,
+              subType,
+              step: type === 'sub' ? 1 : undefined,
+              presetTeamId: teamId,
+            });
+          };
 
-            <button
-              disabled={actionsDisabled}
-              style={{
-                ...styles.actionButton('rgba(0, 212, 184, 0.1)', 'var(--color-primary, #00D4B8)', '1px solid rgba(0, 212, 184, 0.3)'),
-                opacity: actionsDisabled ? 0.5 : 1,
-                cursor: actionsDisabled ? 'not-allowed' : 'pointer'
-              }}
-              onClick={() => setActiveWizard({ type: 'sub', step: 1 })}
-            >
-              <IconSwap size={32} color="var(--color-primary, #00D4B8)" />
-              <span style={styles.actionButtonLabel}>THAY NGƯỜI</span>
-            </button>
+          const btnStyle = (borderColor: string, bgColor: string): React.CSSProperties => ({
+            flex: 1,
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            justifyContent: 'center',
+            gap: '5px',
+            padding: '10px 4px',
+            borderRadius: '10px',
+            border: `1px solid ${actionsDisabled ? 'transparent' : borderColor}`,
+            background: actionsDisabled ? 'rgba(255,255,255,0.03)' : bgColor,
+            cursor: actionsDisabled ? 'not-allowed' : 'pointer',
+            opacity: actionsDisabled ? 0.38 : 1,
+            fontSize: '9px',
+            fontWeight: 800,
+            letterSpacing: '0.04em',
+            color: '#94a3b8',
+            transition: 'all 0.15s',
+          });
 
-            {customEvents?.map((evt: any) => {
-              const themeColor = evt.color || '#3b82f6';
-              const transparentBg = themeColor.startsWith('var') ? 'rgba(0, 212, 184, 0.1)' : `${themeColor}1a`;
-              const borderStyle = `1px solid ${themeColor.startsWith('var') ? 'rgba(0, 212, 184, 0.3)' : `${themeColor}4d`}`;
-              return (
+          return (
+            <div style={{
+              background: accentBg,
+              border: `1px solid ${accentBorder}`,
+              borderRadius: '14px',
+              padding: '10px 10px 10px 12px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '8px',
+            }}>
+              {/* Team header */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'center',
+                gap: '6px',
+                fontSize: '10px',
+                fontWeight: 800,
+                color: accentColor,
+                textTransform: 'uppercase',
+                letterSpacing: '0.07em',
+              }}>
+                {isHome ? <IconHome size={12} /> : <IconAway size={12} />}
+                {teamName}
+              </div>
+
+              {/* Action buttons */}
+              <div style={{ display: 'flex', gap: '6px' }}>
+                {/* GOAL */}
                 <button
-                  key={evt.code}
                   disabled={actionsDisabled}
-                  style={{
-                    ...styles.actionButton(transparentBg, themeColor, borderStyle),
-                    opacity: actionsDisabled ? 0.5 : 1,
-                    cursor: actionsDisabled ? 'not-allowed' : 'pointer'
-                  }}
-                  onClick={() => setActiveWizard({ type: 'custom', subType: evt.code, requiresPlayer: evt.target_scope !== 'none' })}
+                  style={btnStyle('rgba(34,197,94,0.3)', 'rgba(34,197,94,0.1)')}
+                  onClick={() => openTeamWizard('goal')}
                 >
-                  <div style={{ fontSize: '32px' }}>{evt.icon}</div>
-                  <span style={{ ...styles.actionButtonLabel, textAlign: 'center' }}>{evt.name?.toUpperCase()}</span>
+                  <IconGoal size={22} color={actionsDisabled ? '#475569' : '#4ade80'} />
+                  <span style={{ color: actionsDisabled ? '#475569' : '#4ade80' }}>GHI BÀN</span>
                 </button>
-              );
-            })}
+
+                {/* YELLOW */}
+                <button
+                  disabled={actionsDisabled}
+                  style={btnStyle('rgba(234,179,8,0.3)', 'rgba(234,179,8,0.1)')}
+                  onClick={() => openTeamWizard('yellow')}
+                >
+                  <IconCard size={22} color={actionsDisabled ? '#475569' : '#facc15'} />
+                  <span style={{ color: actionsDisabled ? '#475569' : '#facc15' }}>THẺ VÀNG</span>
+                </button>
+
+                {/* RED */}
+                <button
+                  disabled={actionsDisabled}
+                  style={btnStyle('rgba(239,68,68,0.3)', 'rgba(239,68,68,0.1)')}
+                  onClick={() => openTeamWizard('red')}
+                >
+                  <IconCard size={22} color={actionsDisabled ? '#475569' : '#f87171'} />
+                  <span style={{ color: actionsDisabled ? '#475569' : '#f87171' }}>THẺ ĐỎ</span>
+                </button>
+
+                {/* SUB */}
+                <button
+                  disabled={actionsDisabled}
+                  style={btnStyle('rgba(0,212,184,0.25)', 'rgba(0,212,184,0.08)')}
+                  onClick={() => openTeamWizard('sub')}
+                >
+                  <IconSwap size={22} color={actionsDisabled ? '#475569' : '#2dd4bf'} />
+                  <span style={{ color: actionsDisabled ? '#475569' : '#2dd4bf' }}>THAY NGƯỜI</span>
+                </button>
+              </div>
+            </div>
+          );
+        };
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '8px' }}>
+            {renderTeamRow(selectedMatch.doiNha, true)}
+            {renderTeamRow(selectedMatch.doiKhach, false)}
+
+            {/* Custom events (still shared, below team rows) */}
+            {customEvents && customEvents.length > 0 && (
+              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '8px', marginTop: '4px' }}>
+                {customEvents.map((evt: any) => {
+                  const themeColor = evt.color || '#3b82f6';
+                  const transparentBg = `${themeColor}1a`;
+                  const borderStyle = `1px solid ${themeColor}4d`;
+                  return (
+                    <button
+                      key={evt.code}
+                      disabled={actionsDisabled}
+                      style={{
+                        ...styles.actionButton(transparentBg, themeColor, borderStyle),
+                        opacity: actionsDisabled ? 0.5 : 1,
+                        cursor: actionsDisabled ? 'not-allowed' : 'pointer'
+                      }}
+                      onClick={() => setActiveWizard({ type: 'custom', subType: evt.code, requiresPlayer: evt.target_scope !== 'none' })}
+                    >
+                      <div style={{ fontSize: '28px' }}>{evt.icon}</div>
+                      <span style={{ ...styles.actionButtonLabel, textAlign: 'center' }}>{evt.name?.toUpperCase()}</span>
+                    </button>
+                  );
+                })}
+              </div>
+            )}
           </div>
         );
       })()}
@@ -1265,6 +1416,79 @@ export default function RefereeMobileView({ data, actions }: any) {
                   Xác nhận lùi
                 </button>
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Quick Add Player Modal */}
+      {quickAddPlayerModalState.isOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(5, 8, 16, 0.85)', backdropFilter: 'blur(4px)',
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', padding: '16px'
+        }}>
+          <div style={{
+            background: 'var(--color-surface, #0E1421)', width: '100%', maxWidth: '340px', borderRadius: '16px', padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
+            border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.15))',
+            display: 'flex', flexDirection: 'column', gap: '16px'
+          }}>
+            <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--color-text-heading, #E8F4F8)' }}>Thêm Nhanh Cầu Thủ</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-secondary, #A0B4C8)' }}>Số áo</label>
+              <input
+                type="number"
+                placeholder="Ví dụ: 10"
+                value={quickAddPlayerModalState.jerseyNumber}
+                onChange={e => setQuickAddPlayerModalState(prev => ({ ...prev, jerseyNumber: e.target.value }))}
+                style={{
+                  padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
+                  fontSize: '15px', outline: 'none', background: 'var(--color-surface-container, #0A0F18)',
+                  color: 'var(--color-text-heading, #ffffff)'
+                }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-secondary, #A0B4C8)' }}>Tên cầu thủ</label>
+              <input
+                type="text"
+                placeholder="Ví dụ: Nguyễn Văn A"
+                value={quickAddPlayerModalState.name}
+                onChange={e => setQuickAddPlayerModalState(prev => ({ ...prev, name: e.target.value }))}
+                style={{
+                  padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
+                  fontSize: '15px', outline: 'none', background: 'var(--color-surface-container, #0A0F18)',
+                  color: 'var(--color-text-heading, #ffffff)'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '12px' }}>
+              <button
+                onClick={() => setQuickAddPlayerModalState(prev => ({ ...prev, isOpen: false }))}
+                style={{
+                  flex: 1, padding: '12px', background: 'var(--color-surface-hover, #141C2A)',
+                  color: 'var(--color-text, #C8D8E8)', border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))', borderRadius: '12px',
+                  fontWeight: 700, fontSize: '14px', cursor: 'pointer'
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSaveQuickPlayer}
+                disabled={quickAddPlayerModalState.isSaving || !quickAddPlayerModalState.name || !quickAddPlayerModalState.jerseyNumber}
+                style={{
+                  flex: 1, padding: '12px', background: 'var(--color-primary, #00D4B8)',
+                  color: '#080C10', border: 'none', borderRadius: '12px',
+                  fontWeight: 800, fontSize: '14px', cursor: quickAddPlayerModalState.isSaving ? 'not-allowed' : 'pointer',
+                  opacity: (quickAddPlayerModalState.isSaving || !quickAddPlayerModalState.name || !quickAddPlayerModalState.jerseyNumber) ? 0.7 : 1
+                }}
+              >
+                {quickAddPlayerModalState.isSaving ? 'Đang lưu...' : '💾 Lưu lại'}
+              </button>
             </div>
           </div>
         </div>

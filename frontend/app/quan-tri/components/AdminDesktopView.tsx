@@ -103,7 +103,8 @@ export default function AdminDesktopView(props: any) {
     setIsRescheduleDashboardOpen,
     handlePostponeMatchday,
     handleRescheduleRolling,
-    handleMoveToPool
+    handleMoveToPool,
+    handleQuickAddPlayerSuccess
   } = actions;
 
     return (
@@ -577,6 +578,7 @@ export default function AdminDesktopView(props: any) {
               handleActionSelect={handleActionSelect}
               getMatchHalfState={getMatchHalfState}
               schedulerConfig={schedulerConfig}
+              handleQuickAddPlayerSuccess={handleQuickAddPlayerSuccess}
             />
           )}
         </main>

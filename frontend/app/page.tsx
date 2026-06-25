@@ -403,11 +403,10 @@ function TongQuanContent() {
           {/* Filters Container */}
           <div className={styles.filtersContainer}>
 
-
-            {/* Dropdown Matchweek selector to match Premier League filters */}
+            {/* Round selector */}
             {uniqueRounds.length > 0 && (
-              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                <span style={{ fontSize: '13px', color: '#cbd5e1', fontWeight: 600 }}>Chọn nhanh vòng:</span>
+              <div className={styles.filterItem}>
+                <span className={styles.filterLabel}>Vòng:</span>
                 <div className={styles.filterSelectWrapper}>
                   <select 
                     className={styles.filterSelect}
@@ -423,18 +422,21 @@ function TongQuanContent() {
               </div>
             )}
 
-            <div className={styles.filterSelectWrapper}>
-              <select 
-                className={styles.filterSelect}
-                value={selectedTeamId}
-                onChange={(e) => setSelectedTeamId(e.target.value)}
-              >
-                <option value="ALL">Tất cả Đội bóng</option>
-                {teams.map((team) => (
-                  <option key={team.id} value={team.id}>{team.ten}</option>
-                ))}
-              </select>
-              <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+            {/* Team selector */}
+            <div className={styles.filterItem}>
+              <div className={styles.filterSelectWrapper}>
+                <select 
+                  className={styles.filterSelect}
+                  value={selectedTeamId}
+                  onChange={(e) => setSelectedTeamId(e.target.value)}
+                >
+                  <option value="ALL">Tất cả Đội bóng</option>
+                  {teams.map((team) => (
+                    <option key={team.id} value={team.id}>{team.ten}</option>
+                  ))}
+                </select>
+                <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
             </div>
 
             <button 
@@ -444,7 +446,7 @@ function TongQuanContent() {
                 setSelectedTeamId('ALL');
               }}
             >
-              Đặt lại <span>↺</span>
+              ↺
             </button>
           </div>
 

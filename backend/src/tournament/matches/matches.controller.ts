@@ -1,4 +1,4 @@
-import { Controller, Post, Param, BadRequestException } from '@nestjs/common';
+import { Controller, Post, Param, Body, BadRequestException } from '@nestjs/common';
 import { createClient } from '@supabase/supabase-js';
 import ws from 'ws';
 import { MatchTimerManager } from '../match-timer.manager';
@@ -152,5 +152,41 @@ export class MatchesController {
       
     if (error) throw new BadRequestException(error.message);
     return { success: true };
+  }
+
+  @Post(':id/teams/:teamId/quick-add-player')
+  async quickAddPlayer(
+    @Param('id') matchId: string,
+    @Param('teamId') teamId: string,
+    @Body() dto: { name: string; jerseyNumber: number }
+  ) {
+    if (!this.supabase) throw new BadRequestException('Supabase chưa được cấu hình');
+    
+    const newPlayerId = `ct-${Date.now()}`;
+    const { data, error } = await this.supabase
+      .from('cau_thu')
+      .insert([{
+        id: newPlayerId,
+        doi_id: teamId,
+        ten: dto.name,
+        so_ao: dto.jerseyNumber,
+        vi_tri: 'Dự bị',
+        ban_thang: 0
+      }])
+      .select()
+      .single();
+
+    if (error) throw new BadRequestException(error.message);
+    
+    return { 
+      success: true, 
+      player: {
+        id: data.id,
+        ten: data.ten,
+        soAo: data.so_ao,
+        viTri: data.vi_tri,
+        banThang: data.ban_thang
+      } 
+    };
   }
 }

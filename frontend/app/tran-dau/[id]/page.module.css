@@ -367,3 +367,86 @@
   padding: 4px 12px;
   border-radius: 6px;
 }
+
+@media (max-width: 640px) {
+  .page {
+    padding: 12px;
+  }
+  
+  .matchHeader {
+    padding: 16px 12px;
+    margin-bottom: 16px;
+  }
+
+  .scoreboard {
+    gap: 8px;
+    justify-content: space-between;
+  }
+
+  .team {
+    min-width: 0;
+    flex: 1;
+    gap: 6px;
+  }
+
+  .teamLogo {
+    width: 52px;
+    height: 52px;
+    font-size: 32px;
+  }
+
+  .teamName {
+    font-size: 13px;
+    line-height: 1.2;
+    text-align: center;
+    word-break: break-word;
+    max-width: 95px;
+  }
+
+  .scoreNum {
+    font-size: 32px;
+  }
+
+  .score {
+    padding: 6px 12px;
+    gap: 8px;
+  }
+
+  .scoreSep {
+    font-size: 20px;
+  }
+
+  .templateRow {
+    padding: 10px 12px;
+  }
+
+  .templateHomeCol {
+    padding-right: 8px;
+  }
+
+  .templateAwayCol {
+    padding-left: 8px;
+  }
+
+  .templateMinCol {
+    width: 38px;
+    font-size: 12px;
+  }
+
+  .templateCenterCol {
+    width: 72px;
+    gap: 6px;
+  }
+
+  .playerName {
+    font-size: 13px;
+  }
+
+  .playerSub {
+    font-size: 10px;
+  }
+
+  .statsSection {
+    margin-bottom: var(--space-lg);
+  }
+}

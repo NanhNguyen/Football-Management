@@ -429,6 +429,25 @@ export async function addEvent(event: any) {
   return { data: result, error: null };
 }
 
+export async function quickAddPlayer(matchId: string, teamId: string, name: string, jerseyNumber: number) {
+  const { data: { session } } = await supabase.auth.getSession();
+  const apiUrl = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+  const res = await fetch(`${apiUrl}/api/matches/${matchId}/teams/${teamId}/quick-add-player`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      ...(session ? { 'Authorization': `Bearer ${session.access_token}` } : {})
+    },
+    body: JSON.stringify({
+      name,
+      jerseyNumber
+    })
+  });
+  const result = await res.json();
+  if (!res.ok) throw new Error(result.message || result.error || "Failed to quick add player");
+  return { data: result.player, error: null };
+}
+
 export async function updatePlayerGoals(playerId: string, increment: number) {
   const { data: ct, error } = await supabase.from('cau_thu').select('ban_thang').eq('id', playerId).single();
   if (ct) {

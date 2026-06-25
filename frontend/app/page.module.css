@@ -170,32 +170,50 @@
 .filtersContainer {
   display: flex;
   align-items: center;
-  gap: 12px;
-  padding: 16px 20px;
-  overflow-x: auto;
-  scrollbar-width: none;
+  gap: 10px;
+  padding: 14px 20px;
+  flex-wrap: wrap;
 }
 
-.filtersContainer::-webkit-scrollbar { display: none; }
+.filterItem {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex: 1;
+  min-width: 0;
+}
+
+.filterLabel {
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--color-text-secondary);
+  white-space: nowrap;
+  flex-shrink: 0;
+}
 
 .filterSelectWrapper {
   position: relative;
-  flex-shrink: 0;
+  flex: 1;
+  min-width: 0;
 }
 
 .filterSelect {
   appearance: none;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  padding: 8px 32px 8px 12px;
+  padding: 9px 32px 9px 12px;
   border-radius: var(--radius-full);
   font-family: 'Hanken Grotesk', sans-serif;
   font-size: 13px;
   font-weight: 500;
   color: var(--color-text);
   cursor: pointer;
-  min-width: 120px;
+  width: 100%;
   transition: border-color 0.2s ease;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
 }
 
 .filterSelect:focus {
@@ -210,27 +228,27 @@
   transform: translateY(-50%);
   pointer-events: none;
   color: var(--color-text-secondary);
+  flex-shrink: 0;
 }
 
 .resetBtn {
   flex-shrink: 0;
   background: var(--color-surface);
   border: 1px solid var(--color-border);
-  padding: 8px 16px;
+  padding: 9px 14px;
   border-radius: var(--radius-full);
   font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
+  font-size: 15px;
   color: var(--color-text-secondary);
   cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
+  justify-content: center;
   transition: all 0.2s ease;
+  line-height: 1;
 }
 
 .resetBtn:hover {
-  background: var(--color-surface);
   border-color: var(--color-primary);
   color: var(--color-primary);
 }
@@ -240,10 +258,9 @@
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px 20px;
+  padding: 12px 20px 16px;
   gap: 16px;
   background: transparent;
-  margin-top: 8px;
 }
 
 .navBtn {
@@ -259,6 +276,7 @@
   color: var(--color-text);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
+  flex-shrink: 0;
 }
 
 .navBtn:hover:not(:disabled) {
@@ -278,7 +296,9 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 160px;
+  min-width: 140px;
+  flex: 1;
+  max-width: 260px;
 }
 
 .weekTitle {
@@ -287,14 +307,16 @@
   font-weight: 700;
   color: var(--color-text);
   letter-spacing: -0.3px;
+  text-align: center;
 }
 
 .weekDate {
   font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 13px;
+  font-size: 12px;
   color: var(--color-text-secondary);
   margin-top: 2px;
   font-weight: 500;
+  text-align: center;
 }
 
 /* Main Feed */
@@ -303,44 +325,47 @@
   flex: 1;
 }
 
-@media (max-width: 768px) {
-  .weekNavigator { gap: 12px; }
-  
+/* ── Mobile overrides ── */
+@media (max-width: 640px) {
   .filtersContainer {
-    display: flex;
-    flex-direction: row;
-    flex-wrap: nowrap;
+    display: grid;
+    grid-template-columns: 1fr 1fr auto;
     gap: 8px;
-    padding: 12px 16px;
-    overflow-x: auto;
-    scrollbar-width: none;
-    -webkit-overflow-scrolling: touch;
+    padding: 10px 16px;
+    align-items: center;
   }
 
-  .filtersContainer::-webkit-scrollbar {
-    display: none;
+  /* First filterItem (round) takes column 1 */
+  .filterItem:first-child {
+    grid-column: 1;
   }
 
-  .filterSelectWrapper {
-    flex-shrink: 0;
+  /* Second filterItem (team) takes column 2 */
+  .filterItem:nth-child(2) {
+    grid-column: 2;
+  }
+
+  /* Reset button takes column 3 */
+  .resetBtn {
+    grid-column: 3;
+    padding: 9px 10px;
+  }
+
+  .filterLabel {
+    display: none; /* hide "Vòng:" label on small screens */
   }
 
   .filterSelect {
-    font-size: 13px;
-    padding: 8px 32px 8px 12px;
-    min-width: 120px;
+    font-size: 12px;
+    padding: 8px 26px 8px 10px;
   }
 
-  .resetBtn {
-    flex-shrink: 0;
-    justify-content: center;
-    font-size: 13px;
-    padding: 8px 16px;
-    width: auto;
+  .weekNavigator {
+    padding: 8px 16px 12px;
+    gap: 10px;
   }
+
+  .weekTitle { font-size: 15px; }
+  .weekDate { font-size: 11px; }
 }
 
-
-@media (min-width: 769px) {
-  .filtersContainer { flex-wrap: wrap; }
-}

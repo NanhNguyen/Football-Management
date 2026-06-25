@@ -5,7 +5,7 @@ import {
   IconReset, IconMedal, IconEvent, IconHome, IconAway, IconPlay, IconPause, IconCalendar, IconTrash
 } from './RefereeIcons';
 import { useMediaQuery } from '@/hooks/useMediaQuery';
-import { getDisplayTime } from '@/lib/api';
+import { getDisplayTime, quickAddPlayer } from '@/lib/api';
 
 const desktopStyles = {
   wrapper: {
@@ -339,6 +339,7 @@ interface RefereeTabProps {
   getMatchHalfState: (match: any) => '1_not_started' | '1_active' | 'half_time' | '2_active' | 'finished';
   handleDelayMatchSchedule?: (id: string, date: string, time: string, strategy: 'single' | 'shift' | 'postpone') => void;
   schedulerConfig?: any;
+  handleQuickAddPlayerSuccess?: (teamId: string, player: any) => void;
 }
 
 export default function RefereeTab({
@@ -370,7 +371,8 @@ export default function RefereeTab({
   handleActionSelect,
   getMatchHalfState,
   handleDelayMatchSchedule,
-  schedulerConfig
+  schedulerConfig,
+  handleQuickAddPlayerSuccess
 }: RefereeTabProps) {
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
@@ -451,7 +453,8 @@ export default function RefereeTab({
     step: 1 | 2; // For substitution
     subOutPlayer?: any;
     minute?: number | string;
-  }>({
+    teamLocked?: boolean; // true when team was pre-selected from a team row button
+  }>({    
     isOpen: false,
     action: null,
     teamId: '',
@@ -479,23 +482,75 @@ export default function RefereeTab({
     minute: ''
   });
 
+  const [quickAddPlayerModalState, setQuickAddPlayerModalState] = useState<{
+    isOpen: boolean;
+    teamId: string;
+    name: string;
+    jerseyNumber: string;
+    isSaving: boolean;
+  }>({
+    isOpen: false,
+    teamId: '',
+    name: '',
+    jerseyNumber: '',
+    isSaving: false
+  });
+
+  const [pcSubModalState, setPcSubModalState] = useState<{
+    isOpen: boolean;
+    teamId: string;
+    subOutPlayer: any;
+    subInPlayerId: string;
+    minute: string;
+  }>({
+    isOpen: false,
+    teamId: '',
+    subOutPlayer: null,
+    subInPlayerId: '',
+    minute: ''
+  });
+
+  const handleSaveQuickPlayer = async () => {
+    if (!quickAddPlayerModalState.name || !quickAddPlayerModalState.jerseyNumber) return;
+    if (!selectedMatch) return;
+    setQuickAddPlayerModalState(prev => ({ ...prev, isSaving: true }));
+    try {
+      const { data } = await quickAddPlayer(
+        selectedMatch.id,
+        quickAddPlayerModalState.teamId,
+        quickAddPlayerModalState.name,
+        parseInt(quickAddPlayerModalState.jerseyNumber)
+      );
+      if (handleQuickAddPlayerSuccess) {
+        handleQuickAddPlayerSuccess(quickAddPlayerModalState.teamId, data);
+      }
+      setQuickAddPlayerModalState(prev => ({ ...prev, isOpen: false, name: '', jerseyNumber: '' }));
+      // Optional: a native alert since showToast isn't passed down to RefereeTab directly
+      // Or we can rely on UI update.
+    } catch (err) {
+      console.error(err);
+      alert("Lỗi khi thêm nhanh cầu thủ");
+    } finally {
+      setQuickAddPlayerModalState(prev => ({ ...prev, isSaving: false }));
+    }
+  };
+
   useEffect(() => {
     // When match changes, ensure wizard resets
-    if (selectedMatch) {
-      setWizardState(prev => ({ ...prev, isOpen: false, teamId: selectedMatch.doiNha?.id || '' }));
-    }
-  }, [selectedMatch]);
+    setWizardState(prev => ({ ...prev, isOpen: false, teamId: selectedMatch?.doiNha?.id || '' }));
+  }, [selectedMatch?.id]);
 
-  const openWizard = (action: 'goal' | 'card' | 'sub' | 'custom' | 'motm', subType: string = 'normal', customId?: string) => {
+  const openWizard = (action: 'goal' | 'card' | 'sub' | 'custom' | 'motm', subType: string = 'normal', customId?: string, presetTeamId?: string) => {
     if (!selectedMatch) return;
     setWizardState({
       isOpen: true,
       action,
-      teamId: selectedMatch.doiNha?.id,
+      teamId: presetTeamId || selectedMatch.doiNha?.id,
       subType,
       customActionId: customId,
       step: 1,
-      subOutPlayer: undefined
+      subOutPlayer: undefined,
+      teamLocked: !!presetTeamId
     });
   };
 
@@ -601,13 +656,12 @@ export default function RefereeTab({
                         className="desktop-popover-btn-sub"
                         style={desktopStyles.popoverActionBtn('var(--color-primary, #0F766E)', 'var(--color-primary-dark, #115E59)')}
                         onClick={() => {
-                          setWizardState({
+                          setPcSubModalState({
                             isOpen: true,
-                            action: 'sub',
                             teamId: team.id,
-                            subType: 'normal',
-                            step: 2,
-                            subOutPlayer: p
+                            subOutPlayer: p,
+                            subInPlayerId: '',
+                            minute: selectedMatch.trangThai === 'DANG_DIEN_RA' ? String(selectedMatch.phut || 0) : ''
                           });
                           setActivePopover(null);
                         }}
@@ -633,9 +687,38 @@ export default function RefereeTab({
           </div>
         </div>
 
-        {bench.length > 0 && (
-          <div>
-            <div style={desktopStyles.lineupSectionTitle}>DỰ BỊ</div>
+        <div>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
+            <div style={{ ...desktopStyles.lineupSectionTitle, marginBottom: 0 }}>DỰ BỊ</div>
+            {selectedMatch?.trangThai !== 'KET_THUC' && (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setQuickAddPlayerModalState({
+                    isOpen: true,
+                    teamId: team.id,
+                    name: '',
+                    jerseyNumber: '',
+                    isSaving: false
+                  });
+                }}
+                style={{
+                  background: 'none',
+                  border: 'none',
+                  color: 'var(--color-primary, #0F766E)',
+                  fontSize: '12px',
+                  fontWeight: 600,
+                  cursor: 'pointer',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '4px'
+                }}
+              >
+                ➕ Thêm nhanh cầu thủ
+              </button>
+            )}
+          </div>
+          {bench.length > 0 ? (
             <div style={desktopStyles.benchGrid}>
               {bench.map((p: any) => (
                 <div key={p.id} style={desktopStyles.benchPlayerBox}>
@@ -643,8 +726,10 @@ export default function RefereeTab({
                 </div>
               ))}
             </div>
-          </div>
-        )}
+          ) : (
+            <div style={{ textAlign: 'center', fontSize: '13px', color: '#94a3b8', padding: '12px 0' }}>Chưa có cầu thủ dự bị</div>
+          )}
+        </div>
       </div>
     );
   };
@@ -1491,40 +1576,130 @@ export default function RefereeTab({
                   )}
                 </div>
 
-                {/* 2. HUGE ACTION BUTTONS (EVENT WIZARD FLOW) */}
-                <div className={styles.mobileMainActionArea}>
-                  <button
-                    className={`${styles.hugeActionBtn} ${styles.hugeActionGoal}`}
-                    onClick={() => openWizard('goal')}
-                    disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
-                    style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA') ? 0.5 : 1 }}
-                  >
-                    <span className={styles.hugeActionIcon} style={{ display: 'flex', justifyContent: 'center' }}><IconGoal size={40} /></span>
-                    <span>Bàn thắng</span>
-                  </button>
+                {/* 2. TEAM-SPLIT ACTION ROWS */}
+                {(() => {
+                  const isLive = selectedMatch.trangThai === 'DANG_DIEN_RA';
+                  const renderTeamRow = (team: any, isHome: boolean) => {
+                    const teamId = team?.id;
+                    const teamName = team?.ten || (isHome ? 'Đội nhà' : 'Đội khách');
+                    const accentColor = isHome ? '#3b82f6' : '#f97316';
+                    const accentBg = isHome ? 'rgba(59,130,246,0.08)' : 'rgba(249,115,22,0.08)';
+                    const accentBorder = isHome ? 'rgba(59,130,246,0.2)' : 'rgba(249,115,22,0.2)';
 
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
-                    <button
-                      className={`${styles.hugeActionBtn} ${styles.hugeActionCard}`}
-                      onClick={() => openWizard('card')}
-                      disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
-                      style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA') ? 0.5 : 1 }}
-                    >
-                      <span className={styles.hugeActionIcon} style={{ display: 'flex', justifyContent: 'center' }}><IconCardDouble size={40} /></span>
-                      <span>Thẻ phạt</span>
-                    </button>
+                    const btnBase: React.CSSProperties = {
+                      flex: 1,
+                      display: 'flex',
+                      flexDirection: 'column',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      gap: '4px',
+                      padding: '10px 6px',
+                      borderRadius: '10px',
+                      border: '1px solid transparent',
+                      background: 'rgba(255,255,255,0.04)',
+                      cursor: isLive ? 'pointer' : 'not-allowed',
+                      opacity: isLive ? 1 : 0.4,
+                      fontSize: '10px',
+                      fontWeight: 700,
+                      letterSpacing: '0.03em',
+                      color: '#cbd5e1',
+                      transition: 'all 0.15s',
+                    };
 
-                    <button
-                      className={`${styles.hugeActionBtn} ${styles.hugeActionSub}`}
-                      onClick={() => openWizard('sub')}
-                      disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
-                      style={{ opacity: (selectedMatch.trangThai !== 'DANG_DIEN_RA') ? 0.5 : 1 }}
-                    >
-                      <span className={styles.hugeActionIcon} style={{ display: 'flex', justifyContent: 'center' }}><IconSwap size={40} /></span>
-                      <span>Thay người</span>
-                    </button>
-                  </div>
-                </div>
+                    return (
+                      <div style={{
+                        background: accentBg,
+                        border: `1px solid ${accentBorder}`,
+                        borderRadius: '14px',
+                        padding: '10px 12px',
+                        display: 'flex',
+                        flexDirection: 'column',
+                        gap: '8px',
+                      }}>
+                        {/* Team label */}
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          gap: '6px',
+                          fontSize: '11px',
+                          fontWeight: 800,
+                          color: accentColor,
+                          textTransform: 'uppercase',
+                          letterSpacing: '0.06em',
+                        }}>
+                          {isHome ? <IconHome size={13} /> : <IconAway size={13} />}
+                          {teamName}
+                        </div>
+
+                        {/* Action buttons row */}
+                        <div style={{ display: 'flex', gap: '6px' }}>
+                          {/* GOAL */}
+                          <button
+                            style={{
+                              ...btnBase,
+                              borderColor: isLive ? 'rgba(34,197,94,0.25)' : 'transparent',
+                              background: isLive ? 'rgba(34,197,94,0.1)' : 'rgba(255,255,255,0.03)',
+                            }}
+                            disabled={!isLive}
+                            onClick={() => openWizard('goal', 'normal', undefined, teamId)}
+                          >
+                            <IconGoal size={20} />
+                            <span style={{ color: isLive ? '#4ade80' : '#64748b' }}>GHI BÀN</span>
+                          </button>
+
+                          {/* YELLOW CARD */}
+                          <button
+                            style={{
+                              ...btnBase,
+                              borderColor: isLive ? 'rgba(234,179,8,0.3)' : 'transparent',
+                              background: isLive ? 'rgba(234,179,8,0.1)' : 'rgba(255,255,255,0.03)',
+                            }}
+                            disabled={!isLive}
+                            onClick={() => openWizard('card', 'yellow', undefined, teamId)}
+                          >
+                            <IconCard size={20} />
+                            <span style={{ color: isLive ? '#facc15' : '#64748b' }}>THẺ VÀNG</span>
+                          </button>
+
+                          {/* RED CARD */}
+                          <button
+                            style={{
+                              ...btnBase,
+                              borderColor: isLive ? 'rgba(239,68,68,0.3)' : 'transparent',
+                              background: isLive ? 'rgba(239,68,68,0.1)' : 'rgba(255,255,255,0.03)',
+                            }}
+                            disabled={!isLive}
+                            onClick={() => openWizard('card', 'red', undefined, teamId)}
+                          >
+                            <IconCard size={20} />
+                            <span style={{ color: isLive ? '#f87171' : '#64748b' }}>THẺ ĐỎ</span>
+                          </button>
+
+                          {/* SUBSTITUTION */}
+                          <button
+                            style={{
+                              ...btnBase,
+                              borderColor: isLive ? 'rgba(0,212,184,0.25)' : 'transparent',
+                              background: isLive ? 'rgba(0,212,184,0.08)' : 'rgba(255,255,255,0.03)',
+                            }}
+                            disabled={!isLive}
+                            onClick={() => openWizard('sub', 'normal', undefined, teamId)}
+                          >
+                            <IconSwap size={20} />
+                            <span style={{ color: isLive ? '#2dd4bf' : '#64748b' }}>THAY NGƯỜI</span>
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  };
+
+                  return (
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', marginBottom: '4px' }}>
+                      {renderTeamRow(selectedMatch.doiNha, true)}
+                      {renderTeamRow(selectedMatch.doiKhach, false)}
+                    </div>
+                  );
+                })()}
 
                 {/* SECONDARY ACTION BUTTONS (CUSTOM EVENTS & MOTM) */}
                 {(customEvents.length > 0 || selectedMatch.trangThai === 'KET_THUC') && (
@@ -1609,8 +1784,8 @@ export default function RefereeTab({
         </>
       )}
 
-      {/* BOTTOM SHEET WIZARD OVERLAY */}
-      {wizardState.isOpen && selectedMatch && (
+      {/* BOTTOM SHEET WIZARD OVERLAY - MOBILE ONLY */}
+      {!isDesktop && wizardState.isOpen && selectedMatch && (
         <div className={styles.mobileBottomSheetOverlay} onClick={closeWizard}>
           <div className={styles.mobileBottomSheet} onClick={(e) => e.stopPropagation()}>
             <div className={styles.bottomSheetHandle}></div>
@@ -1623,24 +1798,52 @@ export default function RefereeTab({
               {wizardState.action === 'motm' && <><IconMedal size={20} /> BẦU MVP</>}
             </div>
 
-            {/* TEAM SEGMENTED CONTROL */}
+            {/* TEAM INDICATOR / SEGMENTED CONTROL */}
             {wizardState.step === 1 && wizardState.action !== 'motm' && (
-              <div className={styles.segmentedControl}>
-                <button
-                  className={`${styles.segmentBtn} ${wizardState.teamId === selectedMatch.doiNha?.id ? styles.segmentBtnActive : ''}`}
-                  onClick={() => setWizardState(prev => ({ ...prev, teamId: selectedMatch.doiNha?.id }))}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <IconHome size={16} /> {selectedMatch.doiNha?.ten}
-                </button>
-                <button
-                  className={`${styles.segmentBtn} ${wizardState.teamId === selectedMatch.doiKhach?.id ? styles.segmentBtnActive : ''}`}
-                  onClick={() => setWizardState(prev => ({ ...prev, teamId: selectedMatch.doiKhach?.id }))}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
-                >
-                  <IconAway size={16} /> {selectedMatch.doiKhach?.ten}
-                </button>
-              </div>
+              wizardState.teamLocked ? (
+                // Locked: show a read-only pill showing which team was pre-selected
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  padding: '8px 16px',
+                  margin: '0 20px',
+                  borderRadius: '10px',
+                  background: wizardState.teamId === selectedMatch.doiNha?.id
+                    ? 'rgba(59,130,246,0.12)'
+                    : 'rgba(249,115,22,0.12)',
+                  border: `1px solid ${
+                    wizardState.teamId === selectedMatch.doiNha?.id
+                      ? 'rgba(59,130,246,0.3)'
+                      : 'rgba(249,115,22,0.3)'
+                  }`,
+                  gap: '8px',
+                  fontSize: '13px',
+                  fontWeight: 700,
+                  color: wizardState.teamId === selectedMatch.doiNha?.id ? '#93c5fd' : '#fdba74',
+                }}>
+                  {wizardState.teamId === selectedMatch.doiNha?.id
+                    ? <><IconHome size={15} /> {selectedMatch.doiNha?.ten}</>
+                    : <><IconAway size={15} /> {selectedMatch.doiKhach?.ten}</>}
+                </div>
+              ) : (
+                <div className={styles.segmentedControl}>
+                  <button
+                    className={`${styles.segmentBtn} ${wizardState.teamId === selectedMatch.doiNha?.id ? styles.segmentBtnActive : ''}`}
+                    onClick={() => setWizardState(prev => ({ ...prev, teamId: selectedMatch.doiNha?.id }))}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                  >
+                    <IconHome size={16} /> {selectedMatch.doiNha?.ten}
+                  </button>
+                  <button
+                    className={`${styles.segmentBtn} ${wizardState.teamId === selectedMatch.doiKhach?.id ? styles.segmentBtnActive : ''}`}
+                    onClick={() => setWizardState(prev => ({ ...prev, teamId: selectedMatch.doiKhach?.id }))}
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                  >
+                    <IconAway size={16} /> {selectedMatch.doiKhach?.ten}
+                  </button>
+                </div>
+              )
             )}
 
             {wizardState.action !== 'motm' && (
@@ -2079,6 +2282,440 @@ export default function RefereeTab({
           </div>
         </div>
       )}
+      {/* Quick Add Player Modal */}
+      {quickAddPlayerModalState.isOpen && (
+        <div style={{
+          position: 'fixed', top: 0, left: 0, right: 0, bottom: 0,
+          background: 'rgba(15, 23, 42, 0.75)', backdropFilter: 'blur(4px)',
+          zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center'
+        }}>
+          <div style={{
+            background: 'var(--color-surface, #ffffff)', width: '320px', borderRadius: '12px', padding: '24px',
+            boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1), 0 10px 10px -5px rgba(0, 0, 0, 0.04)',
+            border: '1px solid var(--color-border-light, #e2e8f0)',
+            display: 'flex', flexDirection: 'column', gap: '16px'
+          }}>
+            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: 700, color: 'var(--color-text-heading, #0F172A)' }}>Thêm Nhanh Cầu Thủ</h3>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary, #475569)' }}>Số áo</label>
+              <input
+                type="number"
+                placeholder="Ví dụ: 10"
+                value={quickAddPlayerModalState.jerseyNumber}
+                onChange={e => setQuickAddPlayerModalState(prev => ({ ...prev, jerseyNumber: e.target.value }))}
+                style={{
+                  padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border, #cbd5e1)',
+                  fontSize: '14px', outline: 'none', background: 'var(--color-surface-container, #f8fafc)',
+                  color: 'var(--color-text, #0f172a)'
+                }}
+              />
+            </div>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <label style={{ fontSize: '12px', fontWeight: 600, color: 'var(--color-text-secondary, #475569)' }}>Tên cầu thủ</label>
+              <input
+                type="text"
+                placeholder="Ví dụ: Nguyễn Văn A"
+                value={quickAddPlayerModalState.name}
+                onChange={e => setQuickAddPlayerModalState(prev => ({ ...prev, name: e.target.value }))}
+                style={{
+                  padding: '10px 12px', borderRadius: '8px', border: '1px solid var(--color-border, #cbd5e1)',
+                  fontSize: '14px', outline: 'none', background: 'var(--color-surface-container, #f8fafc)',
+                  color: 'var(--color-text, #0f172a)'
+                }}
+              />
+            </div>
+
+            <div style={{ display: 'flex', gap: '12px', marginTop: '8px' }}>
+              <button
+                onClick={() => setQuickAddPlayerModalState(prev => ({ ...prev, isOpen: false }))}
+                style={{
+                  flex: 1, padding: '10px', background: 'var(--color-surface-container, #f1f5f9)',
+                  color: 'var(--color-text-secondary, #475569)', border: 'none', borderRadius: '8px',
+                  fontWeight: 600, fontSize: '13px', cursor: 'pointer'
+                }}
+              >
+                Hủy
+              </button>
+              <button
+                onClick={handleSaveQuickPlayer}
+                disabled={quickAddPlayerModalState.isSaving || !quickAddPlayerModalState.name || !quickAddPlayerModalState.jerseyNumber}
+                style={{
+                  flex: 1, padding: '10px', background: 'var(--color-primary, #0F766E)',
+                  color: '#ffffff', border: 'none', borderRadius: '8px',
+                  fontWeight: 600, fontSize: '13px', cursor: quickAddPlayerModalState.isSaving ? 'not-allowed' : 'pointer',
+                  opacity: (quickAddPlayerModalState.isSaving || !quickAddPlayerModalState.name || !quickAddPlayerModalState.jerseyNumber) ? 0.7 : 1
+                }}
+              >
+                {quickAddPlayerModalState.isSaving ? 'Đang lưu...' : '💾 Lưu lại'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* PC SUBSTITUTION MODAL - PREMIUM FORM */}
+      {pcSubModalState.isOpen && selectedMatch && (
+        <div
+          style={{
+            position: 'fixed', inset: 0,
+            background: 'rgba(5, 8, 16, 0.88)',
+            backdropFilter: 'blur(12px)',
+            zIndex: 1000,
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: '24px',
+            animation: 'fadeIn 0.15s ease-out'
+          }}
+          onClick={() => setPcSubModalState(prev => ({ ...prev, isOpen: false, subInPlayerId: '', minute: '' }))}
+        >
+          {(() => {
+            const team = pcSubModalState.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha : selectedMatch.doiKhach;
+            const isHome = pcSubModalState.teamId === selectedMatch.doiNha?.id;
+            const { bench } = calculateCurrentRoster(team, selectedMatch.suKien, starterCount);
+            const subInPlayer = bench.find((p: any) => p.id === pcSubModalState.subInPlayerId);
+
+            return (
+              <div
+                style={{
+                  width: '100%',
+                  maxWidth: '760px',
+                  background: 'linear-gradient(160deg, #0d1526 0%, #0a1020 100%)',
+                  border: '1px solid #1e293b',
+                  borderRadius: '20px',
+                  boxShadow: '0 32px 64px rgba(0,0,0,0.6), 0 0 0 1px rgba(255,255,255,0.03)',
+                  overflow: 'hidden',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  color: '#e2e8f0',
+                  fontFamily: "'Hanken Grotesk', 'Inter', sans-serif"
+                }}
+                onClick={e => e.stopPropagation()}
+              >
+                {/* HEADER BAND */}
+                <div style={{
+                  padding: '20px 28px 18px',
+                  borderBottom: '1px solid #1e293b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: 'rgba(0,212,184,0.04)'
+                }}>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                    <div style={{
+                      width: '40px', height: '40px',
+                      borderRadius: '10px',
+                      background: 'rgba(0,212,184,0.12)',
+                      border: '1px solid rgba(0,212,184,0.2)',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center'
+                    }}>
+                      <IconSwap size={20} />
+                    </div>
+                    <div>
+                      <div style={{ fontSize: '16px', fontWeight: 800, color: '#f1f5f9', lineHeight: 1.2 }}>Thay người</div>
+                      <div style={{ fontSize: '12px', color: '#64748b', marginTop: '2px' }}>
+                        {team?.ten} • {isHome ? 'Đội nhà' : 'Đội khách'}
+                      </div>
+                    </div>
+                  </div>
+                  <button
+                    style={{
+                      width: '32px', height: '32px',
+                      borderRadius: '8px',
+                      border: '1px solid #1e293b',
+                      background: 'transparent',
+                      color: '#64748b',
+                      fontSize: '18px',
+                      lineHeight: 1,
+                      cursor: 'pointer',
+                      display: 'flex', alignItems: 'center', justifyContent: 'center',
+                      transition: 'all 0.15s'
+                    }}
+                    onClick={() => setPcSubModalState(prev => ({ ...prev, isOpen: false, subInPlayerId: '', minute: '' }))}
+                  >✕</button>
+                </div>
+
+                {/* BODY - TWO COLUMN LAYOUT */}
+                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', minHeight: '340px' }}>
+
+                  {/* LEFT: OUT PLAYER + MINUTE */}
+                  <div style={{
+                    padding: '24px 20px 24px 28px',
+                    borderRight: '1px solid #1e293b',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '20px'
+                  }}>
+                    {/* OUT PLAYER CARD */}
+                    <div>
+                      <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#ef4444', textTransform: 'uppercase', marginBottom: '10px' }}>
+                        ▼ Cầu thủ ra sân
+                      </div>
+                      <div style={{
+                        padding: '16px',
+                        borderRadius: '12px',
+                        background: 'rgba(239,68,68,0.08)',
+                        border: '1px solid rgba(239,68,68,0.25)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '14px'
+                      }}>
+                        <div style={{
+                          width: '44px', height: '44px',
+                          borderRadius: '50%',
+                          background: 'rgba(239,68,68,0.15)',
+                          border: '2px solid rgba(239,68,68,0.4)',
+                          display: 'flex', alignItems: 'center', justifyContent: 'center',
+                          fontSize: '14px', fontWeight: 800, color: '#ef4444',
+                          flexShrink: 0
+                        }}>
+                          {pcSubModalState.subOutPlayer?.soAo}
+                        </div>
+                        <div>
+                          <div style={{ fontSize: '15px', fontWeight: 700, color: '#f1f5f9' }}>
+                            {pcSubModalState.subOutPlayer?.ten}
+                          </div>
+                          <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>Đang thi đấu</div>
+                        </div>
+                      </div>
+                    </div>
+
+                    {/* ARROW + IN PLAYER PREVIEW */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
+                      <div style={{
+                        display: 'flex', alignItems: 'center', gap: '8px',
+                        color: '#00D4B8', fontSize: '13px', fontWeight: 600
+                      }}>
+                        <div style={{ height: '1px', width: '32px', background: 'linear-gradient(90deg, transparent, #00D4B8)' }} />
+                        <IconSwap size={18} />
+                        <div style={{ height: '1px', width: '32px', background: 'linear-gradient(90deg, #00D4B8, transparent)' }} />
+                      </div>
+                    </div>
+
+                    {/* IN PLAYER PREVIEW */}
+                    <div>
+                      <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#10b981', textTransform: 'uppercase', marginBottom: '10px' }}>
+                        ▲ Cầu thủ vào sân
+                      </div>
+                      <div style={{
+                        padding: '16px',
+                        borderRadius: '12px',
+                        background: subInPlayer ? 'rgba(16,185,129,0.08)' : 'rgba(30,41,59,0.3)',
+                        border: subInPlayer ? '1px solid rgba(16,185,129,0.3)' : '1px dashed rgba(100,116,139,0.4)',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '14px',
+                        minHeight: '76px',
+                        transition: 'all 0.2s'
+                      }}>
+                        {subInPlayer ? (
+                          <>
+                            <div style={{
+                              width: '44px', height: '44px',
+                              borderRadius: '50%',
+                              background: 'rgba(16,185,129,0.15)',
+                              border: '2px solid rgba(16,185,129,0.5)',
+                              display: 'flex', alignItems: 'center', justifyContent: 'center',
+                              fontSize: '14px', fontWeight: 800, color: '#10b981',
+                              flexShrink: 0
+                            }}>
+                              {subInPlayer.soAo}
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '15px', fontWeight: 700, color: '#f1f5f9' }}>{subInPlayer.ten}</div>
+                              <div style={{ fontSize: '11px', color: '#94a3b8', marginTop: '2px' }}>Dự bị → Vào sân</div>
+                            </div>
+                          </>
+                        ) : (
+                          <div style={{ color: '#475569', fontSize: '13px', fontStyle: 'italic', textAlign: 'center', width: '100%' }}>
+                            ← Chọn cầu thủ bên phải
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* MINUTE INPUT */}
+                    <div style={{ marginTop: 'auto' }}>
+                      <label style={{ fontSize: '11px', fontWeight: 700, letterSpacing: '0.05em', color: '#64748b', textTransform: 'uppercase', display: 'block', marginBottom: '8px' }}>
+                        Phút thi đấu
+                      </label>
+                      <input
+                        type="number"
+                        min="1"
+                        max="120"
+                        placeholder={selectedMatch.trangThai === 'DANG_DIEN_RA' ? String(selectedMatch.phut || 0) : 'VD: 65'}
+                        style={{
+                          width: '100%',
+                          padding: '10px 14px',
+                          background: '#080c14',
+                          border: '1px solid #1e293b',
+                          borderRadius: '10px',
+                          fontSize: '14px',
+                          color: '#e2e8f0',
+                          outline: 'none',
+                          boxSizing: 'border-box',
+                          transition: 'border-color 0.15s'
+                        }}
+                        value={pcSubModalState.minute}
+                        onChange={(e) => setPcSubModalState(prev => ({ ...prev, minute: e.target.value }))}
+                      />
+                    </div>
+                  </div>
+
+                  {/* RIGHT: BENCH PLAYER SELECTION */}
+                  <div style={{
+                    padding: '24px 28px 24px 20px',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '12px'
+                  }}>
+                    <div style={{ fontSize: '10px', fontWeight: 700, letterSpacing: '0.1em', color: '#64748b', textTransform: 'uppercase', marginBottom: '4px' }}>
+                      Danh sách dự bị — {team?.ten}
+                    </div>
+
+                    {bench.length > 0 ? (
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', overflowY: 'auto', maxHeight: '320px', paddingRight: '4px' }}>
+                        {bench.map((p: any) => {
+                          const isSelected = p.id === pcSubModalState.subInPlayerId;
+                          const yellowCount = selectedMatch.suKien?.filter((ev: any) => ev.loai === 'THE_VANG' && ev.cauThuId === p.id).length || 0;
+                          const isRedCarded = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === p.id) || yellowCount >= 2;
+
+                          return (
+                            <button
+                              key={p.id}
+                              disabled={isRedCarded}
+                              type="button"
+                              onClick={() => setPcSubModalState(prev => ({ ...prev, subInPlayerId: p.id }))}
+                              style={{
+                                width: '100%',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: '12px',
+                                padding: '12px 14px',
+                                borderRadius: '10px',
+                                border: isSelected ? '1.5px solid #00D4B8' : '1px solid #1e293b',
+                                background: isRedCarded
+                                  ? 'transparent'
+                                  : isSelected
+                                    ? 'rgba(0,212,184,0.1)'
+                                    : 'rgba(20,29,47,0.8)',
+                                color: isRedCarded ? '#334155' : isSelected ? '#00D4B8' : '#cbd5e1',
+                                cursor: isRedCarded ? 'not-allowed' : 'pointer',
+                                opacity: isRedCarded ? 0.45 : 1,
+                                textAlign: 'left',
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                transition: 'all 0.15s',
+                                boxShadow: isSelected ? '0 0 0 3px rgba(0,212,184,0.12)' : 'none'
+                              }}
+                            >
+                              <span style={{
+                                width: '34px', height: '34px',
+                                borderRadius: '50%',
+                                background: isSelected ? 'rgba(0,212,184,0.2)' : '#0a1020',
+                                border: isSelected ? '1.5px solid rgba(0,212,184,0.5)' : '1px solid #1e293b',
+                                display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: '12px', fontWeight: 800, color: isSelected ? '#00D4B8' : '#94a3b8',
+                                flexShrink: 0,
+                                transition: 'all 0.15s'
+                              }}>
+                                {p.soAo}
+                              </span>
+                              <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.ten}</span>
+                              {isRedCarded && <span style={{ fontSize: '14px' }}>🟥</span>}
+                              {isSelected && !isRedCarded && (
+                                <span style={{ fontSize: '14px', color: '#00D4B8' }}>✓</span>
+                              )}
+                            </button>
+                          );
+                        })}
+                      </div>
+                    ) : (
+                      <div style={{
+                        flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center',
+                        fontSize: '13px', color: '#475569', fontStyle: 'italic', textAlign: 'center',
+                        padding: '32px', background: 'rgba(20,29,47,0.3)',
+                        borderRadius: '12px', border: '1px dashed #1e293b'
+                      }}>
+                        Không có cầu thủ dự bị<br />nào khả dụng.
+                      </div>
+                    )}
+                  </div>
+                </div>
+
+                {/* FOOTER ACTIONS */}
+                <div style={{
+                  padding: '16px 28px',
+                  borderTop: '1px solid #1e293b',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between',
+                  background: 'rgba(0,0,0,0.15)'
+                }}>
+                  <div style={{ fontSize: '12px', color: '#475569' }}>
+                    {subInPlayer
+                      ? <span style={{ color: '#10b981' }}>✓ Đã chọn: #{subInPlayer.soAo} {subInPlayer.ten}</span>
+                      : 'Vui lòng chọn cầu thủ vào sân'}
+                  </div>
+                  <div style={{ display: 'flex', gap: '10px' }}>
+                    <button
+                      type="button"
+                      style={{
+                        padding: '9px 20px',
+                        borderRadius: '10px',
+                        border: '1px solid #1e293b',
+                        background: 'transparent',
+                        color: '#94a3b8',
+                        fontSize: '13px',
+                        fontWeight: 600,
+                        cursor: 'pointer',
+                        transition: 'all 0.15s'
+                      }}
+                      onClick={() => setPcSubModalState(prev => ({ ...prev, isOpen: false, subInPlayerId: '', minute: '' }))}
+                    >
+                      Hủy bỏ
+                    </button>
+                    <button
+                      type="button"
+                      disabled={!pcSubModalState.subInPlayerId}
+                      style={{
+                        padding: '9px 24px',
+                        borderRadius: '10px',
+                        border: 'none',
+                        background: pcSubModalState.subInPlayerId ? '#00D4B8' : '#1e293b',
+                        color: pcSubModalState.subInPlayerId ? '#080C10' : '#475569',
+                        fontSize: '13px',
+                        fontWeight: 700,
+                        cursor: pcSubModalState.subInPlayerId ? 'pointer' : 'not-allowed',
+                        transition: 'all 0.2s',
+                        display: 'flex', alignItems: 'center', gap: '8px'
+                      }}
+                      onClick={() => {
+                        const subIn = bench.find((p: any) => p.id === pcSubModalState.subInPlayerId);
+                        if (!subIn) return;
+                        handleExecuteSubstitution(
+                          subIn,
+                          pcSubModalState.subOutPlayer,
+                          pcSubModalState.teamId,
+                          pcSubModalState.minute || selectedMatch.phut || 0
+                        );
+                        setPcSubModalState(prev => ({ ...prev, isOpen: false, subInPlayerId: '', minute: '' }));
+                      }}
+                    >
+                      <IconSwap size={14} />
+                      Xác nhận thay người
+                    </button>
+                  </div>
+                </div>
+
+              </div>
+            );
+          })()}
+        </div>
+      )}
+
     </div>
   );
 }
