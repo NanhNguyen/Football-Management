@@ -1180,19 +1180,20 @@ export default function RefereeTab({
                   </div>
                   
                   {/* Scoreboard Teams Row (~20%) */}
-                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '24px', width: '100%' }}>
-                    {/* Main Row */}
-                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
-                      
-                      {/* Logo + Tên (Nhà) */}
+                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', width: '100%' }}>
+                    
+                    {/* Logo + Tên (Nhà) */}
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '16px' }}>
                       <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px', flexShrink: 0 }}>
                         <TeamLogo logo={selectedMatch.doiNha?.logo} teamName={selectedMatch.doiNha?.ten} />
                       </span>
-                      <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '120px', textAlign: 'center', color: '#d8e4ff', margin: '0 16px', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '120px', textAlign: 'right', color: '#d8e4ff', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>
                         {selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.toUpperCase()}
                       </span>
+                    </div>
 
-                      {/* Tỉ số */}
+                    {/* Tỉ số & Badge */}
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', margin: '0 24px', flexShrink: 0 }}>
                       <div style={{ display: 'flex', alignItems: 'center' }}>
                         <span style={{ fontSize: '52px', fontWeight: 800, color: selectedMatch.trangThai === 'KET_THUC' ? '#10d98a' : (selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'var(--color-text-heading, #0F172A)'), background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : 'none', WebkitBackgroundClip: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'text' : 'border-box', WebkitTextFillColor: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'inherit', lineHeight: 1 }}>
                           {selectedMatch.tyNha}
@@ -1205,19 +1206,21 @@ export default function RefereeTab({
                         </span>
                       </div>
 
-                      {/* Tên + Logo (Khách) */}
-                      <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '120px', textAlign: 'center', color: '#d8e4ff', margin: '0 16px', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>
+                      {/* Badge */}
+                      <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', color: '#fff', background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : (selectedMatch.trangThai === 'KET_THUC' ? 'var(--color-success, #10b981)' : '#64748b') }}>
+                        {selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'LIVE' : (selectedMatch.trangThai === 'KET_THUC' ? 'FT' : 'PRE-MATCH')}
+                      </span>
+                    </div>
+
+                    {/* Tên + Logo (Khách) */}
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '16px' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '120px', textAlign: 'left', color: '#d8e4ff', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>
                         {selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.toUpperCase()}
                       </span>
                       <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px', flexShrink: 0 }}>
                         <TeamLogo logo={selectedMatch.doiKhach?.logo} teamName={selectedMatch.doiKhach?.ten} />
                       </span>
                     </div>
-
-                    {/* Badge */}
-                    <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', color: '#fff', background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : (selectedMatch.trangThai === 'KET_THUC' ? 'var(--color-success, #10b981)' : '#64748b') }}>
-                      {selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'LIVE' : (selectedMatch.trangThai === 'KET_THUC' ? 'FT' : 'PRE-MATCH')}
-                    </span>
                   </div>
 
                   {/* Actions (~15%) */}
