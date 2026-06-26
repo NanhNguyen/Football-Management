@@ -9,16 +9,14 @@ import { getDisplayTime, quickAddPlayer } from '@/lib/api';
 
 const desktopStyles = {
   wrapper: {
+    flex: 1,
     display: 'flex',
     flexDirection: 'row' as const,
     width: '100%',
     maxWidth: '100%',
-    overflowX: 'hidden' as const,
-    overflowY: 'hidden' as const,
     gap: '12px',
-    padding: '12px',
+    padding: '12px 24px',
     boxSizing: 'border-box' as const,
-    height: 'calc(100vh - 60px - 36px)',
     background: 'var(--color-bg, #f8fafc)',
     position: 'relative' as const,
     fontFamily: "'Hanken Grotesk', 'Inter', sans-serif",
@@ -41,33 +39,25 @@ const desktopStyles = {
   columnHomeAway: {
     display: 'flex',
     flexDirection: 'column' as const,
-    overflowY: 'auto' as const,
-    overflowX: 'hidden' as const,
-    height: '100%',
     flex: '0 0 28%',
-    scrollbarWidth: 'thin' as const,
-    scrollbarColor: 'rgba(255,255,255,0.1) transparent',
-    paddingTop: '32px',
     boxSizing: 'border-box' as const,
   },
   columnCenter: {
     display: 'flex',
     flexDirection: 'column' as const,
-    paddingTop: '32px',
     gap: '24px',
     flex: '1 1 auto',
     boxSizing: 'border-box' as const,
     minWidth: 0,
-    height: '100%',
-    overflow: 'hidden',
   },
   card: {
+    display: 'flex',
+    flexDirection: 'column' as const,
     background: 'var(--color-surface, #ffffff)',
     padding: '24px',
     borderRadius: '8px',
     boxShadow: 'var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05))',
     border: '1px solid var(--color-border-light, #f1f5f9)',
-    minHeight: '600px',
     boxSizing: 'border-box' as const,
   },
   cardTitle: {
@@ -262,7 +252,6 @@ const desktopStyles = {
     borderRadius: '8px',
     boxShadow: 'var(--shadow-sm, 0 1px 2px rgba(0, 0, 0, 0.05))',
     border: '1px solid var(--color-border-light, #f1f5f9)',
-    flex: 1,
     display: 'flex',
     flexDirection: 'column' as const,
     boxSizing: 'border-box' as const,
@@ -649,11 +638,10 @@ export default function RefereeTab({
     const { starters, bench } = calculateCurrentRoster(team, selectedMatch.suKien, starterCount);
 
     return (
-      <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
-        <div>
-          <div style={desktopStyles.lineupSectionTitle}>ĐỘI HÌNH CHÍNH (Click Player to Action)</div>
-          <div style={desktopStyles.startersGrid}>
-            {starters.length > 0 ? starters.map((p: any) => {
+      <div style={{ display: 'flex', flexDirection: 'column', width: '100%' }}>
+        <div style={{ ...desktopStyles.lineupSectionTitle, flexShrink: 0, marginTop: '4px', marginBottom: '12px' }}>ĐỘI HÌNH CHÍNH (Click Player to Action)</div>
+        <div style={desktopStyles.startersGrid}>
+          {starters.length > 0 ? starters.map((p: any) => {
               const isPopoverOpen = activePopover?.playerId === p.id && activePopover?.teamId === team.id;
               const isRedCarded = selectedMatch.suKien?.some((ev: any) => ev.loai === 'THE_DO' && ev.cauThuId === p.id);
 
@@ -729,10 +717,9 @@ export default function RefereeTab({
                 </div>
               );
             }) : <div style={{ gridColumn: 'span 2', textAlign: 'center', fontSize: '14px', color: '#64748b', padding: '16px 0' }}>Chưa có đội hình</div>}
-          </div>
         </div>
 
-        <div>
+        <div style={{ flexShrink: 0, marginTop: '16px' }}>
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
             <div style={{ ...desktopStyles.lineupSectionTitle, marginBottom: 0 }}>DỰ BỊ</div>
             {selectedMatch?.trangThai !== 'KET_THUC' && (
@@ -774,7 +761,9 @@ export default function RefereeTab({
               ))}
             </div>
           ) : (
-            <div style={{ textAlign: 'center', fontSize: '13px', color: '#94a3b8', padding: '12px 0' }}>Chưa có cầu thủ dự bị</div>
+            <div>
+              <div style={{ textAlign: 'center', fontSize: '13px', color: '#94a3b8', padding: '12px 0' }}>Chưa có cầu thủ dự bị</div>
+            </div>
           )}
         </div>
       </div>
@@ -1145,9 +1134,9 @@ export default function RefereeTab({
         `}</style>
           {isDesktop ? (
             /* DESKTOP VIEW (>= 1024px) */
-            <div style={desktopStyles.wrapper} onClick={() => setActivePopover(null)}>
+            <div style={{ display: 'flex', flexDirection: 'column' }} onClick={() => setActivePopover(null)}>
               {/* Breadcrumb Navigation */}
-              <div style={{ position: 'absolute', top: '16px', left: '24px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', zIndex: 10 }}>
+              <div style={{ flexShrink: 0, padding: '10px 24px', height: '38px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', zIndex: 10 }}>
                 <a className="desktop-breadcrumb-parent" onClick={() => setSelectedMatchId(null)} style={{ color: 'rgba(255,255,255,0.35)', cursor: 'pointer', textDecoration: 'none', transition: 'all 0.2s' }}>Lịch đấu</a>
                 <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
                 <a className="desktop-breadcrumb-parent" onClick={() => setSelectedMatchId(null)} style={{ color: 'rgba(255,255,255,0.35)', cursor: 'pointer', textDecoration: 'none', transition: 'all 0.2s' }}>{selectedMatch.vong}</a>
@@ -1155,10 +1144,11 @@ export default function RefereeTab({
                 <span style={{ color: 'rgba(255,255,255,0.85)', cursor: 'default' }}>{selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.substring(0, 3).toUpperCase()} vs {selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.substring(0, 3).toUpperCase()}</span>
               </div>
 
-              {/* LEFT COLUMN: HOME TEAM */}
-              <div style={desktopStyles.columnHomeAway} className="ref-column-scroll">
-                <div style={desktopStyles.card}>
-                  <h3 style={desktopStyles.cardTitle}>
+              <div style={desktopStyles.wrapper}>
+                {/* LEFT COLUMN: HOME TEAM */}
+                <div style={desktopStyles.columnHomeAway}>
+                  <div style={desktopStyles.card}>
+                  <h3 style={{ ...desktopStyles.cardTitle, flexShrink: 0, paddingBottom: '10px', marginBottom: 0 }}>
                     <span style={{ width: '20px', height: '20px', display: 'flex' }}>
                       <TeamLogo logo={selectedMatch.doiNha?.logo} teamName={selectedMatch.doiNha?.ten} />
                     </span>
@@ -1184,7 +1174,7 @@ export default function RefereeTab({
                   </div>
                   
                   {/* Scoreboard Teams Row (~20%) */}
-                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: '24px', width: '100%' }}>
+                  <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', marginBottom: '36px', width: '100%' }}>
                     
                     {/* Logo + Tên (Nhà) */}
                     <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '16px' }}>
@@ -1209,7 +1199,7 @@ export default function RefereeTab({
                       </span>
 
                       {/* Badge (absolute to stay centered below the hyphen without affecting height) */}
-                      <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '4px', whiteSpace: 'nowrap' }}>
+                      <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '16px', whiteSpace: 'nowrap' }}>
                         <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', color: '#fff', background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : (selectedMatch.trangThai === 'KET_THUC' ? 'var(--color-success, #10b981)' : '#64748b') }}>
                           {selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'LIVE' : (selectedMatch.trangThai === 'KET_THUC' ? 'FT' : 'PRE-MATCH')}
                         </span>
@@ -1302,15 +1292,15 @@ export default function RefereeTab({
                 </div>
 
                 {/* Timeline (~50%) */}
-                <div style={{ ...desktopStyles.timelineCard, flex: 1, overflow: 'hidden' }}>
+                <div style={desktopStyles.timelineCard}>
                   <div style={desktopStyles.timelineHeader}>
                     <IconEvent size={16} /> Diễn biến trận đấu
                   </div>
-                  <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }} className="ref-column-scroll">
+                  <div style={{ display: 'flex', flexDirection: 'column' }}>
                     {(!selectedMatch.suKien || selectedMatch.suKien.length === 0) ? (
-                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic', fontSize: '14px' }}>Chưa có sự kiện nào</div>
+                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic', fontSize: '14px', padding: '24px 0' }}>Chưa có sự kiện nào</div>
                     ) : (
-                      <div className="ref-timeline-container" style={{ flex: 1 }}>
+                      <div className="ref-timeline-container">
                         {(() => {
                            const sortedEvents = selectedMatch.suKien ? selectedMatch.suKien.slice().sort((a: any, b: any) => a.phut - b.phut || a.id.localeCompare(b.id)) : [];
                            let homeScore = 0;
@@ -1549,9 +1539,9 @@ export default function RefereeTab({
                 </div>
               </div>
 {/* RIGHT COLUMN: AWAY TEAM */}
-              <div style={desktopStyles.columnHomeAway} className="ref-column-scroll">
+              <div style={desktopStyles.columnHomeAway}>
                 <div style={desktopStyles.card}>
-                  <h3 style={desktopStyles.cardTitle}>
+                  <h3 style={{ ...desktopStyles.cardTitle, flexShrink: 0, paddingBottom: '10px', marginBottom: 0 }}>
                     <span style={{ width: '20px', height: '20px', display: 'flex' }}>
                       <TeamLogo logo={selectedMatch.doiKhach?.logo} teamName={selectedMatch.doiKhach?.ten} />
                     </span>
@@ -1560,6 +1550,7 @@ export default function RefereeTab({
                   </h3>
                   <div onClick={e => e.stopPropagation()}>{renderDesktopLineupImageStyle(selectedMatch.doiKhach, false)}</div>
                 </div>
+              </div>
               </div>
             </div>
           ) : (
@@ -1621,7 +1612,7 @@ export default function RefereeTab({
               </div>
 
               {/* MAIN FIELD CONTROLLER (MOBILE FIRST) */}
-              <div style={{ padding: '0 16px' }}>
+              <div style={{ flex: 1, overflowY: 'auto', padding: '0 16px 24px 16px', minHeight: 0 }} className="ref-column-scroll">
 
                 {/* MATCH STATE MACHINE MAIN CTA (START / PAUSE / RESUME) */}
                 <div className={styles.consoleMainCtaWrapper} style={{ marginBottom: '24px' }}>

@@ -260,7 +260,7 @@ export default function AdminDesktopView(props: any) {
         </aside>
 
         {/* Main Content */}
-        <main className={styles.main} style={activeTab === 'referee' ? { padding: 0, overflow: 'hidden' } : {}}>
+        <main className={styles.main} style={activeTab === 'referee' ? { padding: 0 } : {}}>
 
           {false && ( /* activeTab === 'tong-quan' */
             <div className={`${styles.content} animate-fade-in`}>

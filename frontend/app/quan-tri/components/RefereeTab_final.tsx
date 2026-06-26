@@ -36,7 +36,7 @@ const desktopStyles = {
   },
   columnHomeAway: {
     maxHeight: 'calc(100vh - 64px)',
-    overflowY: 'auto',
+    overflowY: 'auto' as const,
     
     display: 'flex',
     flexDirection: 'column' as const,
