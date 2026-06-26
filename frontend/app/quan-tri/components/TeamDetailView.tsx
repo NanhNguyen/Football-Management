@@ -43,23 +43,11 @@ export default function TeamDetailView({ team, styles, onBack, onEdit }: TeamDet
     <div className={`${styles.content} animate-fade-in`} style={{ padding: '24px', background: '#0E1421', borderRadius: '16px', boxShadow: '0 4px 20px rgba(0,0,0,0.05)', border: '1px solid #1e293b' }}>
       {/* Navigation & Actions */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px', flexWrap: 'wrap', gap: '12px' }}>
-        <button
-          onClick={onBack}
-          style={{
-            background: 'none',
-            border: 'none',
-            color: 'var(--color-primary)',
-            fontSize: '15px',
-            fontWeight: 600,
-            cursor: 'pointer',
-            display: 'flex',
-            alignItems: 'center',
-            gap: '6px',
-            padding: 0
-          }}
-        >
-          ← Quay lại danh sách đội
-        </button>
+        <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', zIndex: 10 }}>
+          <a onClick={onBack} style={{ color: 'rgba(255,255,255,0.35)', cursor: 'pointer', textDecoration: 'none', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.textDecoration = 'underline'; }} onMouseOut={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.textDecoration = 'none'; }}>Quản lý đội bóng</a>
+          <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
+          <span style={{ color: 'rgba(255,255,255,0.85)', cursor: 'default' }}>{team.ten}</span>
+        </div>
 
         <button
           className={styles.addBtn}
