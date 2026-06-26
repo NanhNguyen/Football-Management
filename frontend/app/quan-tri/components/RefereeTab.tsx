@@ -35,6 +35,8 @@ const desktopStyles = {
     transition: 'color 0.2s',
   },
   columnHomeAway: {
+    maxHeight: 'calc(100vh - 64px)',
+    overflowY: 'auto',
     
     display: 'flex',
     flexDirection: 'column' as const,
@@ -89,6 +91,9 @@ const desktopStyles = {
     gap: '12px',
   },
   playerButton: (isPopoverOpen: boolean, isRedCarded: boolean) => ({
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     width: '100%',
     background: 'var(--color-surface, #ffffff)',
     border: isPopoverOpen ? '2px solid var(--color-primary, #0F766E)' : '1px solid var(--color-border, #e2e8f0)',
@@ -109,6 +114,9 @@ const desktopStyles = {
     transition: 'all 0.15s ease-in-out',
   }),
   benchPlayerBox: {
+    whiteSpace: 'nowrap',
+    overflow: 'hidden',
+    textOverflow: 'ellipsis',
     width: '100%',
     background: 'var(--color-surface-container, #f8fafc)',
     border: '1px solid var(--color-border-light, #f1f5f9)',
@@ -601,6 +609,36 @@ export default function RefereeTab({
     setActivePopover(null);
   };
 
+  
+  const getPositionTag = (pos: string) => {
+    let bg = 'transparent';
+    let color = '#fff';
+    let label = 'N/A';
+    if (!pos) return null;
+    const p = pos.toUpperCase();
+    if (p.includes('THỦ MÔN') || p === 'GK') { bg = 'rgba(139,92,246,0.2)'; color = '#a78bfa'; label = 'GK'; }
+    else if (p.includes('HẬU VỆ') || p === 'DEF') { bg = 'rgba(59,130,246,0.2)'; color = '#60a5fa'; label = 'DEF'; }
+    else if (p.includes('TIỀN VỆ') || p === 'MID') { bg = 'rgba(16,185,129,0.2)'; color = '#34d399'; label = 'MID'; }
+    else if (p.includes('TIỀN ĐẠO') || p === 'FWD') { bg = 'rgba(239,68,68,0.2)'; color = '#f87171'; label = 'FWD'; }
+    
+    if (label === 'N/A') return null;
+    
+    return (
+      <span style={{
+        fontSize: '10px',
+        fontWeight: 600,
+        borderRadius: '4px',
+        padding: '1px 6px',
+        background: bg,
+        color: color,
+        marginLeft: '6px',
+        flexShrink: 0
+      }}>
+        {label}
+      </span>
+    );
+  };
+
   const renderDesktopLineupImageStyle = (team: any, isHome: boolean) => {
     if (!team) return null;
     const { starters, bench } = calculateCurrentRoster(team, selectedMatch.suKien, starterCount);
@@ -627,7 +665,7 @@ export default function RefereeTab({
                     className="desktop-player-btn"
                     style={{ ...desktopStyles.playerButton(isPopoverOpen, isRedCarded), opacity: (isRedCarded || selectedMatch.trangThai === 'KET_THUC') ? 0.5 : 1, cursor: (isRedCarded || selectedMatch.trangThai === 'KET_THUC') ? 'not-allowed' : 'pointer' }}
                   >
-                    #{p.soAo} {p.ten}
+                    #{p.soAo} {p.ten} {getPositionTag(p.viTri)}
                   </button>
                   {isPopoverOpen && (
                     <div style={desktopStyles.popover(isHome)} onClick={e => e.stopPropagation()}>
@@ -722,7 +760,7 @@ export default function RefereeTab({
             <div style={desktopStyles.benchGrid}>
               {bench.map((p: any) => (
                 <div key={p.id} style={desktopStyles.benchPlayerBox}>
-                  #{p.soAo} {p.ten}
+                  #{p.soAo} {p.ten} {getPositionTag(p.viTri)}
                 </div>
               ))}
             </div>
@@ -2195,7 +2233,7 @@ export default function RefereeTab({
                             onChange={(e) => setQuickAddState(prev => ({ ...prev, subOutPlayerId: e.target.value }))}
                           >
                             <option value="">-- Chọn cầu thủ ra sân --</option>
-                            {starters.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten}</option>)}
+                            {starters.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten} {getPositionTag(p.viTri)}</option>)}
                           </select>
                         </div>
 
@@ -2207,7 +2245,7 @@ export default function RefereeTab({
                             onChange={(e) => setQuickAddState(prev => ({ ...prev, playerId: e.target.value }))}
                           >
                             <option value="">-- Chọn cầu thủ vào sân --</option>
-                            {bench.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten}</option>)}
+                            {bench.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten} {getPositionTag(p.viTri)}</option>)}
                           </select>
                         </div>
                       </>
@@ -2221,7 +2259,7 @@ export default function RefereeTab({
                             onChange={(e) => setQuickAddState(prev => ({ ...prev, playerId: e.target.value }))}
                           >
                             <option value="">-- Chọn cầu thủ --</option>
-                            {allPlayers.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten}</option>)}
+                            {allPlayers.map((p: any) => <option key={p.id} value={p.id}>#{p.soAo} {p.ten} {getPositionTag(p.viTri)}</option>)}
                           </select>
                         </div>
                       )
