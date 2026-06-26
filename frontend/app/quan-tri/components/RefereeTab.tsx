@@ -386,7 +386,6 @@ export default function RefereeTab({
 
   const isDesktop = useMediaQuery('(min-width: 1024px)');
   const [mounted, setMounted] = useState(false);
-  const [resetConfirmMatchId, setResetConfirmMatchId] = useState<string | null>(null);
 
   useEffect(() => {
     setMounted(true);
@@ -788,29 +787,6 @@ export default function RefereeTab({
 
   return (
     <div className={`${styles.refereeConsoleWrapper} animate-fade-in`}>
-      {resetConfirmMatchId && (
-        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(15, 23, 42, 0.75)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center', backdropFilter: 'blur(4px)' }}>
-          <div style={{ background: 'var(--color-surface, #ffffff)', padding: '24px', borderRadius: '16px', maxWidth: '400px', width: '90%', textAlign: 'center', border: '1px solid var(--color-border-light, #f1f5f9)', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.25)' }}>
-            <h3 style={{ fontSize: '18px', fontWeight: 800, color: 'var(--color-text-heading, #0F172A)', marginBottom: '12px' }}>THIẾT LẬP LẠI TRẬN ĐẤU</h3>
-            <p style={{ fontSize: '14px', color: 'var(--color-text-secondary, #475569)', marginBottom: '24px', lineHeight: 1.5 }}>Bạn có chắc muốn thiết lập lại trận đấu này không? Hành động này không thể hoàn tác.</p>
-            <div style={{ display: 'flex', gap: '12px' }}>
-              <button 
-                onClick={() => setResetConfirmMatchId(null)}
-                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: '1px solid var(--color-border, #e2e8f0)', background: 'transparent', color: 'var(--color-text-muted, #94a3b8)', fontWeight: 600, cursor: 'pointer' }}
-              >
-                HỦY
-              </button>
-              <button 
-                onClick={() => { handleResetMatch(resetConfirmMatchId); setResetConfirmMatchId(null); }}
-                style={{ flex: 1, padding: '12px', borderRadius: '8px', border: 'none', background: '#ef4444', color: '#fff', fontWeight: 600, cursor: 'pointer' }}
-              >
-                XÁC NHẬN
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {!selectedMatchId ? (
         <div className={styles.content}>
           <h2 className={styles.pageTitle}>Trung tâm Điều khiển</h2>
@@ -1297,7 +1273,7 @@ export default function RefereeTab({
                     {/* Danger Action */}
                     {selectedMatch.trangThai !== 'SAP_DIEN_RA' && (
                       <button
-                        onClick={() => setResetConfirmMatchId(selectedMatch.id)}
+                        onClick={() => handleResetMatch(selectedMatch.id)}
                         style={{
                           background: 'transparent',
                           color: 'rgba(255,255,255,0.3)',
@@ -1591,9 +1567,13 @@ export default function RefereeTab({
             <div className={styles.liveConsole}>
               {/* TOP BAR */}
               <div className={styles.consoleTopBar} style={{ marginBottom: 0, paddingBottom: '16px' }}>
-                <button className={styles.consoleBackBtn} onClick={() => setSelectedMatchId(null)}>
-                  ← Trở về
-                </button>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', flex: 1 }}>
+                  <a onClick={() => setSelectedMatchId(null)} style={{ color: 'rgba(255,255,255,0.35)', cursor: 'pointer', textDecoration: 'none', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.textDecoration = 'underline'; }} onMouseOut={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.textDecoration = 'none'; }}>Lịch đấu</a>
+                  <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
+                  <span style={{ color: 'rgba(255,255,255,0.85)', cursor: 'default' }}>{selectedMatch.vong}</span>
+                  <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
+                  <span style={{ color: 'rgba(255,255,255,0.85)', cursor: 'default' }}>{selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.substring(0, 3).toUpperCase()} vs {selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.substring(0, 3).toUpperCase()}</span>
+                </div>
                 <div className={styles.consoleMatchMeta}>
                   <span className={styles.consoleVong}>{selectedMatch.vong}</span>
                   {selectedMatch.trangThai === 'DANG_DIEN_RA' && (

@@ -1051,9 +1051,13 @@ export default function RefereeMobileView({ data, actions }: any) {
       <div style={styles.scoreboardCard}>
         {/* Back button row */}
         <div style={styles.scoreboardHeader}>
-          <button onClick={() => setSelectedMatchId(null)} style={styles.backButton}>
-            ← Trở về
-          </button>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', flexWrap: 'wrap' }}>
+            <a onClick={() => setSelectedMatchId(null)} style={{ color: 'rgba(255,255,255,0.35)', cursor: 'pointer', textDecoration: 'none', transition: 'all 0.2s' }} onMouseOver={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.65)'; e.currentTarget.style.textDecoration = 'underline'; }} onMouseOut={(e) => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.textDecoration = 'none'; }}>Lịch đấu</a>
+            <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
+            <span style={{ color: 'rgba(255,255,255,0.85)', cursor: 'default' }}>{selectedMatch.vong}</span>
+            <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
+            <span style={{ color: 'rgba(255,255,255,0.85)', cursor: 'default' }}>{selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.substring(0, 3).toUpperCase()} vs {selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.substring(0, 3).toUpperCase()}</span>
+          </div>
         </div>
 
         {/* Teams and score display */}
