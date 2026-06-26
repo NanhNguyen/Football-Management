@@ -98,9 +98,9 @@ const desktopStyles = {
     marginBottom: '24px',
   },
   benchGrid: {
-    display: 'grid',
-    gridTemplateColumns: 'repeat(2, 1fr)',
-    gap: '12px',
+    display: 'flex',
+    flexDirection: 'column' as const,
+    gap: '4px',
   },
   playerButton: (isPopoverOpen: boolean, isRedCarded: boolean) => ({
     display: 'flex',
