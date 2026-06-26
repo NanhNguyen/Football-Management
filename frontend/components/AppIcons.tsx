@@ -1,7 +1,6 @@
 import React from 'react';
 import { 
   Settings as LucideSettings, 
-  Trophy as LucideTrophy,
   Shield as LucideShield,
   Star as LucideStar,
   Timer as LucideTimer,
@@ -60,7 +59,33 @@ const wrapIcon = (Component: React.ComponentType<any>) => {
 };
 
 export const SettingsIcon = wrapIcon(LucideSettings);
-export const TrophyIcon = wrapIcon(LucideTrophy);
+
+export function TrophyIcon({ size = 18, className = '', color = 'var(--color-primary)', ...props }: IconProps) {
+  return (
+    <svg
+      xmlns="http://www.w3.org/2000/svg"
+      width={size}
+      height={size}
+      viewBox="0 0 24 24"
+      fill="none"
+      stroke={color}
+      strokeWidth={props.strokeWidth || "2"}
+      strokeLinecap="round"
+      strokeLinejoin="round"
+      className={className}
+      style={{ flexShrink: 0, display: 'inline-block', ...props.style }}
+      {...props}
+    >
+      <path d="M8 21h8" />
+      <path d="M12 17v4" />
+      <path d="M7 4h10" />
+      <path d="M17 4v8a5 5 0 0 1-10 0V4" />
+      <circle cx="5" cy="9" r="2" />
+      <circle cx="19" cy="9" r="2" />
+    </svg>
+  );
+}
+
 export const ShieldIcon = wrapIcon(LucideShield);
 export const TimerIcon = wrapIcon(LucideTimer);
 export const PlayIcon = wrapIcon(LucidePlay);
