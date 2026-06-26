@@ -1116,53 +1116,63 @@ export default function RefereeTab({
                 </div>
               </div>
 
-              {/* CENTER COLUMN: BẢNG ĐIỀU KHIỂN & NHẬT KÝ */}
-              <div style={desktopStyles.columnCenter}>
-                {/* MAIN SCOREBOARD CARD */}
-                <div style={desktopStyles.scoreboardCard}>
-                  <div style={desktopStyles.roundHeader}>
-                    <IconMedal size={16} /> {selectedMatch.vong}
+                            {/* CENTER COLUMN: BẢNG ĐIỀU KHIỂN & NHẬT KÝ */}
+              <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '32px', gap: '24px', maxHeight: 'calc(100vh - 64px)', overflow: 'hidden' }}>
+                {/* Scoreboard Visual & Info */}
+                <div style={{ ...desktopStyles.scoreboardCard, flexShrink: 0, padding: '24px' }}>
+                  {/* Round & Timer (~15%) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', marginBottom: '24px' }}>
+                    <div style={desktopStyles.roundHeader}>
+                      <IconMedal size={16} /> {selectedMatch.vong}
+                    </div>
+                    <div style={desktopStyles.timerText(selectedMatch.trangThai === 'DANG_DIEN_RA')}>
+                      <IconTimer size={20} /> {formatMatchTime(selectedMatch)} | {selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'LIVE' : (selectedMatch.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ')}
+                    </div>
                   </div>
-                  <div style={desktopStyles.timerText(selectedMatch.trangThai === 'DANG_DIEN_RA')}>
-                    <IconTimer size={20} /> {formatMatchTime(selectedMatch)} | {selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'LIVE' : (selectedMatch.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ')}
-                  </div>
-
-                  <div style={desktopStyles.scoreboardTeamsRow}>
+                  
+                  {/* Scoreboard Teams Row (~20%) */}
+                  <div style={{ ...desktopStyles.scoreboardTeamsRow, marginBottom: '24px' }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-end', flex: 1 }}>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#d8e4ff' }}>
+                        {selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.toUpperCase()}
+                      </span>
                       <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px' }}>
                         <TeamLogo logo={selectedMatch.doiNha?.logo} teamName={selectedMatch.doiNha?.ten} />
                       </span>
-                      <span style={{ fontSize: '36px', fontWeight: 800, color: 'var(--color-text-heading, #0F172A)' }}>
-                        {selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.substring(0, 3).toUpperCase()}
-                      </span>
                     </div>
-                    <div style={desktopStyles.scoreboardBigScore}>{selectedMatch.tyNha} - {selectedMatch.tyKhach}</div>
+                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                      <div style={{ fontSize: '52px', fontWeight: 800, color: selectedMatch.trangThai === 'KET_THUC' ? '#10d98a' : (selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'var(--color-text-heading, #0F172A)'), background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : 'none', WebkitBackgroundClip: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'text' : 'border-box', WebkitTextFillColor: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'inherit', letterSpacing: '-2px', padding: '0 16px', lineHeight: 1 }}>
+                        {selectedMatch.tyNha} - {selectedMatch.tyKhach}
+                      </div>
+                      <div style={{ marginTop: '8px' }}>
+                        <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', color: '#fff', background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : (selectedMatch.trangThai === 'KET_THUC' ? 'var(--color-success, #10b981)' : '#64748b') }}>
+                          {selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'LIVE' : (selectedMatch.trangThai === 'KET_THUC' ? 'FT' : 'PRE-MATCH')}
+                        </span>
+                      </div>
+                    </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-start', flex: 1 }}>
-                      <span style={{ fontSize: '36px', fontWeight: 800, color: 'var(--color-text-heading, #0F172A)' }}>
-                        {selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.substring(0, 3).toUpperCase()}
-                      </span>
                       <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px' }}>
                         <TeamLogo logo={selectedMatch.doiKhach?.logo} teamName={selectedMatch.doiKhach?.ten} />
                       </span>
+                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#d8e4ff' }}>
+                        {selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.toUpperCase()}
+                      </span>
                     </div>
                   </div>
 
-                  {/* GOAL SCORERS */}
-                  <div style={desktopStyles.goalScorersRow}>
-                    <div style={desktopStyles.scorersColumn('right')}>
-                      {selectedMatch.suKien?.filter((e: any) => e.teamId === selectedMatch.doiNha?.id && e.loai.startsWith('GOAL')).map((e: any) => (
-                        <div key={e.id}>{e.phut}' {e.cauThu?.ten} ⚽</div>
-                      ))}
-                    </div>
-                    <div style={desktopStyles.scorersColumn('left')}>
-                      {selectedMatch.suKien?.filter((e: any) => e.teamId === selectedMatch.doiKhach?.id && e.loai.startsWith('GOAL')).map((e: any) => (
-                        <div key={e.id}>⚽ {e.phut}' {e.cauThu?.ten}</div>
-                      ))}
-                    </div>
-                  </div>
+                  {/* Actions (~15%) */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%', alignItems: 'center' }}>
+                    {/* Primary Action */}
+                    <button 
+                      onClick={() => setQuickAddState({ ...quickAddState, isOpen: true, teamId: selectedMatch.doiNha?.id || '' })}
+                      style={{ background: 'linear-gradient(135deg, #a78bfa, #818cf8)', color: '#fff', fontWeight: 600, border: 'none', borderRadius: '10px', padding: '14px', width: '100%', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', cursor: 'pointer', transition: 'filter 0.2s' }}
+                      onMouseOver={e => e.currentTarget.style.filter = 'brightness(1.1)'}
+                      onMouseOut={e => e.currentTarget.style.filter = 'brightness(1)'}
+                    >
+                      ⚡ NHẬP NHANH SỰ KIỆN
+                    </button>
 
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', width: '100%' }}>
-                    {/* ROW 1: MATCH CONTROL */}
+                    {/* Match Controls */}
                     <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
                       {getMatchHalfState(selectedMatch) === '1_not_started' && (
                         <>
@@ -1191,82 +1201,36 @@ export default function RefereeTab({
                           <IconPlay size={18} /> BẮT ĐẦU HIỆP 2
                         </button>
                       )}
-                      {getMatchHalfState(selectedMatch) === 'finished' && (
-                        <div style={{ fontSize: '14px', color: 'var(--color-text-muted, #94a3b8)', fontWeight: 600, padding: '12px 0', textAlign: 'center', width: '100%' }}>
-                          Trận đấu đã kết thúc
-                        </div>
-                      )}
                     </div>
 
-                    {/* ROW 2: ACTIONS */}
-                    <div style={{ display: 'flex', gap: '12px', width: '100%' }}>
-                      {selectedMatch.trangThai !== 'SAP_DIEN_RA' && (
-                        <button
-                          className="desktop-cta-btn"
-                          style={desktopStyles.ctaButton('var(--color-danger, #EF4444)')}
-                          onClick={() => {
+                    {/* Danger Action */}
+                    {selectedMatch.trangThai !== 'SAP_DIEN_RA' && (
+                      <button
+                        onClick={() => {
+                          if (window.confirm("Bạn có chắc muốn thiết lập lại trận đấu này không?\nHành động này không thể hoàn tác.")) {
                             handleResetMatch(selectedMatch.id);
-                          }}
-                        >
-                          <IconReset size={18} /> THIẾT LẬP LẠI
-                        </button>
-                      )}
-                    </div>
-
-                    {/* CUSTOM TEAM ACTIONS */}
-                    {customEvents?.filter((evt: any) => evt.target_scope === 'none').length > 0 && (
-                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%', marginTop: '8px' }}>
-                        <div style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-text-muted)', textAlign: 'center', textTransform: 'uppercase' }}>
-                          Thao tác sự kiện chung (Không gán cầu thủ)
-                        </div>
-                        {customEvents?.filter((evt: any) => evt.target_scope === 'none').map((evt: any) => (
-                          <div key={evt.code} style={{ display: 'flex', gap: '8px' }}>
-                            <button 
-                              className="desktop-cta-btn"
-                              disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
-                              style={{ ...desktopStyles.ctaButton(evt.color || '#3b82f6'), opacity: selectedMatch.trangThai !== 'DANG_DIEN_RA' ? 0.5 : 1 }}
-                              onClick={() => handleActionSelect('custom', evt.code, { matchId: selectedMatch.id, teamId: selectedMatch.doiNha?.id, player: { id: null, ten: 'Toàn Đội' } })}
-                            >
-                              <span style={{ fontSize: '16px' }}>{evt.icon}</span> {evt.name.toUpperCase()} (ĐỘI NHÀ)
-                            </button>
-                            <button 
-                              className="desktop-cta-btn"
-                              disabled={selectedMatch.trangThai !== 'DANG_DIEN_RA'}
-                              style={{ ...desktopStyles.ctaButton(evt.color || '#3b82f6'), opacity: selectedMatch.trangThai !== 'DANG_DIEN_RA' ? 0.5 : 1 }}
-                              onClick={() => handleActionSelect('custom', evt.code, { matchId: selectedMatch.id, teamId: selectedMatch.doiKhach?.id, player: { id: null, ten: 'Toàn Đội' } })}
-                            >
-                              <span style={{ fontSize: '16px' }}>{evt.icon}</span> {evt.name.toUpperCase()} (ĐỘI KHÁCH)
-                            </button>
-                          </div>
-                        ))}
-                      </div>
-                    )}
-
-                    {/* POST MATCH QUICK ADD */}
-                    {selectedMatch.trangThai === 'KET_THUC' && (
-                      <div style={{ display: 'flex', width: '100%', marginTop: '16px' }}>
-                        <button
-                          className="desktop-cta-btn"
-                          style={{ ...desktopStyles.ctaButton('var(--color-primary, #0F766E)'), width: '100%', background: '#f8fafc', color: 'var(--color-primary, #0F766E)', border: '2px dashed var(--color-primary, #0F766E)' }}
-                          onClick={() => setQuickAddState({ ...quickAddState, isOpen: true, teamId: selectedMatch.doiNha?.id || '' })}
-                        >
-                          <IconEvent size={18} /> NHẬP NHANH SỰ KIỆN (SAU TRẬN)
-                        </button>
-                      </div>
+                          }
+                        }}
+                        style={{ background: 'transparent', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '10px', width: '100%', fontSize: '12.5px', cursor: 'pointer', transition: 'all 0.2s', marginTop: '4px' }}
+                        onMouseOver={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}
+                        onMouseOut={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
+                      >
+                        THIẾT LẬP LẠI
+                      </button>
                     )}
                   </div>
                 </div>
 
-                {/* TIMELINE */}
-                <div style={desktopStyles.timelineCard}>
+                {/* Timeline (~50%) */}
+                <div style={{ ...desktopStyles.timelineCard, flex: 1, overflowY: 'auto' }}>
                   <div style={desktopStyles.timelineHeader}>
                     <IconEvent size={16} /> Diễn biến trận đấu
                   </div>
-                  <div style={{ flex: 1, overflowY: 'auto' }}>
+                  <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
                     {(!selectedMatch.suKien || selectedMatch.suKien.length === 0) ? (
-                      <div style={{ textAlign: 'center', color: '#94a3b8', fontStyle: 'italic', padding: '32px 0' }}>Chưa có sự kiện nào</div>
+                      <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic', fontSize: '14px' }}>Chưa có sự kiện nào</div>
                     ) : (
-                      <div className="ref-timeline-container">
+                      <div className="ref-timeline-container" style={{ flex: 1 }}>
                         {(() => {
                            const sortedEvents = selectedMatch.suKien ? selectedMatch.suKien.slice().sort((a: any, b: any) => a.phut - b.phut || a.id.localeCompare(b.id)) : [];
                            let homeScore = 0;
@@ -1504,8 +1468,7 @@ export default function RefereeTab({
                   </div>
                 </div>
               </div>
-
-              {/* RIGHT COLUMN: AWAY TEAM */}
+{/* RIGHT COLUMN: AWAY TEAM */}
               <div style={desktopStyles.columnHomeAway}>
                 <div style={desktopStyles.card}>
                   <h3 style={desktopStyles.cardTitle}>
