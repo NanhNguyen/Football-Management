@@ -141,7 +141,7 @@ export default function AdminDesktopView(props: any) {
             </svg>
           </button>
           <a href="/" className={styles.topbarLogo}>
-            <img src="/logo-violet.svg" alt="Logo" className={styles.topbarLogoImg} />
+            <img src="/logo-football-transparent.png" alt="Logo" className={styles.topbarLogoImg} />
             <span className={styles.topbarLogoText}>Sparta</span>
           </a>
           <div className={styles.switcherContainer}>

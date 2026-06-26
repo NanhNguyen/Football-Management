@@ -163,7 +163,7 @@ export default function TopNav() {
       {/* LEFT — Logo & Season */}
       <div className={styles.left}>
         <Link href="/" className={styles.logo}>
-          <img src="/logo-violet.svg" alt="SPARTA Logo" className={styles.logoImg} />
+          <img src="/logo-football-transparent.png" alt="SPARTA Logo" className={styles.logoImg} />
         </Link>
       </div>
 

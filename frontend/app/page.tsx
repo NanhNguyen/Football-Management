@@ -336,7 +336,7 @@ function TongQuanContent() {
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <div className={styles.logoTitleWrapper}>
-            <img src="/logo-violet.svg" alt="Sparta Logo" className={styles.logoImg} />
+            <img src="/logo-football-transparent.png" alt="Sparta Logo" className={styles.logoImg} />
             <h1 className={styles.appName}>SPARTA</h1>
           </div>
           <p className={styles.slogan}>Hệ thống Quản lý Giải đấu Chuyên nghiệp</p>
