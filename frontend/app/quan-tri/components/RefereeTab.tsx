@@ -823,12 +823,11 @@ export default function RefereeTab({
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
-              margin: '0 0 24px 0',
-              padding: '20px',
-              background: 'var(--color-surface, #ffffff)',
-              borderRadius: '16px',
-              border: '1px solid var(--color-border-light, #e2e8f0)',
-              boxShadow: '0 4px 10px rgba(0, 0, 0, 0.03)',
+              margin: '0 0 16px 0',
+              padding: '14px 20px',
+              background: 'rgba(255,255,255,0.02)',
+              borderRadius: '12px',
+              border: '1px solid rgba(255,255,255,0.06)',
               gap: '16px'
             }}>
               {/* Filter Dropdown on Top */}
@@ -887,10 +886,10 @@ export default function RefereeTab({
                       </svg>
                     </button>
                     <div style={{ textAlign: 'center', minWidth: '160px' }}>
-                      <div style={{ fontSize: '20px', fontWeight: 800, color: 'var(--color-text-heading, #f8fafc)' }}>
+                      <div style={{ fontSize: '16px', fontWeight: 700, color: '#e8eeff' }}>
                         {refereeFilterVong === 'NONE' ? 'Không có vòng đấu' : refereeFilterVong}
                       </div>
-                      <div style={{ fontSize: '12px', color: 'var(--color-text-muted, #94a3b8)', fontWeight: 600, marginTop: '4px' }}>
+                      <div style={{ fontSize: '12px', color: 'rgba(255,255,255,0.3)', marginTop: '4px' }}>
                         {getRoundDateRange()}
                       </div>
                     </div>
@@ -929,50 +928,72 @@ export default function RefereeTab({
               filteredAndSortedRefereeMatches.map(m => (
                 <div
                   key={m.id}
-                  className={`${styles.adminMatchItem} ${m.trangThai === 'DANG_DIEN_RA' ? styles.adminMatchItemLive : ''}`}
+                  className={`${styles.adminMatchItem} ${m.trangThai === 'KET_THUC' ? styles.adminMatchItemFinished : m.trangThai === 'DANG_DIEN_RA' ? styles.adminMatchItemLive : styles.adminMatchItemUpcoming}`}
                   onClick={() => setSelectedMatchId(m.id)}
                 >
-                  <div className={styles.matchListInfo}>
-                    <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 700, width: '80px', flexShrink: 0 }}>{m.vong}</span>
-                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', flex: 1, gap: '24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '12px', flex: 1, minWidth: 0 }}>
-                        <span style={{ fontWeight: 700, textAlign: 'right', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
-                        <span style={{ display: 'flex', flexShrink: 0 }}><TeamLogo logo={m.doiNha?.logo} teamName={m.doiNha?.ten} /></span>
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px', fontWeight: 800, fontSize: '18px', width: '60px', justifyContent: 'center', flexShrink: 0 }}>
-                        <span>{m.tyNha}</span>
-                        <span>-</span>
-                        <span>{m.tyKhach}</span>
-                      </div>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '12px', flex: 1, minWidth: 0 }}>
-                        <span style={{ display: 'flex', flexShrink: 0 }}><TeamLogo logo={m.doiKhach?.logo} teamName={m.doiKhach?.ten} /></span>
-                        <span style={{ fontWeight: 700, textAlign: 'left', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
-                      </div>
-                    </div>
+                  {/* Vùng BẢNG */}
+                  <div style={{ flex: '0 0 110px', whiteSpace: 'nowrap', fontSize: '11px', fontWeight: 500, color: 'rgba(255,255,255,0.28)', letterSpacing: '0.04em' }}>
+                    {m.vong} · Bảng A
                   </div>
 
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '15px' }}>
-                    <span className={`
-                    ${styles.listStatus} 
-                    ${m.trangThai === 'DANG_DIEN_RA' ? styles.statusLive : ''}
-                    ${m.trangThai === 'KET_THUC' ? styles.statusFinished : ''}
-                  `}>
-                      {m.trangThai === 'DANG_DIEN_RA' ? (m.dangTamDung ? `TẠM DỪNG - HT` : `LIVE - ${getDisplayTime(m, schedulerConfig?.matchDurationMinutes || 90)}`) :
-                        m.trangThai === 'KET_THUC' ? 'KẾT THÚC' : 'CHƯA ĐÁ'}
-                    </span>
+                  {/* Vùng TRẬN ĐẤU */}
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    <span style={{ display: 'flex', flexShrink: 0, marginRight: '8px' }}><TeamLogo logo={m.doiNha?.logo} teamName={m.doiNha?.ten} /></span>
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#d8e4ff', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
+                    
+                    <div style={{ display: 'flex', alignItems: 'center', margin: '0 12px' }}>
+                      {m.trangThai === 'CHUA_BAT_DAU' ? (
+                        <span style={{ fontSize: '20px', fontWeight: 700, color: 'rgba(255,255,255,0.2)' }}>–</span>
+                      ) : (
+                        <div style={{ display: 'flex', alignItems: 'center', fontSize: '20px', fontWeight: 700, color: m.trangThai === 'KET_THUC' ? '#10d98a' : 'transparent', background: m.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #f59e0b, #ef4444)' : 'none', WebkitBackgroundClip: m.trangThai === 'DANG_DIEN_RA' ? 'text' : 'border-box', WebkitTextFillColor: m.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'inherit' }}>
+                          <span>{m.tyNha}</span>
+                          <span style={{ color: 'rgba(255,255,255,0.2)', margin: '0 8px', WebkitTextFillColor: 'rgba(255,255,255,0.2)' }}>-</span>
+                          <span>{m.tyKhach}</span>
+                        </div>
+                      )}
+                    </div>
+
+                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#d8e4ff', textAlign: 'left', whiteSpace: 'nowrap' }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
+                    <span style={{ display: 'flex', flexShrink: 0, marginLeft: '8px' }}><TeamLogo logo={m.doiKhach?.logo} teamName={m.doiKhach?.ten} /></span>
+                  </div>
+
+                  {/* Vùng TRẠNG THÁI */}
+                  <div style={{ flex: '0 0 100px', textAlign: 'right' }}>
+                    {m.trangThai === 'KET_THUC' ? (
+                      <span style={{ fontSize: '11px', fontWeight: 600, borderRadius: '5px', padding: '3px 9px', background: 'rgba(16,217,138,0.12)', color: '#10d98a' }}>✓ FT</span>
+                    ) : m.trangThai === 'DANG_DIEN_RA' ? (
+                      <span style={{ fontSize: '11px', fontWeight: 600, borderRadius: '5px', padding: '3px 9px', background: 'rgba(245,158,11,0.15)', color: '#fbbf24', animation: 'pulse 2s infinite' }}>● Live</span>
+                    ) : (
+                      <span style={{ fontSize: '11px', fontWeight: 600, borderRadius: '5px', padding: '3px 9px', background: 'rgba(99,102,241,0.12)', color: '#a5b4fc' }}>{m.date ? `${m.date.split('-')[2]}/${m.date.split('-')[1]} · ${m.time || '00:00'}` : 'Chưa xếp lịch'}</span>
+                    )}
+                  </div>
+
+                  {/* Vùng NÚT */}
+                  <div style={{ flex: '0 0 36px', display: 'flex', justifyContent: 'flex-end', marginLeft: '12px' }}>
                     <div style={{
                       width: '32px',
                       height: '32px',
-                      borderRadius: '50%',
-                      border: '1px solid var(--color-border, #1e293b)',
-                      background: 'var(--color-surface, #141C2A)',
-                      boxShadow: '0 2px 4px rgba(0,0,0,0.04)',
+                      borderRadius: '8px',
+                      background: 'rgba(255,255,255,0.06)',
+                      border: '1px solid rgba(255,255,255,0.1)',
+                      color: 'rgba(255,255,255,0.5)',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      flexShrink: 0
-                    }}>
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="var(--color-text, #1e293b)" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round">
+                      transition: 'all 0.15s'
+                    }}
+                    onMouseOver={e => {
+                      e.currentTarget.style.background = 'rgba(167,139,250,0.15)';
+                      e.currentTarget.style.color = '#a78bfa';
+                      e.currentTarget.style.borderColor = 'rgba(167,139,250,0.3)';
+                    }}
+                    onMouseOut={e => {
+                      e.currentTarget.style.background = 'rgba(255,255,255,0.06)';
+                      e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+                      e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                    }}
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                         <polyline points="9 18 15 12 9 6"></polyline>
                       </svg>
                     </div>
@@ -1193,23 +1214,23 @@ export default function RefereeTab({
                     </div>
 
                     {/* Tỉ số & Badge */}
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px', margin: '0 24px', flexShrink: 0 }}>
-                      <div style={{ display: 'flex', alignItems: 'center' }}>
-                        <span style={{ fontSize: '52px', fontWeight: 800, color: selectedMatch.trangThai === 'KET_THUC' ? '#10d98a' : (selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'var(--color-text-heading, #0F172A)'), background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : 'none', WebkitBackgroundClip: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'text' : 'border-box', WebkitTextFillColor: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'inherit', lineHeight: 1 }}>
-                          {selectedMatch.tyNha}
-                        </span>
-                        
-                        <span style={{ fontSize: '28px', color: 'rgba(255,255,255,0.3)', margin: '0 12px' }}>–</span>
-                        
-                        <span style={{ fontSize: '52px', fontWeight: 800, color: selectedMatch.trangThai === 'KET_THUC' ? '#10d98a' : (selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'var(--color-text-heading, #0F172A)'), background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : 'none', WebkitBackgroundClip: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'text' : 'border-box', WebkitTextFillColor: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'inherit', lineHeight: 1 }}>
-                          {selectedMatch.tyKhach}
+                    <div style={{ position: 'relative', display: 'flex', alignItems: 'center', margin: '0 24px', flexShrink: 0 }}>
+                      <span style={{ fontSize: '52px', fontWeight: 800, color: selectedMatch.trangThai === 'KET_THUC' ? '#10d98a' : (selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'var(--color-text-heading, #0F172A)'), background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : 'none', WebkitBackgroundClip: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'text' : 'border-box', WebkitTextFillColor: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'inherit', lineHeight: 1 }}>
+                        {selectedMatch.tyNha}
+                      </span>
+                      
+                      <span style={{ fontSize: '28px', color: 'rgba(255,255,255,0.3)', margin: '0 12px' }}>–</span>
+                      
+                      <span style={{ fontSize: '52px', fontWeight: 800, color: selectedMatch.trangThai === 'KET_THUC' ? '#10d98a' : (selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'var(--color-text-heading, #0F172A)'), background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : 'none', WebkitBackgroundClip: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'text' : 'border-box', WebkitTextFillColor: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'inherit', lineHeight: 1 }}>
+                        {selectedMatch.tyKhach}
+                      </span>
+
+                      {/* Badge (absolute to stay centered below the hyphen without affecting height) */}
+                      <div style={{ position: 'absolute', top: '100%', left: '50%', transform: 'translateX(-50%)', marginTop: '4px', whiteSpace: 'nowrap' }}>
+                        <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', color: '#fff', background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : (selectedMatch.trangThai === 'KET_THUC' ? 'var(--color-success, #10b981)' : '#64748b') }}>
+                          {selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'LIVE' : (selectedMatch.trangThai === 'KET_THUC' ? 'FT' : 'PRE-MATCH')}
                         </span>
                       </div>
-
-                      {/* Badge */}
-                      <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', color: '#fff', background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : (selectedMatch.trangThai === 'KET_THUC' ? 'var(--color-success, #10b981)' : '#64748b') }}>
-                        {selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'LIVE' : (selectedMatch.trangThai === 'KET_THUC' ? 'FT' : 'PRE-MATCH')}
-                      </span>
                     </div>
 
                     {/* Tên + Logo (Khách) */}

@@ -307,47 +307,60 @@
 
 .content {
   width: 100%;
+  padding-left: 24px;
+  padding-right: 24px;
+  padding-top: 20px;
 }
 
 .pageTitle {
   font-family: 'Poppins', sans-serif;
   font-size: 24px;
-  font-weight: 800;
-  color: var(--color-text);
-  margin-bottom: 6px;
+  font-weight: 700;
+  color: #f0f4ff;
+  margin-bottom: 4px;
 }
 
 .pageDesc {
   font-size: 13px;
-  color: var(--color-text-muted);
-  margin-bottom: var(--space-md);
+  color: rgba(255, 255, 255, 0.35);
+  margin-bottom: 20px;
 }
 
-/* Match Control Grid */
 .adminMatchList {
   display: flex;
   flex-direction: column;
-  gap: var(--space-md);
-  margin-top: var(--space-lg);
+  margin-top: 16px;
   width: 100%;
 }
 
 .adminMatchItem {
-  background: #0E1421;
-  border: 1px solid var(--color-border-light);
-  border-radius: var(--radius-lg);
-  padding: 20px;
+  background: linear-gradient(135deg, #111827, #0e1520);
+  border: 1px solid rgba(255,255,255,0.07);
+  border-radius: 12px;
+  padding: 14px 20px;
+  margin-bottom: 8px;
   display: flex;
   align-items: center;
-  justify-content: space-between;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: border-color 0.15s, background 0.15s;
 }
 
 .adminMatchItem:hover {
-  border-color: var(--color-primary);
-  transform: translateX(5px);
-  box-shadow: var(--shadow-sm);
+  border-color: rgba(167,139,250,0.25);
+  background: linear-gradient(135deg, #141c2e, #111827);
+}
+
+.adminMatchItemFinished {
+  border-left: 3px solid #10d98a;
+}
+
+.adminMatchItemLive {
+  border-left: 3px solid #f59e0b;
+  box-shadow: 0 0 12px rgba(245,158,11,0.1);
+}
+
+.adminMatchItemUpcoming {
+  border-left: 3px solid rgba(255,255,255,0.08);
 }
 
 .matchListInfo {
