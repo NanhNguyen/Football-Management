@@ -38,12 +38,12 @@
   position: relative;
   width: 72px;
   height: 72px;
-  background: radial-gradient(circle, var(--color-primary-light, rgba(0, 212, 184, 0.12)) 0%, rgba(0, 212, 184, 0.08) 100%);
+  background: radial-gradient(circle, var(--color-primary-light, rgba(167, 139, 250, 0.12)) 0%, rgba(167, 139, 250, 0.08) 100%);
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
-  box-shadow: 0 4px 10px rgba(0, 212, 184, 0.08);
+  box-shadow: 0 4px 10px rgba(167, 139, 250, 0.08);
 }
 
 .lockBadge {
@@ -52,7 +52,7 @@
   right: 0;
   width: 26px;
   height: 26px;
-  background-color: var(--color-primary, #00D4B8);
+  background-color: var(--color-primary, #a78bfa);
   border: 2px solid var(--color-surface, #141C2A);
   border-radius: 50%;
   display: flex;
@@ -106,17 +106,17 @@
   flex: 1;
   padding: 12px 16px;
   border-radius: 10px;
-  background-color: var(--color-primary, #00D4B8);
+  background-color: var(--color-primary, #a78bfa);
   color: #FFFFFF;
   font-size: 14px;
   font-weight: 600;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 10px rgba(0, 212, 184, 0.2);
+  box-shadow: 0 4px 10px rgba(167, 139, 250, 0.2);
 }
 
 .loginBtn:hover {
-  background-color: var(--color-primary-dark, #00A896);
-  box-shadow: 0 6px 14px rgba(0, 212, 184, 0.3);
+  background-color: var(--color-primary-dark, #7c5cfc);
+  box-shadow: 0 6px 14px rgba(167, 139, 250, 0.3);
 }
 
 .loginBtn:active {

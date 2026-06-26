@@ -742,7 +742,7 @@ export default function AdminDesktopView(props: any) {
                 <input
                   type="text"
                   className={styles.modalInput}
-                  style={{ background: 'var(--color-surface-container, #0A0F18)', border: '2px solid var(--color-border, rgba(0, 212, 184, 0.15))', borderRadius: '12px', padding: '12px 16px', fontSize: '15px', color: 'var(--color-text-heading, #ffffff)' }}
+                  style={{ background: 'var(--color-surface-container, #0A0F18)', border: '2px solid var(--color-border, rgba(167, 139, 250, 0.15))', borderRadius: '12px', padding: '12px 16px', fontSize: '15px', color: 'var(--color-text-heading, #ffffff)' }}
                   value={editingTeam.ten}
                   onChange={(e) => setEditingTeam({ ...editingTeam, ten: e.target.value })}
                   onBlur={() => handleTeamNameBlur(editingTeam.ten)}
@@ -841,28 +841,28 @@ export default function AdminDesktopView(props: any) {
               </div>
 
               <div style={{ marginTop: '20px' }}>
-                <div style={{ background: 'var(--color-surface-sidebar, #0A0F18)', border: '1px dashed var(--color-border, rgba(0, 212, 184, 0.2))', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
+                <div style={{ background: 'var(--color-surface-sidebar, #0A0F18)', border: '1px dashed var(--color-border, rgba(167, 139, 250, 0.2))', borderRadius: '12px', padding: '16px', marginBottom: '20px' }}>
                   <label style={{ display: 'block', fontSize: '11px', fontWeight: 700, color: 'var(--color-text-secondary, #A0B4C8)', textTransform: 'uppercase', letterSpacing: '0.05em', marginBottom: '8px' }}>
                     ➕ Thêm cầu thủ mới
                   </label>
                   <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
                     <input
                       className={styles.modalInput}
-                      style={{ flex: 3, padding: '10px 14px', borderRadius: '10px', background: 'var(--color-surface-container, #0A0F18)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', fontSize: '14px', color: 'var(--color-text-heading, #ffffff)' }}
+                      style={{ flex: 3, padding: '10px 14px', borderRadius: '10px', background: 'var(--color-surface-container, #0A0F18)', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))', fontSize: '14px', color: 'var(--color-text-heading, #ffffff)' }}
                       placeholder="Tên cầu thủ"
                       value={newPlayerName}
                       onChange={e => setNewPlayerName(e.target.value)}
                     />
                     <input
                       className={styles.modalInput}
-                      style={{ width: '65px', padding: '10px 10px', textAlign: 'center', borderRadius: '10px', background: 'var(--color-surface-container, #0A0F18)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', fontSize: '14px', color: 'var(--color-text-heading, #ffffff)' }}
+                      style={{ width: '65px', padding: '10px 10px', textAlign: 'center', borderRadius: '10px', background: 'var(--color-surface-container, #0A0F18)', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))', fontSize: '14px', color: 'var(--color-text-heading, #ffffff)' }}
                       placeholder="Số"
                       value={newPlayerNumber}
                       onChange={e => setNewPlayerNumber(e.target.value)}
                     />
                     <select
                       className={styles.modalInput}
-                      style={{ width: '150px', padding: '10px 10px', borderRadius: '10px', background: 'var(--color-surface-container, #0A0F18)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', fontSize: '13px', cursor: 'pointer', color: 'var(--color-text-heading, #ffffff)' }}
+                      style={{ width: '150px', padding: '10px 10px', borderRadius: '10px', background: 'var(--color-surface-container, #0A0F18)', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))', fontSize: '13px', cursor: 'pointer', color: 'var(--color-text-heading, #ffffff)' }}
                       value={newPlayerPosition}
                       onChange={e => setNewPlayerPosition(e.target.value)}
                     >
@@ -896,7 +896,7 @@ export default function AdminDesktopView(props: any) {
                     <p style={{ color: '#94a3b8', fontSize: '13px', fontStyle: 'italic', textAlign: 'center', padding: '15px' }}>Chương có cầu thủ nào. Hãy thêm cầu thủ ở trên!</p>
                   ) : (
                     editingTeam.cauThu.map((p: any) => (
-                      <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', background: 'var(--color-surface-container, #0A0F18)', borderRadius: '10px', border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))', transition: 'all 0.2s' }}>
+                      <div key={p.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '8px 14px', background: 'var(--color-surface-container, #0A0F18)', borderRadius: '10px', border: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.08))', transition: 'all 0.2s' }}>
                         <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                           <span style={{ display: 'inline-flex', alignItems: 'center', justifyContent: 'center', width: '26px', height: '26px', background: p.viTri?.startsWith('Dự bị') ? 'rgba(148, 163, 184, 0.15)' : 'rgba(239, 68, 68, 0.15)', color: p.viTri?.startsWith('Dự bị') ? '#94a3b8' : '#ef4444', borderRadius: '50%', fontSize: '11px', fontWeight: 700 }}>
                             {p.soAo}
@@ -912,7 +912,7 @@ export default function AdminDesktopView(props: any) {
                               );
                               setEditingTeam({ ...editingTeam, cauThu: updatedPlayers });
                             }}
-                            style={{ padding: '4px 8px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', background: 'var(--color-surface-sidebar, #0A0F18)', color: 'var(--color-text, #C8D8E8)', fontWeight: 500, cursor: 'pointer' }}
+                            style={{ padding: '4px 8px', fontSize: '12px', borderRadius: '6px', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))', background: 'var(--color-surface-sidebar, #0A0F18)', color: 'var(--color-text, #C8D8E8)', fontWeight: 500, cursor: 'pointer' }}
                           >
                             <option value="Thủ môn">Thủ môn</option>
                             <option value="Hậu vệ">Hậu vệ</option>
@@ -1089,7 +1089,7 @@ export default function AdminDesktopView(props: any) {
               <div style={{ display: 'flex', gap: '10px', marginTop: '25px' }}>
                 <button
                   className={styles.undoBtn}
-                  style={{ flex: 1, margin: 0, background: 'var(--color-surface-hover, #141C2A)', color: 'var(--color-text, #C8D8E8)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))' }}
+                  style={{ flex: 1, margin: 0, background: 'var(--color-surface-hover, #141C2A)', color: 'var(--color-text, #C8D8E8)', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))' }}
                   onClick={() => setIsCreatingTournament(false)}
                 >
                   HỦY BỎ
@@ -1224,7 +1224,7 @@ export default function AdminDesktopView(props: any) {
                             padding: '8px 10px',
                             borderRadius: '8px',
                             border: '1px solid',
-                            borderColor: isChecked ? 'var(--color-primary)' : 'var(--color-border, rgba(0, 212, 184, 0.2))',
+                            borderColor: isChecked ? 'var(--color-primary)' : 'var(--color-border, rgba(167, 139, 250, 0.2))',
                             background: isChecked ? 'var(--color-primary-light)' : 'var(--color-surface-container, #0A0F18)',
                             color: isChecked ? 'var(--color-primary)' : 'var(--color-text, #C8D8E8)',
                             fontWeight: 600,
@@ -1257,7 +1257,7 @@ export default function AdminDesktopView(props: any) {
                       + Thêm khung giờ
                     </button>
                   </div>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--color-surface-sidebar, #0A0F18)', padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', background: 'var(--color-surface-sidebar, #0A0F18)', padding: '8px', borderRadius: '8px', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))' }}>
                     {schedulerConfig.timeSlots.length === 0 ? (
                       <span style={{ fontSize: '12px', color: '#94a3b8', fontStyle: 'italic' }}>Chưa cấu hình khung giờ nào.</span>
                     ) : (
@@ -1327,7 +1327,7 @@ export default function AdminDesktopView(props: any) {
                     </button>
                   </div>
                   {blackoutDates.length > 0 ? (
-                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '120px', overflowY: 'auto', background: 'var(--color-surface-sidebar, #0A0F18)', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))' }}>
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: '6px', maxHeight: '120px', overflowY: 'auto', background: 'var(--color-surface-sidebar, #0A0F18)', padding: '10px', borderRadius: '8px', border: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.08))' }}>
                       {blackoutDates.map((date: any) => (
                         <div key={date} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '13px', color: 'var(--color-text, #C8D8E8)', fontWeight: 500 }}>
                           <span>📅 {date}</span>
@@ -1351,7 +1351,7 @@ export default function AdminDesktopView(props: any) {
               </div>
 
               {/* Sticky Action Footer */}
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px', borderTop: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', paddingTop: '15px' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '10px', borderTop: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))', paddingTop: '15px' }}>
                 <button
                   className={styles.finishBtn}
                   style={{ width: '100%', margin: 0, justifyContent: 'center' }}
@@ -1433,7 +1433,7 @@ export default function AdminDesktopView(props: any) {
 
               {/* Guide and Download template */}
               {!bulkImportProgress && (
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: 'var(--color-surface-sidebar, #0A0F18)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))', marginBottom: '20px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '12px', background: 'var(--color-surface-sidebar, #0A0F18)', padding: '12px 16px', borderRadius: '10px', border: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.08))', marginBottom: '20px' }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '4px', flexWrap: 'wrap', fontSize: '13px', color: 'var(--color-text-secondary, #A0B4C8)' }}>
                     <span style={{ fontWeight: 600 }}>Lưu ý:</span>
                     <span>Sử dụng cấu trúc nhiều sheet (Đội Bóng, Cầu Thủ) như trong file mẫu.</span>
@@ -1441,9 +1441,9 @@ export default function AdminDesktopView(props: any) {
                   <button
                     type="button"
                     onClick={handleDownloadBulkTemplate}
-                    style={{ background: 'none', border: 'none', color: 'var(--color-primary, #00D4B8)', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
-                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-accent, #00FFD4)'}
-                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-primary, #00D4B8)'}
+                    style={{ background: 'none', border: 'none', color: 'var(--color-primary, #a78bfa)', textDecoration: 'underline', fontSize: '13px', fontWeight: 700, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px', padding: 0, transition: 'color 0.2s' }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = 'var(--color-accent, #818cf8)'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'var(--color-primary, #a78bfa)'}
                   >
                     ⬇️ Tải file mẫu (.xlsx)
                   </button>
@@ -1452,7 +1452,7 @@ export default function AdminDesktopView(props: any) {
 
               {/* Progress Bar Section */}
               {bulkImportProgress ? (
-                <div style={{ padding: '20px', background: 'var(--color-surface-sidebar, #0A0F18)', borderRadius: '12px', border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))' }}>
+                <div style={{ padding: '20px', background: 'var(--color-surface-sidebar, #0A0F18)', borderRadius: '12px', border: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.08))' }}>
                   <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '8px' }}>
                     <span style={{ fontSize: '14px', fontWeight: 600, color: bulkImportProgress.step === 'error' ? '#ef4444' : 'var(--color-text, #C8D8E8)' }}>
                       {bulkImportProgress.message}
@@ -1474,7 +1474,7 @@ export default function AdminDesktopView(props: any) {
                   {bulkImportProgress.step === 'error' && (
                     <button 
                       onClick={handleClearBulkImport}
-                      style={{ marginTop: '16px', padding: '8px 16px', background: 'var(--color-surface-hover, #141C2A)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--color-text-heading, #ffffff)' }}
+                      style={{ marginTop: '16px', padding: '8px 16px', background: 'var(--color-surface-hover, #141C2A)', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))', borderRadius: '6px', cursor: 'pointer', fontSize: '13px', fontWeight: 600, color: 'var(--color-text-heading, #ffffff)' }}
                     >
                       Thử lại
                     </button>
@@ -1497,8 +1497,8 @@ export default function AdminDesktopView(props: any) {
                       }
                     }}
                     style={{
-                      background: isBulkDragActive ? 'rgba(0, 212, 184, 0.08)' : 'var(--color-surface-sidebar, #0A0F18)',
-                      border: isBulkDragActive ? '2px dashed var(--color-primary)' : '2px dashed var(--color-border, rgba(0, 212, 184, 0.25))',
+                      background: isBulkDragActive ? 'rgba(167, 139, 250, 0.08)' : 'var(--color-surface-sidebar, #0A0F18)',
+                      border: isBulkDragActive ? '2px dashed var(--color-primary)' : '2px dashed var(--color-border, rgba(167, 139, 250, 0.25))',
                       borderRadius: '12px',
                       padding: '40px 24px',
                       textAlign: 'center',

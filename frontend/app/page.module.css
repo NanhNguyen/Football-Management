@@ -15,7 +15,7 @@
   flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(0, 212, 184, 0.12);
+  border-bottom: 1px solid rgba(167, 139, 250, 0.12);
   background: transparent;
   gap: 16px;
 }
@@ -36,7 +36,7 @@
   width: 38px;
   height: 38px;
   object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(0, 212, 184, 0.35));
+  filter: drop-shadow(0 2px 8px rgba(167, 139, 250, 0.35));
 }
 
 .appName {
@@ -73,7 +73,7 @@
 
 .headerSelectWrapper:hover {
   border-color: var(--color-primary);
-  box-shadow: 0 0 12px rgba(0, 212, 184, 0.15);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.15);
 }
 
 .trophyIcon {
@@ -91,7 +91,7 @@
   font-family: 'Plus Jakarta Sans', sans-serif;
   font-size: 15px;
   font-weight: 700;
-  color: var(--color-primary, #00D4B8);
+  color: var(--color-primary, #a78bfa);
   cursor: pointer;
   outline: none;
   max-width: 280px;
@@ -104,7 +104,7 @@
   position: absolute;
   right: 12px;
   pointer-events: none;
-  color: var(--color-primary, #00D4B8);
+  color: var(--color-primary, #a78bfa);
   transition: transform 0.2s ease;
 }
 
@@ -144,7 +144,7 @@
   display: flex;
   padding: 0 20px;
   gap: 24px;
-  border-bottom: 1px solid rgba(0, 212, 184, 0.12);
+  border-bottom: 1px solid rgba(167, 139, 250, 0.12);
   margin-top: 8px;
 }
 
@@ -265,7 +265,7 @@
 
 .navBtn {
   background: rgba(14, 20, 33, 0.8);
-  border: 1px solid rgba(0, 212, 184, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.2);
   width: 36px;
   height: 36px;
   border-radius: 50%;
@@ -280,11 +280,11 @@
 }
 
 .navBtn:hover:not(:disabled) {
-  background: rgba(0, 212, 184, 0.1);
+  background: rgba(167, 139, 250, 0.1);
   border-color: var(--color-primary);
   color: var(--color-primary);
   transform: scale(1.05);
-  box-shadow: 0 0 12px rgba(0, 212, 184, 0.2);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.2);
 }
 
 .navBtn:disabled {

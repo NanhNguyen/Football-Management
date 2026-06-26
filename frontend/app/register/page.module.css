@@ -65,8 +65,8 @@
 
 .input:focus {
   outline: none;
-  border-color: var(--color-primary, #00D4B8);
-  box-shadow: 0 0 0 3px rgba(0, 212, 184, 0.15);
+  border-color: var(--color-primary, #a78bfa);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
 }
 
 .error {
@@ -78,7 +78,7 @@
 }
 
 .button {
-  background: var(--color-primary, #00D4B8);
+  background: var(--color-primary, #a78bfa);
   color: #ffffff;
   border: none;
   padding: 14px;
@@ -96,7 +96,7 @@
 }
 
 .button:hover:not(:disabled) {
-  background: var(--color-primary-dark, #00A896);
+  background: var(--color-primary-dark, #7c5cfc);
   transform: translateY(-1px);
 }
 
@@ -114,7 +114,7 @@
 }
 
 .footerLink {
-  color: var(--color-primary, #00D4B8);
+  color: var(--color-primary, #a78bfa);
   font-weight: 600;
   text-decoration: none;
   transition: color 0.2s ease;
@@ -122,7 +122,7 @@
 
 .footerLink:hover {
   text-decoration: underline;
-  color: var(--color-primary-dark, #00A896);
+  color: var(--color-primary-dark, #7c5cfc);
 }
 
 .divider {
@@ -196,8 +196,8 @@
 .successIcon {
   width: 56px;
   height: 56px;
-  background-color: var(--color-primary-light, rgba(0, 212, 184, 0.12));
-  color: var(--color-primary, #00D4B8);
+  background-color: var(--color-primary-light, rgba(167, 139, 250, 0.12));
+  color: var(--color-primary, #a78bfa);
   font-size: 28px;
   font-weight: bold;
   border-radius: 50%;
@@ -205,7 +205,7 @@
   align-items: center;
   justify-content: center;
   margin-bottom: 20px;
-  box-shadow: 0 4px 10px rgba(0, 212, 184, 0.1);
+  box-shadow: 0 4px 10px rgba(167, 139, 250, 0.1);
 }
 
 .successText {

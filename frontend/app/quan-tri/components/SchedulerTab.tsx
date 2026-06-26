@@ -244,14 +244,14 @@ export default function SchedulerTab({
           const poolMatches = filteredAndSortedScheduleMatches.filter(m => m.trangThai === 'POSTPONED' && !m.date);
           if (poolMatches.length > 0) {
             return (
-              <div style={{ marginBottom: '32px', background: 'var(--color-surface, #0E1421)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', borderRadius: '12px', overflow: 'hidden' }}>
-                <div style={{ padding: '12px 16px', background: 'var(--color-surface-sidebar, #0A0F18)', borderBottom: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+              <div style={{ marginBottom: '32px', background: 'var(--color-surface, #0E1421)', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))', borderRadius: '12px', overflow: 'hidden' }}>
+                <div style={{ padding: '12px 16px', background: 'var(--color-surface-sidebar, #0A0F18)', borderBottom: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                   <h3 style={{ fontSize: '15px', fontWeight: 700, margin: 0, color: 'var(--color-text-heading, #E8F4F8)' }}>📦 Kho chờ xếp lịch ({poolMatches.length})</h3>
                   <span style={{ fontSize: '12px', color: 'var(--color-text-secondary, #A0B4C8)' }}>Trận hoãn chưa xếp ngày</span>
                 </div>
                 <div style={{ padding: '16px', display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
                   {poolMatches.map(m => (
-                    <div key={m.id} style={{ border: '1px dashed var(--color-border, rgba(0, 212, 184, 0.3))', background: 'var(--color-surface-container, #0A0F18)', padding: '12px', borderRadius: '8px', width: '250px' }}>
+                    <div key={m.id} style={{ border: '1px dashed var(--color-border, rgba(167, 139, 250, 0.3))', background: 'var(--color-surface-container, #0A0F18)', padding: '12px', borderRadius: '8px', width: '250px' }}>
                       <div style={{ fontSize: '12px', color: 'var(--color-text-secondary, #A0B4C8)', marginBottom: '8px', fontWeight: 600 }}>{m.vong}</div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--color-text-heading, #E8F4F8)' }}>
                         <span style={{ fontWeight: 600 }}>{m.doiNhaTen}</span>
@@ -262,7 +262,7 @@ export default function SchedulerTab({
                         {/* A minimal hint for DND or manual edit */}
                         <button 
                           onClick={() => handleEditMatch(m)}
-                          style={{ width: '100%', padding: '6px', fontSize: '12px', background: 'var(--color-surface-hover, #141C2A)', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))', borderRadius: '6px', cursor: 'pointer', color: 'var(--color-primary, #00D4B8)' }}
+                          style={{ width: '100%', padding: '6px', fontSize: '12px', background: 'var(--color-surface-hover, #141C2A)', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))', borderRadius: '6px', cursor: 'pointer', color: 'var(--color-primary, #a78bfa)' }}
                         >
                           Xếp lịch thủ công
                         </button>
@@ -334,10 +334,10 @@ export default function SchedulerTab({
                                 padding: '6px 8px',
                                 borderRadius: '6px',
                                 background: 'var(--color-surface-hover, #141C2A)',
-                                border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
+                                border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))',
                                 fontSize: '12px',
                                 fontWeight: 700,
-                                color: 'var(--color-primary, #00D4B8)',
+                                color: 'var(--color-primary, #a78bfa)',
                                 minWidth: '45px',
                                 textAlign: 'center',
                                 display: 'inline-block'
@@ -372,7 +372,7 @@ export default function SchedulerTab({
                             <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 600 }}>vs</span>
                             <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{m.doiKhach?.ten || '???'}</span>
                             {m.doiNha?.bang && (
-                              <span style={{ fontSize: '11px', color: 'var(--color-primary, #00d4b8)', background: 'rgba(0, 212, 184, 0.15)', padding: '2px 8px', borderRadius: '4px', marginLeft: '8px', fontWeight: 700 }}>
+                              <span style={{ fontSize: '11px', color: 'var(--color-primary, #a78bfa)', background: 'rgba(167, 139, 250, 0.15)', padding: '2px 8px', borderRadius: '4px', marginLeft: '8px', fontWeight: 700 }}>
                                 Bảng {m.doiNha.bang}
                               </span>
                             )}

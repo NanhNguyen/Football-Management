@@ -9,12 +9,12 @@
 
 .loginBox {
   background: #0E1421;
-  border: 1px solid rgba(0, 212, 184, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.2);
   border-radius: 16px;
   padding: 40px;
   width: 100%;
   max-width: 400px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 212, 184, 0.08) inset;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(167, 139, 250, 0.08) inset;
 }
 
 .title {
@@ -52,7 +52,7 @@
 
 .input {
   background: rgba(8, 12, 16, 0.7);
-  border: 1px solid rgba(0, 212, 184, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.2);
   padding: 12px 16px;
   border-radius: 8px;
   color: var(--color-text);
@@ -64,7 +64,7 @@
   outline: none;
   border-color: var(--color-primary);
   background: rgba(8, 12, 16, 0.9);
-  box-shadow: 0 0 0 3px rgba(0, 212, 184, 0.1);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.1);
 }
 
 .error {
@@ -75,7 +75,7 @@
 }
 
 .button {
-  background: linear-gradient(135deg, #00D4B8 0%, #00A896 100%);
+  background: linear-gradient(135deg, #a78bfa 0%, #7c5cfc 100%);
   color: #080C10;
   border: none;
   padding: 14px;
@@ -85,7 +85,7 @@
   cursor: pointer;
   transition: all 0.2s ease;
   margin-top: 8px;
-  box-shadow: 0 0 20px rgba(0, 212, 184, 0.25);
+  box-shadow: 0 0 20px rgba(167, 139, 250, 0.25);
 }
 
 .button:hover:not(:disabled) {
@@ -147,8 +147,8 @@
 }
 
 .googleButton:hover:not(:disabled) {
-  background: rgba(0, 212, 184, 0.05);
-  border-color: rgba(0, 212, 184, 0.4);
+  background: rgba(167, 139, 250, 0.05);
+  border-color: rgba(167, 139, 250, 0.4);
   transform: translateY(-1px);
 }
 

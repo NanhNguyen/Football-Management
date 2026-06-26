@@ -10,7 +10,7 @@
   padding: 6px;
   border-radius: 999px;
   gap: 4px;
-  border: 1px solid rgba(0, 212, 184, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.2);
   box-shadow: 0 4px 16px rgba(0, 0, 0, 0.4);
 }
 
@@ -31,13 +31,13 @@
 
 .tabBtn:hover {
   color: var(--color-primary);
-  background: rgba(0, 212, 184, 0.1);
+  background: rgba(167, 139, 250, 0.1);
 }
 
 .tabActive {
   background: var(--color-primary) !important;
   color: #080C10 !important;
-  box-shadow: 0 0 12px rgba(0, 212, 184, 0.4);
+  box-shadow: 0 0 12px rgba(167, 139, 250, 0.4);
   font-weight: 700;
 }
 
@@ -67,7 +67,7 @@
   padding: 48px;
   background: #0E1421;
   border-radius: 20px;
-  border: 1px dashed rgba(0, 212, 184, 0.2);
+  border: 1px dashed rgba(167, 139, 250, 0.2);
   color: var(--color-text-muted);
   font-style: italic;
 }

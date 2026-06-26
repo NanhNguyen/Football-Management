@@ -129,7 +129,7 @@
 .subPillTab:hover { background: var(--color-surface); }
 
 .subPillTabActive {
-  background: var(--color-primary-light, rgba(0, 212, 184, 0.12));
+  background: var(--color-primary-light, rgba(167, 139, 250, 0.12));
   border-color: var(--color-primary);
   color: var(--color-primary);
   font-weight: 700;

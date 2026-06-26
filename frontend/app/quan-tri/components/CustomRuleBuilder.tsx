@@ -532,7 +532,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
         </div>
 
         {customEventsFields.length === 0 && (
-          <div style={{ textAlign: 'center', padding: '30px', color: 'var(--color-text-muted)', fontSize: '13.5px', fontStyle: 'italic', border: '2px dashed var(--color-border, rgba(0, 212, 184, 0.15))', borderRadius: '12px', backgroundColor: 'var(--color-surface-hover, #141C2A)', marginTop: '16px' }}>
+          <div style={{ textAlign: 'center', padding: '30px', color: 'var(--color-text-muted)', fontSize: '13.5px', fontStyle: 'italic', border: '2px dashed var(--color-border, rgba(167, 139, 250, 0.15))', borderRadius: '12px', backgroundColor: 'var(--color-surface-hover, #141C2A)', marginTop: '16px' }}>
             Chưa có sự kiện tùy chỉnh nào. Bấm "+ Thêm sự kiện tùy chỉnh mới" để tạo mới.
           </div>
         )}
@@ -556,7 +556,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
           style={{
             width: '100%',
             padding: '12px 0',
-            border: '2px dashed var(--color-border, rgba(0, 212, 184, 0.15))',
+            border: '2px dashed var(--color-border, rgba(167, 139, 250, 0.15))',
             borderColor: isAddHovered ? 'var(--color-primary)' : 'var(--color-border)',
             color: isAddHovered ? 'var(--color-primary)' : 'var(--color-text-muted)',
             borderRadius: '12px',
@@ -611,7 +611,7 @@ export default function CustomRuleBuilder({ initialData, onSubmit, styles }: Pro
               boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.5)',
               display: 'flex',
               flexDirection: 'column',
-              border: '1px solid var(--color-border, rgba(0, 212, 184, 0.2))',
+              border: '1px solid var(--color-border, rgba(167, 139, 250, 0.2))',
               padding: '24px',
               boxSizing: 'border-box',
               gap: '20px'

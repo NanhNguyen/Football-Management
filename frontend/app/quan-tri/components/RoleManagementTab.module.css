@@ -50,8 +50,8 @@
 }
 
 .refreshBtn {
-  background-color: var(--color-primary-light, rgba(0, 212, 184, 0.12));
-  color: var(--color-primary, #00D4B8);
+  background-color: var(--color-primary-light, rgba(167, 139, 250, 0.12));
+  color: var(--color-primary, #a78bfa);
   font-size: 12px;
   font-weight: 700;
   padding: 6px 12px;
@@ -60,7 +60,7 @@
 }
 
 .refreshBtn:hover {
-  background-color: var(--color-primary, #00D4B8);
+  background-color: var(--color-primary, #a78bfa);
   color: #FFFFFF;
 }
 
@@ -142,8 +142,8 @@
 }
 
 .searchInput:focus {
-  border-color: var(--color-primary, #00D4B8);
-  box-shadow: 0 0 0 3px rgba(0, 212, 184, 0.15);
+  border-color: var(--color-primary, #a78bfa);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
 }
 
 .uuidCell {
@@ -165,9 +165,9 @@
 }
 
 .roleSelect_admin {
-  background-color: var(--color-primary-light, rgba(0, 212, 184, 0.12));
-  color: var(--color-primary, #00D4B8);
-  border-color: rgba(0, 212, 184, 0.2);
+  background-color: var(--color-primary-light, rgba(167, 139, 250, 0.12));
+  color: var(--color-primary, #a78bfa);
+  border-color: rgba(167, 139, 250, 0.2);
 }
 
 .roleSelect_ref {
@@ -183,7 +183,7 @@
 }
 
 .roleSelect:focus {
-  box-shadow: 0 0 0 2px rgba(0, 212, 184, 0.25);
+  box-shadow: 0 0 0 2px rgba(167, 139, 250, 0.25);
 }
 
 .deleteBtn {
@@ -242,24 +242,24 @@
 }
 
 .input:focus, .select:focus {
-  border-color: var(--color-primary, #00D4B8);
-  box-shadow: 0 0 0 3px rgba(0, 212, 184, 0.15);
+  border-color: var(--color-primary, #a78bfa);
+  box-shadow: 0 0 0 3px rgba(167, 139, 250, 0.15);
 }
 
 .submitBtn {
-  background-color: var(--color-primary, #00D4B8);
+  background-color: var(--color-primary, #a78bfa);
   color: #FFFFFF;
   padding: 12px;
   border-radius: 10px;
   font-size: 14px;
   font-weight: 700;
   transition: all 0.2s ease;
-  box-shadow: 0 4px 6px rgba(0, 212, 184, 0.15);
+  box-shadow: 0 4px 6px rgba(167, 139, 250, 0.15);
   margin-top: 8px;
 }
 
 .submitBtn:hover:not(:disabled) {
-  background-color: var(--color-primary-dark, #00A896);
+  background-color: var(--color-primary-dark, #7c5cfc);
 }
 
 .submitBtn:disabled {

@@ -1323,79 +1323,7 @@ export default function QuanTriPage() {
     handleAutoEndHalf1Ref.current = handleAutoEndHalf1;
   }, [liveMatches, handleStartMatch, handleAutoFinishMatch]);
 
-  // Auto-Start and Auto-Finish polling logic
-  useEffect(() => {
-    const interval = setInterval(() => {
-      const now = new Date();
-      
-      // 1. Auto-Start logic
-      liveMatchesRef.current.forEach(match => {
-        if (match.trangThai === 'SAP_DIEN_RA' && match.date && match.time) {
-          const [hours, minutes] = match.time.split(':').map(Number);
-          const matchDateTime = new Date(match.date);
-          if (!isNaN(matchDateTime.getTime())) {
-            matchDateTime.setHours(hours, minutes, 0, 0);
-            if (now >= matchDateTime) {
-              handleStartMatchRef.current(match.id);
-            }
-          }
-        }
-      });
 
-      // 2. Auto-End Half 1 logic (after halfDuration + maxExtraTime elapsed)
-      const matchDurationMinutes = schedulerConfig?.matchDurationMinutes || 90;
-      const halfDurationMinutes = matchDurationMinutes / 2;
-      const maxExtraTimeMinutes = schedulerConfig?.maxExtraTimeMinutes ?? 15;
-      liveMatchesRef.current.forEach(match => {
-        if (
-          match.trangThai === 'DANG_DIEN_RA' &&
-          match.currentPeriod === 'HALF_1' &&
-          match.half1StartTime &&
-          !match.dangTamDung
-        ) {
-          const half1StartMs = new Date(match.half1StartTime).getTime();
-          const elapsedMinutes = (now.getTime() - half1StartMs) / 60000;
-          if (elapsedMinutes >= halfDurationMinutes + maxExtraTimeMinutes) {
-            handleAutoEndHalf1Ref.current?.(match.id);
-          }
-        }
-      });
-
-      // 3. Auto-Start Half 2 logic (after break duration elapsed)
-      const breakMinutes = schedulerConfig?.breakTimeMinutes ?? 15;
-      liveMatchesRef.current.forEach(match => {
-        if (
-          match.trangThai === 'DANG_DIEN_RA' &&
-          match.currentPeriod === 'BREAK' &&
-          match.half1EndTime
-        ) {
-          const half1EndMs = new Date(match.half1EndTime).getTime();
-          const breakElapsedMs = now.getTime() - half1EndMs;
-          const breakElapsedMinutes = breakElapsedMs / 60000;
-          if (breakElapsedMinutes >= breakMinutes) {
-            handleAutoStartHalf2Ref.current?.(match.id);
-          }
-        }
-      });
-
-      // 4. Auto-Finish logic (end of Half 2 + maxExtraTime)
-      liveMatchesRef.current.forEach(match => {
-        if (
-          match.trangThai === 'DANG_DIEN_RA' &&
-          match.currentPeriod === 'HALF_2' &&
-          match.half2StartTime &&
-          !match.dangTamDung
-        ) {
-          const half2StartMs = new Date(match.half2StartTime).getTime();
-          const elapsedMinutes = (now.getTime() - half2StartMs) / 60000;
-          if (elapsedMinutes >= halfDurationMinutes + maxExtraTimeMinutes) {
-            handleAutoFinishMatchRef.current(match.id);
-          }
-        }
-      });
-    }, 10000); // Check every 10 seconds
-    return () => clearInterval(interval);
-  }, [selectedTournament, schedulerConfig]);
 
   const handleDelayMatchSchedule = async (matchId: string, newDate: string, newTime: string) => {
     const match = liveMatches.find(m => m.id === matchId);

@@ -295,7 +295,7 @@ export default function RefereeMobileView({ data, actions }: any) {
       fontWeight: 700,
       padding: '6px 12px',
       background: 'var(--color-surface-hover, #141C2A)',
-      border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))',
+      border: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.08))',
       borderRadius: '8px',
       cursor: 'pointer'
     },
@@ -356,7 +356,7 @@ export default function RefereeMobileView({ data, actions }: any) {
       borderRadius: '12px',
       fontWeight: 600,
       fontSize: '13px',
-      border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))',
+      border: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.08))',
       cursor: 'pointer',
       marginTop: '8px',
       boxSizing: 'border-box' as const
@@ -464,9 +464,9 @@ export default function RefereeMobileView({ data, actions }: any) {
       display: 'flex',
       flexDirection: 'column' as const,
       boxShadow: '0 -10px 25px -5px rgba(0, 0, 0, 0.5)',
-      borderTop: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
-      borderLeft: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
-      borderRight: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
+      borderTop: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))',
+      borderLeft: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))',
+      borderRight: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))',
       boxSizing: 'border-box' as const
     },
     modalHeader: {
@@ -489,7 +489,7 @@ export default function RefereeMobileView({ data, actions }: any) {
       fontWeight: 700,
       color: 'var(--color-text, #C8D8E8)',
       background: 'var(--color-surface-hover, #141C2A)',
-      border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))',
+      border: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.08))',
       padding: '8px 16px',
       borderRadius: '8px',
       cursor: 'pointer'
@@ -497,7 +497,7 @@ export default function RefereeMobileView({ data, actions }: any) {
     segmentControl: {
       display: 'flex',
       background: 'var(--color-surface-hover, #141C2A)',
-      border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))',
+      border: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.08))',
       padding: '4px',
       borderRadius: '12px',
       marginBottom: '20px',
@@ -510,11 +510,11 @@ export default function RefereeMobileView({ data, actions }: any) {
       fontSize: '13px',
       fontWeight: isActive ? 700 : 500,
       color: isActive ? '#080C10' : 'var(--color-text-secondary, #A0B4C8)',
-      background: isActive ? 'var(--color-primary, #00D4B8)' : 'transparent',
+      background: isActive ? 'var(--color-primary, #a78bfa)' : 'transparent',
       borderRadius: '8px',
       border: 'none',
       cursor: 'pointer',
-      boxShadow: isActive ? '0 2px 8px rgba(0, 212, 184, 0.2)' : 'none',
+      boxShadow: isActive ? '0 2px 8px rgba(167, 139, 250, 0.2)' : 'none',
       textOverflow: 'ellipsis',
       whiteSpace: 'nowrap' as const,
       overflow: 'hidden'
@@ -534,7 +534,7 @@ export default function RefereeMobileView({ data, actions }: any) {
       padding: '12px',
       borderRadius: '12px',
       background: 'var(--color-surface, #0E1421)',
-      borderBottom: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))',
+      borderBottom: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.08))',
       cursor: 'pointer',
       transition: 'all 0.1s ease',
       boxSizing: 'border-box' as const
@@ -947,7 +947,7 @@ export default function RefereeMobileView({ data, actions }: any) {
                   });
                 }}
                 style={{
-                  background: 'none', border: 'none', color: 'var(--color-primary, #00D4B8)',
+                  background: 'none', border: 'none', color: 'var(--color-primary, #a78bfa)',
                   fontSize: '13px', fontWeight: 600, cursor: 'pointer', display: 'flex', alignItems: 'center', gap: '4px'
                 }}
               >
@@ -1012,7 +1012,7 @@ export default function RefereeMobileView({ data, actions }: any) {
                       <span style={styles.playerName}>{p.ten}</span>
                       <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
                         {goalCount > 0 && (
-                          <span style={{ fontSize: '12px', background: 'rgba(0, 212, 184, 0.15)', color: 'var(--color-primary, #00D4B8)', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px', border: '1px solid rgba(0, 212, 184, 0.3)' }}>
+                          <span style={{ fontSize: '12px', background: 'rgba(167, 139, 250, 0.15)', color: 'var(--color-primary, #a78bfa)', padding: '2px 6px', borderRadius: '4px', display: 'flex', alignItems: 'center', gap: '2px', border: '1px solid rgba(167, 139, 250, 0.3)' }}>
                             ⚽ {goalCount}
                           </span>
                         )}
@@ -1210,7 +1210,7 @@ export default function RefereeMobileView({ data, actions }: any) {
                 {/* SUB */}
                 <button
                   disabled={actionsDisabled}
-                  style={btnStyle('rgba(0,212,184,0.25)', 'rgba(0,212,184,0.08)')}
+                  style={btnStyle('rgba(167,139,250,0.25)', 'rgba(167,139,250,0.08)')}
                   onClick={() => openTeamWizard('sub')}
                 >
                   <IconSwap size={22} color={actionsDisabled ? '#475569' : '#2dd4bf'} />
@@ -1411,7 +1411,7 @@ export default function RefereeMobileView({ data, actions }: any) {
                     }
                     setDelayModalState(prev => ({ ...prev, isOpen: false }));
                   }}
-                  className="w-full md:w-auto px-6 py-2.5 rounded-xl font-bold text-sm bg-[#00D4B8] hover:bg-[#00bda3] text-[#080C10] transition-colors cursor-pointer text-center"
+                  className="w-full md:w-auto px-6 py-2.5 rounded-xl font-bold text-sm bg-[#a78bfa] hover:bg-[#00bda3] text-[#080C10] transition-colors cursor-pointer text-center"
                 >
                   Xác nhận lùi
                 </button>
@@ -1431,7 +1431,7 @@ export default function RefereeMobileView({ data, actions }: any) {
           <div style={{
             background: 'var(--color-surface, #0E1421)', width: '100%', maxWidth: '340px', borderRadius: '16px', padding: '24px',
             boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.5)',
-            border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.15))',
+            border: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.15))',
             display: 'flex', flexDirection: 'column', gap: '16px'
           }}>
             <h3 style={{ margin: 0, fontSize: '18px', fontWeight: 800, color: 'var(--color-text-heading, #E8F4F8)' }}>Thêm Nhanh Cầu Thủ</h3>
@@ -1444,7 +1444,7 @@ export default function RefereeMobileView({ data, actions }: any) {
                 value={quickAddPlayerModalState.jerseyNumber}
                 onChange={e => setQuickAddPlayerModalState(prev => ({ ...prev, jerseyNumber: e.target.value }))}
                 style={{
-                  padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
+                  padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))',
                   fontSize: '15px', outline: 'none', background: 'var(--color-surface-container, #0A0F18)',
                   color: 'var(--color-text-heading, #ffffff)'
                 }}
@@ -1459,7 +1459,7 @@ export default function RefereeMobileView({ data, actions }: any) {
                 value={quickAddPlayerModalState.name}
                 onChange={e => setQuickAddPlayerModalState(prev => ({ ...prev, name: e.target.value }))}
                 style={{
-                  padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
+                  padding: '12px 16px', borderRadius: '12px', border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))',
                   fontSize: '15px', outline: 'none', background: 'var(--color-surface-container, #0A0F18)',
                   color: 'var(--color-text-heading, #ffffff)'
                 }}
@@ -1471,7 +1471,7 @@ export default function RefereeMobileView({ data, actions }: any) {
                 onClick={() => setQuickAddPlayerModalState(prev => ({ ...prev, isOpen: false }))}
                 style={{
                   flex: 1, padding: '12px', background: 'var(--color-surface-hover, #141C2A)',
-                  color: 'var(--color-text, #C8D8E8)', border: '1px solid var(--color-border-light, rgba(0, 212, 184, 0.08))', borderRadius: '12px',
+                  color: 'var(--color-text, #C8D8E8)', border: '1px solid var(--color-border-light, rgba(167, 139, 250, 0.08))', borderRadius: '12px',
                   fontWeight: 700, fontSize: '14px', cursor: 'pointer'
                 }}
               >
@@ -1481,7 +1481,7 @@ export default function RefereeMobileView({ data, actions }: any) {
                 onClick={handleSaveQuickPlayer}
                 disabled={quickAddPlayerModalState.isSaving || !quickAddPlayerModalState.name || !quickAddPlayerModalState.jerseyNumber}
                 style={{
-                  flex: 1, padding: '12px', background: 'var(--color-primary, #00D4B8)',
+                  flex: 1, padding: '12px', background: 'var(--color-primary, #a78bfa)',
                   color: '#080C10', border: 'none', borderRadius: '12px',
                   fontWeight: 800, fontSize: '14px', cursor: quickAddPlayerModalState.isSaving ? 'not-allowed' : 'pointer',
                   opacity: (quickAddPlayerModalState.isSaving || !quickAddPlayerModalState.name || !quickAddPlayerModalState.jerseyNumber) ? 0.7 : 1

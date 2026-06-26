@@ -361,7 +361,7 @@ export default function AdminMobileView(props: any) {
                       width: '36px',
                       height: '36px',
                       borderRadius: '50%',
-                      border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
+                      border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))',
                       background: '#141C2A',
                       display: 'flex',
                       alignItems: 'center',
@@ -372,7 +372,7 @@ export default function AdminMobileView(props: any) {
                     }}
                     title="Vòng trước"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? 'var(--color-text-muted, #4A6070)' : 'var(--color-primary, #00D4B8)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isFirstRound ? 'var(--color-text-muted, #4A6070)' : 'var(--color-primary, #a78bfa)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="15 18 9 12 15 6"></polyline>
                     </svg>
                   </button>
@@ -391,7 +391,7 @@ export default function AdminMobileView(props: any) {
                       width: '36px',
                       height: '36px',
                       borderRadius: '50%',
-                      border: '1px solid var(--color-border, rgba(0, 212, 184, 0.15))',
+                      border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))',
                       background: '#141C2A',
                       display: 'flex',
                       alignItems: 'center',
@@ -402,7 +402,7 @@ export default function AdminMobileView(props: any) {
                     }}
                     title="Vòng sau"
                   >
-                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? 'var(--color-text-muted, #4A6070)' : 'var(--color-primary, #00D4B8)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke={isLastRound ? 'var(--color-text-muted, #4A6070)' : 'var(--color-primary, #a78bfa)'} strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
                       <polyline points="9 18 15 12 9 6"></polyline>
                     </svg>
                   </button>
@@ -610,7 +610,7 @@ export default function AdminMobileView(props: any) {
                       padding: '10px 12px',
                       borderRadius: '8px',
                       border: 'none',
-                      background: selectedTournament?.id === t.id ? 'rgba(0, 212, 184, 0.15)' : 'transparent',
+                      background: selectedTournament?.id === t.id ? 'rgba(167, 139, 250, 0.15)' : 'transparent',
                       color: selectedTournament?.id === t.id ? 'var(--color-primary, #0f766e)' : '#cbd5e1',
                       fontSize: '14px',
                       fontWeight: selectedTournament?.id === t.id ? 700 : 500,

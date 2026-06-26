@@ -5,13 +5,13 @@
   right: 12px;
   height: 60px;
   background: rgba(10, 15, 24, 0.92);
-  border: 1px solid rgba(0, 212, 184, 0.2);
+  border: 1px solid rgba(167, 139, 250, 0.2);
   border-radius: 20px;
   display: flex;
   justify-content: space-around;
   align-items: center;
   z-index: 100;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(0, 212, 184, 0.1) inset;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.6), 0 0 0 1px rgba(167, 139, 250, 0.1) inset;
   padding: 0 8px;
   backdrop-filter: blur(16px);
   -webkit-backdrop-filter: blur(16px);
@@ -31,7 +31,7 @@
 
 .navItemActive { 
   color: var(--color-primary);
-  text-shadow: 0 0 8px rgba(0, 212, 184, 0.5);
+  text-shadow: 0 0 8px rgba(167, 139, 250, 0.5);
 }
 
 .icon {
@@ -44,7 +44,7 @@
 }
 
 .navItemActive .icon {
-  filter: drop-shadow(0 0 6px rgba(0, 212, 184, 0.6));
+  filter: drop-shadow(0 0 6px rgba(167, 139, 250, 0.6));
 }
 
 .navItem:active .icon {

@@ -1679,8 +1679,8 @@ export default function RefereeTab({
                           <button
                             style={{
                               ...btnBase,
-                              borderColor: isLive ? 'rgba(0,212,184,0.25)' : 'transparent',
-                              background: isLive ? 'rgba(0,212,184,0.08)' : 'rgba(255,255,255,0.03)',
+                              borderColor: isLive ? 'rgba(167,139,250,0.25)' : 'transparent',
+                              background: isLive ? 'rgba(167,139,250,0.08)' : 'rgba(255,255,255,0.03)',
                             }}
                             disabled={!isLive}
                             onClick={() => openWizard('sub', 'normal', undefined, teamId)}
@@ -2056,7 +2056,7 @@ export default function RefereeTab({
                     }
                     setDelayModalState(prev => ({ ...prev, isOpen: false }));
                   }}
-                  className="w-full md:w-auto px-6 py-2.5 rounded-xl font-bold text-sm bg-[#00D4B8] hover:bg-[#00bda3] text-[#080C10] transition-colors cursor-pointer text-center"
+                  className="w-full md:w-auto px-6 py-2.5 rounded-xl font-bold text-sm bg-[#a78bfa] hover:bg-[#00bda3] text-[#080C10] transition-colors cursor-pointer text-center"
                 >
                   Xác nhận lùi
                 </button>
@@ -2082,7 +2082,7 @@ export default function RefereeTab({
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-slate-400">Đội bóng</label>
                 <select
-                  className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                  className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#a78bfa] transition-colors cursor-pointer"
                   value={quickAddState.teamId}
                   onChange={(e) => setQuickAddState(prev => ({ ...prev, teamId: e.target.value, playerId: '', subOutPlayerId: '' }))}
                 >
@@ -2096,7 +2096,7 @@ export default function RefereeTab({
               <div className="flex flex-col gap-1.5">
                 <label className="text-xs font-semibold text-slate-400">Loại sự kiện</label>
                 <select
-                  className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                  className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#a78bfa] transition-colors cursor-pointer"
                   value={quickAddState.action === 'custom' ? quickAddState.subType : quickAddState.action}
                   onChange={(e) => {
                     const val = e.target.value;
@@ -2123,7 +2123,7 @@ export default function RefereeTab({
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-slate-400">Loại thẻ</label>
                   <select
-                    className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                    className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#a78bfa] transition-colors cursor-pointer"
                     value={quickAddState.subType}
                     onChange={(e) => setQuickAddState(prev => ({ ...prev, subType: e.target.value }))}
                   >
@@ -2137,7 +2137,7 @@ export default function RefereeTab({
                 <div className="flex flex-col gap-1.5">
                   <label className="text-xs font-semibold text-slate-400">Chi tiết bàn thắng</label>
                   <select
-                    className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                    className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#a78bfa] transition-colors cursor-pointer"
                     value={quickAddState.subType}
                     onChange={(e) => setQuickAddState(prev => ({ ...prev, subType: e.target.value }))}
                   >
@@ -2156,7 +2156,7 @@ export default function RefereeTab({
                   min="1"
                   max="120"
                   placeholder="Ví dụ: 90"
-                  className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors"
+                  className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#a78bfa] transition-colors"
                   value={quickAddState.minute}
                   onChange={(e) => setQuickAddState(prev => ({ ...prev, minute: e.target.value }))}
                 />
@@ -2182,7 +2182,7 @@ export default function RefereeTab({
                         <div className="flex flex-col gap-1.5">
                           <label className="text-xs font-semibold text-slate-400">Cầu thủ ra sân</label>
                           <select
-                            className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                            className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#a78bfa] transition-colors cursor-pointer"
                             value={quickAddState.subOutPlayerId}
                             onChange={(e) => setQuickAddState(prev => ({ ...prev, subOutPlayerId: e.target.value }))}
                           >
@@ -2194,7 +2194,7 @@ export default function RefereeTab({
                         <div className="flex flex-col gap-1.5">
                           <label className="text-xs font-semibold text-slate-400">Cầu thủ vào sân</label>
                           <select
-                            className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                            className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#a78bfa] transition-colors cursor-pointer"
                             value={quickAddState.playerId}
                             onChange={(e) => setQuickAddState(prev => ({ ...prev, playerId: e.target.value }))}
                           >
@@ -2208,7 +2208,7 @@ export default function RefereeTab({
                         <div className="flex flex-col gap-1.5">
                           <label className="text-xs font-semibold text-slate-400">Cầu thủ thực hiện</label>
                           <select
-                            className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#00D4B8] transition-colors cursor-pointer"
+                            className="w-full bg-[#141d2f] border border-slate-700 rounded-xl px-4 py-2.5 text-sm text-slate-200 outline-none focus:border-[#a78bfa] transition-colors cursor-pointer"
                             value={quickAddState.playerId}
                             onChange={(e) => setQuickAddState(prev => ({ ...prev, playerId: e.target.value }))}
                           >
@@ -2231,7 +2231,7 @@ export default function RefereeTab({
                 Hủy bỏ
               </button>
               <button 
-                className="w-full md:w-auto px-6 py-2.5 rounded-xl font-bold text-sm bg-[#00D4B8] hover:bg-[#00bda3] text-[#080C10] transition-colors cursor-pointer text-center" 
+                className="w-full md:w-auto px-6 py-2.5 rounded-xl font-bold text-sm bg-[#a78bfa] hover:bg-[#00bda3] text-[#080C10] transition-colors cursor-pointer text-center" 
                 onClick={() => {
                   const team = quickAddState.teamId === selectedMatch.doiNha?.id ? selectedMatch.doiNha : selectedMatch.doiKhach;
                   if (!team) {
@@ -2401,14 +2401,14 @@ export default function RefereeTab({
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'space-between',
-                  background: 'rgba(0,212,184,0.04)'
+                  background: 'rgba(167,139,250,0.04)'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
                     <div style={{
                       width: '40px', height: '40px',
                       borderRadius: '10px',
-                      background: 'rgba(0,212,184,0.12)',
-                      border: '1px solid rgba(0,212,184,0.2)',
+                      background: 'rgba(167,139,250,0.12)',
+                      border: '1px solid rgba(167,139,250,0.2)',
                       display: 'flex', alignItems: 'center', justifyContent: 'center'
                     }}>
                       <IconSwap size={20} />
@@ -2486,11 +2486,11 @@ export default function RefereeTab({
                     <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '8px' }}>
                       <div style={{
                         display: 'flex', alignItems: 'center', gap: '8px',
-                        color: '#00D4B8', fontSize: '13px', fontWeight: 600
+                        color: '#a78bfa', fontSize: '13px', fontWeight: 600
                       }}>
-                        <div style={{ height: '1px', width: '32px', background: 'linear-gradient(90deg, transparent, #00D4B8)' }} />
+                        <div style={{ height: '1px', width: '32px', background: 'linear-gradient(90deg, transparent, #a78bfa)' }} />
                         <IconSwap size={18} />
-                        <div style={{ height: '1px', width: '32px', background: 'linear-gradient(90deg, #00D4B8, transparent)' }} />
+                        <div style={{ height: '1px', width: '32px', background: 'linear-gradient(90deg, #a78bfa, transparent)' }} />
                       </div>
                     </div>
 
@@ -2595,29 +2595,29 @@ export default function RefereeTab({
                                 gap: '12px',
                                 padding: '12px 14px',
                                 borderRadius: '10px',
-                                border: isSelected ? '1.5px solid #00D4B8' : '1px solid #1e293b',
+                                border: isSelected ? '1.5px solid #a78bfa' : '1px solid #1e293b',
                                 background: isRedCarded
                                   ? 'transparent'
                                   : isSelected
-                                    ? 'rgba(0,212,184,0.1)'
+                                    ? 'rgba(167,139,250,0.1)'
                                     : 'rgba(20,29,47,0.8)',
-                                color: isRedCarded ? '#334155' : isSelected ? '#00D4B8' : '#cbd5e1',
+                                color: isRedCarded ? '#334155' : isSelected ? '#a78bfa' : '#cbd5e1',
                                 cursor: isRedCarded ? 'not-allowed' : 'pointer',
                                 opacity: isRedCarded ? 0.45 : 1,
                                 textAlign: 'left',
                                 fontSize: '13px',
                                 fontWeight: 600,
                                 transition: 'all 0.15s',
-                                boxShadow: isSelected ? '0 0 0 3px rgba(0,212,184,0.12)' : 'none'
+                                boxShadow: isSelected ? '0 0 0 3px rgba(167,139,250,0.12)' : 'none'
                               }}
                             >
                               <span style={{
                                 width: '34px', height: '34px',
                                 borderRadius: '50%',
-                                background: isSelected ? 'rgba(0,212,184,0.2)' : '#0a1020',
-                                border: isSelected ? '1.5px solid rgba(0,212,184,0.5)' : '1px solid #1e293b',
+                                background: isSelected ? 'rgba(167,139,250,0.2)' : '#0a1020',
+                                border: isSelected ? '1.5px solid rgba(167,139,250,0.5)' : '1px solid #1e293b',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
-                                fontSize: '12px', fontWeight: 800, color: isSelected ? '#00D4B8' : '#94a3b8',
+                                fontSize: '12px', fontWeight: 800, color: isSelected ? '#a78bfa' : '#94a3b8',
                                 flexShrink: 0,
                                 transition: 'all 0.15s'
                               }}>
@@ -2626,7 +2626,7 @@ export default function RefereeTab({
                               <span style={{ flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{p.ten}</span>
                               {isRedCarded && <span style={{ fontSize: '14px' }}>🟥</span>}
                               {isSelected && !isRedCarded && (
-                                <span style={{ fontSize: '14px', color: '#00D4B8' }}>✓</span>
+                                <span style={{ fontSize: '14px', color: '#a78bfa' }}>✓</span>
                               )}
                             </button>
                           );
@@ -2684,7 +2684,7 @@ export default function RefereeTab({
                         padding: '9px 24px',
                         borderRadius: '10px',
                         border: 'none',
-                        background: pcSubModalState.subInPlayerId ? '#00D4B8' : '#1e293b',
+                        background: pcSubModalState.subInPlayerId ? '#a78bfa' : '#1e293b',
                         color: pcSubModalState.subInPlayerId ? '#080C10' : '#475569',
                         fontSize: '13px',
                         fontWeight: 700,
