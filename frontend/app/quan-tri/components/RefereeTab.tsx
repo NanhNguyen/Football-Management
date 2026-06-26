@@ -937,11 +937,15 @@ export default function RefereeTab({
                   </div>
 
                   {/* Vùng TRẬN ĐẤU */}
-                  <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <span style={{ display: 'flex', flexShrink: 0, marginRight: '8px' }}><TeamLogo logo={m.doiNha?.logo} teamName={m.doiNha?.ten} /></span>
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#d8e4ff', textAlign: 'right', whiteSpace: 'nowrap' }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
+                  <div style={{ flex: 1, display: 'flex', alignItems: 'center' }}>
+                    {/* Đội nhà */}
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-end', gap: '8px', overflow: 'hidden' }}>
+                      <span style={{ display: 'flex', flexShrink: 0 }}><TeamLogo logo={m.doiNha?.logo} teamName={m.doiNha?.ten} /></span>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#d8e4ff', textAlign: 'right', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.doiNha?.ten || 'Chờ xác định'}</span>
+                    </div>
                     
-                    <div style={{ display: 'flex', alignItems: 'center', margin: '0 12px' }}>
+                    {/* Tỉ số */}
+                    <div style={{ flex: '0 0 100px', display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
                       {m.trangThai === 'CHUA_BAT_DAU' ? (
                         <span style={{ fontSize: '20px', fontWeight: 700, color: 'rgba(255,255,255,0.2)' }}>–</span>
                       ) : (
@@ -953,8 +957,11 @@ export default function RefereeTab({
                       )}
                     </div>
 
-                    <span style={{ fontSize: '13px', fontWeight: 600, color: '#d8e4ff', textAlign: 'left', whiteSpace: 'nowrap' }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
-                    <span style={{ display: 'flex', flexShrink: 0, marginLeft: '8px' }}><TeamLogo logo={m.doiKhach?.logo} teamName={m.doiKhach?.ten} /></span>
+                    {/* Đội khách */}
+                    <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'flex-start', gap: '8px', overflow: 'hidden' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, color: '#d8e4ff', textAlign: 'left', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{m.doiKhach?.ten || 'Chờ xác định'}</span>
+                      <span style={{ display: 'flex', flexShrink: 0 }}><TeamLogo logo={m.doiKhach?.logo} teamName={m.doiKhach?.ten} /></span>
+                    </div>
                   </div>
 
                   {/* Vùng TRẠNG THÁI */}
