@@ -9,15 +9,19 @@ import { getDisplayTime, quickAddPlayer } from '@/lib/api';
 
 const desktopStyles = {
   wrapper: {
-    display: 'grid',
-    gridTemplateColumns: '30fr 40fr 30fr',
-    gap: '24px',
-    padding: '24px',
+    display: 'flex',
+    flexDirection: 'row' as const,
+    width: '100%',
+    maxWidth: '100%',
+    overflowX: 'hidden' as const,
+    overflowY: 'hidden' as const,
+    gap: '12px',
+    padding: '12px',
+    boxSizing: 'border-box' as const,
+    height: 'calc(100vh - 60px - 36px)',
     background: 'var(--color-bg, #f8fafc)',
-    minHeight: '100vh',
     position: 'relative' as const,
     fontFamily: "'Hanken Grotesk', 'Inter', sans-serif",
-    boxSizing: 'border-box' as const,
   },
   backBtn: {
     position: 'absolute' as const,
@@ -35,19 +39,27 @@ const desktopStyles = {
     transition: 'color 0.2s',
   },
   columnHomeAway: {
-    maxHeight: 'calc(100vh - 64px)',
-    overflowY: 'auto',
-    
     display: 'flex',
     flexDirection: 'column' as const,
+    overflowY: 'auto' as const,
+    overflowX: 'hidden' as const,
+    height: '100%',
+    flex: '0 0 28%',
+    scrollbarWidth: 'thin' as const,
+    scrollbarColor: 'rgba(255,255,255,0.1) transparent',
     paddingTop: '32px',
+    boxSizing: 'border-box' as const,
   },
   columnCenter: {
-    
     display: 'flex',
     flexDirection: 'column' as const,
     paddingTop: '32px',
     gap: '24px',
+    flex: '1 1 auto',
+    boxSizing: 'border-box' as const,
+    minWidth: 0,
+    height: '100%',
+    overflow: 'hidden',
   },
   card: {
     background: 'var(--color-surface, #ffffff)',
@@ -92,49 +104,34 @@ const desktopStyles = {
   },
   playerButton: (isPopoverOpen: boolean, isRedCarded: boolean) => ({
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start' as const,
     gap: '6px',
-    padding: '6px 10px',
-    whiteSpace: 'nowrap',
+    padding: '6px 8px',
     width: '100%',
-    background: 'var(--color-surface, #ffffff)',
-    border: isPopoverOpen ? '2px solid var(--color-primary, #0F766E)' : '1px solid var(--color-border, #e2e8f0)',
-    color: 'var(--color-text, #334155)',
-    fontSize: '12px',
-    fontWeight: 600,
-    padding: '12px 8px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center' as const,
-    borderRadius: '4px',
+    background: 'rgba(255,255,255,0.04)',
+    border: isPopoverOpen ? '2px solid var(--color-primary, #0F766E)' : '1px solid rgba(255, 255, 255, 0.08)',
+    color: '#cbd5e1',
+    borderRadius: '7px',
     cursor: isRedCarded ? 'not-allowed' : 'pointer',
     opacity: isRedCarded ? 0.5 : 1,
     textDecoration: isRedCarded ? 'line-through' : 'none',
     boxSizing: 'border-box' as const,
     boxShadow: isPopoverOpen ? '0 0 0 3px rgba(15, 118, 110, 0.15)' : 'none',
     transition: 'all 0.15s ease-in-out',
+    marginBottom: '4px',
   }),
   benchPlayerBox: {
     display: 'flex',
-    alignItems: 'center',
+    alignItems: 'flex-start' as const,
     gap: '6px',
-    padding: '6px 10px',
-    whiteSpace: 'nowrap',
+    padding: '6px 8px',
     width: '100%',
-    background: 'var(--color-surface-container, #f8fafc)',
-    border: '1px solid var(--color-border-light, #f1f5f9)',
-    color: 'var(--color-text-secondary, #334155)',
-    fontSize: '12px',
-    fontWeight: 500,
-    padding: '12px 8px',
-    display: 'flex',
-    alignItems: 'center',
-    justifyContent: 'center',
-    textAlign: 'center' as const,
-    borderRadius: '4px',
+    background: 'rgba(255,255,255,0.04)',
+    border: '1px solid rgba(255, 255, 255, 0.08)',
+    borderRadius: '7px',
     opacity: 0.8,
     boxSizing: 'border-box' as const,
+    marginBottom: '4px',
   },
   popover: (isHome: boolean) => ({
     position: 'absolute' as const,
@@ -638,7 +635,10 @@ export default function RefereeTab({
         color: color,
         marginLeft: 'auto',
         minWidth: 'fit-content',
-        flexShrink: 0
+        flexShrink: 0,
+        alignSelf: 'flex-start',
+        marginTop: '2px',
+        whiteSpace: 'nowrap'
       }}>
         {label}
       </span>
@@ -671,8 +671,8 @@ export default function RefereeTab({
                     className="desktop-player-btn"
                     style={{ ...desktopStyles.playerButton(isPopoverOpen, isRedCarded), opacity: (isRedCarded || selectedMatch.trangThai === 'KET_THUC') ? 0.5 : 1, cursor: (isRedCarded || selectedMatch.trangThai === 'KET_THUC') ? 'not-allowed' : 'pointer' }}
                   >
-                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', minWidth: '28px', textAlign: 'left' }}>#{p.soAo}</span>
-                    <span style={{ fontSize: '12.5px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>{p.ten}</span>
+                    <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.35)', minWidth: '30px', flexShrink: 0, paddingTop: '1px', textAlign: 'left' }}>#{p.soAo}</span>
+                    <span style={{ fontSize: '13px', fontWeight: 500, color: '#d8e4ff', flex: 1, whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.4, textAlign: 'left' }}>{p.ten}</span>
                     {getPositionTag(p.viTri)}
                   </button>
                   {isPopoverOpen && (
@@ -768,7 +768,9 @@ export default function RefereeTab({
             <div style={desktopStyles.benchGrid}>
               {bench.map((p: any) => (
                 <div key={p.id} style={desktopStyles.benchPlayerBox}>
-                  #{p.soAo} {p.ten} {getPositionTag(p.viTri)}
+                  <span style={{ fontSize: '12px', fontWeight: 600, color: 'rgba(255,255,255,0.35)', minWidth: '30px', flexShrink: 0, paddingTop: '1px', textAlign: 'left' }}>#{p.soAo}</span>
+                  <span style={{ fontSize: '13px', fontWeight: 500, color: '#d8e4ff', flex: 1, whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.4, textAlign: 'left' }}>{p.ten}</span>
+                  {getPositionTag(p.viTri)}
                 </div>
               ))}
             </div>
@@ -987,6 +989,22 @@ export default function RefereeTab({
       ) : selectedMatch && (
         <>
           <style>{`
+          /* Custom scrollbars for columns */
+          .ref-column-scroll::-webkit-scrollbar {
+            width: 6px;
+            height: 6px;
+          }
+          .ref-column-scroll::-webkit-scrollbar-track {
+            background: transparent;
+          }
+          .ref-column-scroll::-webkit-scrollbar-thumb {
+            background-color: rgba(255, 255, 255, 0.1);
+            border-radius: 3px;
+          }
+          .ref-column-scroll::-webkit-scrollbar-thumb:hover {
+            background-color: rgba(255, 255, 255, 0.2);
+          }
+
           .desktop-player-btn:hover {
             border-color: var(--color-primary, #0F766E) !important;
             box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03) !important;
@@ -1134,7 +1152,7 @@ export default function RefereeTab({
               </div>
 
               {/* LEFT COLUMN: HOME TEAM */}
-              <div style={desktopStyles.columnHomeAway}>
+              <div style={desktopStyles.columnHomeAway} className="ref-column-scroll">
                 <div style={desktopStyles.card}>
                   <h3 style={desktopStyles.cardTitle}>
                     <span style={{ width: '20px', height: '20px', display: 'flex' }}>
@@ -1147,8 +1165,8 @@ export default function RefereeTab({
                 </div>
               </div>
 
-                            {/* CENTER COLUMN: BẢNG ĐIỀU KHIỂN & NHẬT KÝ */}
-              <div style={{ display: 'flex', flexDirection: 'column', paddingTop: '32px', gap: '24px', maxHeight: 'calc(100vh - 64px)', overflow: 'hidden' }}>
+              {/* CENTER COLUMN: BẢNG ĐIỀU KHIỂN & NHẬT KÝ */}
+              <div style={desktopStyles.columnCenter}>
                 {/* Scoreboard Visual & Info */}
                 <div style={{ ...desktopStyles.scoreboardCard, flexShrink: 0, padding: '24px' }}>
                   {/* Round & Timer (~15%) */}
@@ -1249,9 +1267,26 @@ export default function RefereeTab({
                     {selectedMatch.trangThai !== 'SAP_DIEN_RA' && (
                       <button
                         onClick={() => setResetConfirmMatchId(selectedMatch.id)}
-                        style={{ background: 'transparent', color: 'rgba(255,255,255,0.35)', border: '1px solid rgba(255,255,255,0.12)', borderRadius: '10px', padding: '10px', width: '100%', fontSize: '12.5px', cursor: 'pointer', transition: 'all 0.2s', marginTop: '4px' }}
-                        onMouseOver={e => { e.currentTarget.style.color = '#ef4444'; e.currentTarget.style.borderColor = 'rgba(239,68,68,0.5)'; }}
-                        onMouseOut={e => { e.currentTarget.style.color = 'rgba(255,255,255,0.35)'; e.currentTarget.style.borderColor = 'rgba(255,255,255,0.12)'; }}
+                        style={{
+                          background: 'transparent',
+                          color: 'rgba(255,255,255,0.3)',
+                          border: '1px solid rgba(255,255,255,0.1)',
+                          borderRadius: '10px',
+                          padding: '10px',
+                          width: '100%',
+                          fontSize: '12.5px',
+                          cursor: 'pointer',
+                          transition: 'all 0.2s',
+                          marginTop: '4px'
+                        }}
+                        onMouseOver={e => {
+                          e.currentTarget.style.color = 'rgba(255,255,255,0.5)';
+                          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.2)';
+                        }}
+                        onMouseOut={e => {
+                          e.currentTarget.style.color = 'rgba(255,255,255,0.3)';
+                          e.currentTarget.style.borderColor = 'rgba(255,255,255,0.1)';
+                        }}
                       >
                         THIẾT LẬP LẠI
                       </button>
@@ -1260,11 +1295,11 @@ export default function RefereeTab({
                 </div>
 
                 {/* Timeline (~50%) */}
-                <div style={{ ...desktopStyles.timelineCard, flex: 1, overflowY: 'auto' }}>
+                <div style={{ ...desktopStyles.timelineCard, flex: 1, overflow: 'hidden' }}>
                   <div style={desktopStyles.timelineHeader}>
                     <IconEvent size={16} /> Diễn biến trận đấu
                   </div>
-                  <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }}>
+                  <div style={{ flex: 1, overflowY: 'auto', display: 'flex', flexDirection: 'column' }} className="ref-column-scroll">
                     {(!selectedMatch.suKien || selectedMatch.suKien.length === 0) ? (
                       <div style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'rgba(255,255,255,0.35)', fontStyle: 'italic', fontSize: '14px' }}>Chưa có sự kiện nào</div>
                     ) : (
@@ -1507,7 +1542,7 @@ export default function RefereeTab({
                 </div>
               </div>
 {/* RIGHT COLUMN: AWAY TEAM */}
-              <div style={desktopStyles.columnHomeAway}>
+              <div style={desktopStyles.columnHomeAway} className="ref-column-scroll">
                 <div style={desktopStyles.card}>
                   <h3 style={desktopStyles.cardTitle}>
                     <span style={{ width: '20px', height: '20px', display: 'flex' }}>
