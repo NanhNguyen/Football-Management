@@ -10,7 +10,7 @@ import { getDisplayTime, quickAddPlayer } from '@/lib/api';
 const desktopStyles = {
   wrapper: {
     display: 'grid',
-    gridTemplateColumns: 'repeat(12, 1fr)',
+    gridTemplateColumns: '28fr 44fr 28fr',
     gap: '24px',
     padding: '24px',
     background: 'var(--color-bg, #f8fafc)',
@@ -35,13 +35,13 @@ const desktopStyles = {
     transition: 'color 0.2s',
   },
   columnHomeAway: {
-    gridColumn: 'span 3',
+    
     display: 'flex',
     flexDirection: 'column' as const,
     paddingTop: '32px',
   },
   columnCenter: {
-    gridColumn: 'span 6',
+    
     display: 'flex',
     flexDirection: 'column' as const,
     paddingTop: '32px',
@@ -945,6 +945,10 @@ export default function RefereeTab({
           .desktop-back-btn:hover {
             color: var(--color-text-heading, #0F172A) !important;
           }
+          .desktop-breadcrumb-parent:hover {
+            color: rgba(255,255,255,0.65) !important;
+            text-decoration: underline !important;
+          }
           .desktop-timeline-row:hover .desktop-undo-btn {
             opacity: 1 !important;
           }
@@ -1051,10 +1055,14 @@ export default function RefereeTab({
           {isDesktop ? (
             /* DESKTOP VIEW (>= 1024px) */
             <div style={desktopStyles.wrapper} onClick={() => setActivePopover(null)}>
-              {/* Absolute back button */}
-              <button className="desktop-back-btn" style={desktopStyles.backBtn} onClick={() => setSelectedMatchId(null)}>
-                ← Trở về
-              </button>
+              {/* Breadcrumb Navigation */}
+              <div style={{ position: 'absolute', top: '16px', left: '24px', display: 'flex', alignItems: 'center', gap: '8px', fontSize: '12px', zIndex: 10 }}>
+                <a className="desktop-breadcrumb-parent" onClick={() => setSelectedMatchId(null)} style={{ color: 'rgba(255,255,255,0.35)', cursor: 'pointer', textDecoration: 'none', transition: 'all 0.2s' }}>Lịch đấu</a>
+                <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
+                <a className="desktop-breadcrumb-parent" onClick={() => setSelectedMatchId(null)} style={{ color: 'rgba(255,255,255,0.35)', cursor: 'pointer', textDecoration: 'none', transition: 'all 0.2s' }}>{selectedMatch.vong}</a>
+                <span style={{ color: 'rgba(255,255,255,0.2)' }}>›</span>
+                <span style={{ color: 'rgba(255,255,255,0.85)', cursor: 'default' }}>{selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.substring(0, 3).toUpperCase()} vs {selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.substring(0, 3).toUpperCase()}</span>
+              </div>
 
               {/* LEFT COLUMN: HOME TEAM */}
               <div style={desktopStyles.columnHomeAway}>
