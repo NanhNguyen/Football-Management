@@ -140,10 +140,10 @@ export default function AdminDesktopView(props: any) {
               )}
             </svg>
           </button>
-          <a href="/" className={styles.topbarLogo}>
-            <img src="/logo-football-transparent.png" alt="Logo" className={styles.topbarLogoImg} />
-            <span className={styles.topbarLogoText}>Sparta</span>
-          </a>
+          <Link href="/quan-tri" className={styles.topbarLogo}>
+            <img src="/logo-sparta-football.png" alt="Logo" className={styles.topbarLogoImg} />
+            <span className={styles.topbarLogoText}>SPARTA</span>
+          </Link>
           <div className={styles.switcherContainer}>
             <div id="tour-tournament-switcher" className={styles.tournamentSwitcher} onClick={() => setIsSwitcherOpen(!isSwitcherOpen)}>
               <IconTrophy size={18} color="var(--color-primary)" /> <span className={styles.tournamentSwitcherText}>{selectedTournament?.ten || 'Chọn giải đấu...'}</span>

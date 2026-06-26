@@ -31,6 +31,8 @@ export default function SchedulerTab({
   handleClearDraftSchedule,
   setIsPostponeModalOpen
 }: SchedulerTabProps) {
+  const [editingMatchId, setEditingMatchId] = React.useState<string | null>(null);
+  const [editData, setEditData] = React.useState({ date: '', time: '', san: '' });
 
   const parseVongDetails = (vongStr: string = '') => {
     const str = vongStr.trim();
@@ -96,6 +98,50 @@ export default function SchedulerTab({
 
   return (
     <div className={`${styles.content} animate-fade-in`}>
+      <style>{`
+        .schedule-row {
+          transition: background-color 0.12s ease;
+        }
+        .schedule-row:hover {
+          background-color: rgba(255, 255, 255, 0.03) !important;
+        }
+        .action-btn-edit {
+          width: 28px;
+          height: 28px;
+          border-radius: 7px;
+          background: rgba(255,255,255,0.05);
+          border: 1px solid rgba(255,255,255,0.1);
+          color: rgba(255,255,255,0.45);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          cursor: pointer;
+        }
+        .action-btn-edit:hover {
+          background: rgba(167,139,250,0.15);
+          color: #a78bfa;
+          border-color: rgba(167,139,250,0.3);
+        }
+        .action-btn-delete {
+          width: 28px;
+          height: 28px;
+          border-radius: 7px;
+          background: rgba(239,68,68,0.08);
+          border: 1px solid rgba(239,68,68,0.15);
+          color: rgba(239,68,68,0.5);
+          display: inline-flex;
+          align-items: center;
+          justify-content: center;
+          transition: all 0.2s ease;
+          cursor: pointer;
+        }
+        .action-btn-delete:hover {
+          background: rgba(239,68,68,0.15);
+          color: #f87171;
+          border-color: rgba(239,68,68,0.35);
+        }
+      `}</style>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '24px' }}>
         <div>
           <h2 className={styles.pageTitle}>Smart Scheduler</h2>
@@ -288,21 +334,20 @@ export default function SchedulerTab({
             </button>
           </div>
 
-          <table className={styles.adminTable}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', tableLayout: 'fixed' }}>
             <thead>
               <tr>
-                <th style={{ width: '50px', textAlign: 'center' }}>#</th>
-                <th>Thời gian</th>
-                <th>Trận đấu</th>
-                <th>Sân</th>
-                <th>Trạng thái</th>
-                <th>Thao tác</th>
+                <th style={{ width: '180px', padding: '10px 16px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', textAlign: 'left' }}>Thời gian</th>
+                <th style={{ padding: '10px 16px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', textAlign: 'left' }}>Trận đấu</th>
+                <th style={{ width: '160px', padding: '10px 16px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', textAlign: 'left' }}>Sân</th>
+                <th style={{ width: '120px', padding: '10px 16px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', textAlign: 'left' }}>Trạng thái</th>
+                <th style={{ width: '80px', padding: '10px 16px', fontSize: '11px', fontWeight: 600, letterSpacing: '0.08em', color: 'rgba(255,255,255,0.28)', textTransform: 'uppercase', borderBottom: '1px solid rgba(255,255,255,0.08)', textAlign: 'left' }}>Thao tác</th>
               </tr>
             </thead>
             <tbody>
               {filteredAndSortedScheduleMatches.length === 0 ? (
                 <tr>
-                  <td colSpan={6} style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-muted)' }}>
+                  <td colSpan={5} style={{ textAlign: 'center', padding: '32px', color: 'var(--color-text-muted)' }}>
                     {liveMatches.length === 0 ? 'Chưa có lịch thi đấu. Hãy cấu hình và bấm Sinh lịch đề xuất.' : 'Không tìm thấy trận đấu nào phù hợp với bộ lọc.'}
                   </td>
                 </tr>
@@ -318,105 +363,176 @@ export default function SchedulerTab({
                 ).map(([vongName, matches]: any) => (
                   <Fragment key={vongName}>
                     <tr>
-                      <td colSpan={6} style={{ background: '#141C2A', padding: '12px 16px', fontWeight: 700, color: '#cbd5e1', borderBottom: '2px solid #1e293b', borderTop: 'none' }}>
-                        {vongName}
+                      <td colSpan={5} style={{ padding: '8px 16px', background: 'rgba(255,255,255,0.02)', borderTop: '1px solid rgba(255,255,255,0.06)', borderBottom: '1px solid rgba(255,255,255,0.06)', fontSize: '11px', fontWeight: 600, color: 'rgba(255,255,255,0.35)', letterSpacing: '0.08em', textTransform: 'uppercase' }}>
+                        {vongName} &nbsp;&middot;&nbsp; {matches.length} trận
                       </td>
                     </tr>
-                    {matches.map((m: any, idx: number) => (
-                      <tr key={m.id} style={{ transition: 'background-color 0.2s' }}>
-                        <td style={{ textAlign: 'center', fontSize: '13px', color: '#cbd5e1', fontWeight: 600 }}>
-                          {idx + 1}
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                            {m.date && (
-                              <span style={{
-                                padding: '6px 8px',
-                                borderRadius: '6px',
-                                background: 'var(--color-surface-hover, #141C2A)',
-                                border: '1px solid var(--color-border, rgba(167, 139, 250, 0.15))',
-                                fontSize: '12px',
-                                fontWeight: 700,
-                                color: 'var(--color-primary, #a78bfa)',
-                                minWidth: '45px',
-                                textAlign: 'center',
-                                display: 'inline-block'
-                              }}>
+                    {matches.map((m: any) => {
+                      const isEditing = editingMatchId === m.id;
+                      const isUnknownSan = !m.san || m.san.toLowerCase().includes('chưa xác định');
+                      
+                      let statusStyle = { bg: 'rgba(99,102,241,0.15)', color: '#a5b4fc', text: 'Đã lên lịch', dot: false };
+                      if (m.trangThai === 'LIVE') {
+                        statusStyle = { bg: 'rgba(245,158,11,0.15)', color: '#fbbf24', text: 'Đang đá', dot: true };
+                      } else if (m.trangThai === 'FINISHED') {
+                        statusStyle = { bg: 'rgba(16,217,138,0.12)', color: '#10d98a', text: '✓ Kết thúc', dot: false };
+                      } else if (m.trangThai === 'POSTPONED') {
+                        statusStyle = { bg: 'rgba(239,68,68,0.12)', color: '#f87171', text: 'Hoãn', dot: false };
+                      } else if (m.trangThai === 'CANCELLED') {
+                        statusStyle = { bg: 'rgba(239,68,68,0.12)', color: '#f87171', text: 'Hủy', dot: false };
+                      }
+
+                      return (
+                        <tr key={m.id} className="schedule-row" style={{ borderBottom: '1px solid rgba(255,255,255,0.04)' }}>
+                          <td style={{ padding: '10px 16px', fontSize: '13px', color: '#cbd5e1' }}>
+                            {isEditing ? (
+                              <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                                <input
+                                  type="date"
+                                  value={editData.date}
+                                  onChange={(e) => setEditData({...editData, date: e.target.value})}
+                                  style={{ padding: '4px 6px', borderRadius: '4px', border: '1px solid #1e293b', fontSize: '12px', outline: 'none', background: '#0E1421', color: '#cbd5e1', width: '110px' }}
+                                />
+                                <input
+                                  type="time"
+                                  value={editData.time}
+                                  onChange={(e) => setEditData({...editData, time: e.target.value})}
+                                  style={{ padding: '4px 6px', borderRadius: '4px', border: '1px solid #1e293b', fontSize: '12px', outline: 'none', background: '#0E1421', color: '#cbd5e1', width: '70px' }}
+                                />
+                              </div>
+                            ) : (
+                              <div style={{ fontSize: '13px', color: '#d8e4ff', display: 'flex', alignItems: 'center', whiteSpace: 'nowrap' }}>
                                 {(() => {
+                                  if (!m.date) return <span style={{ color: 'rgba(255,255,255,0.2)' }}>Chưa xác định</span>;
                                   const d = new Date(m.date);
-                                  if (isNaN(d.getTime())) return '';
+                                  if (isNaN(d.getTime())) return <span style={{ color: 'rgba(255,255,255,0.2)' }}>Chưa xác định</span>;
                                   const days = ['CN', 'T2', 'T3', 'T4', 'T5', 'T6', 'T7'];
-                                  return days[d.getDay()];
+                                  const dayName = days[d.getDay()];
+                                  const isWeekend = dayName === 'T7' || dayName === 'CN';
+                                  const day = String(d.getDate()).padStart(2, '0');
+                                  const month = String(d.getMonth() + 1).padStart(2, '0');
+                                  const year = d.getFullYear();
+                                  const formattedDate = `${day}/${month}/${year}`;
+                                  const time = m.time || '--:--';
+                                  return (
+                                    <>
+                                      <span style={{
+                                        display: 'inline-block',
+                                        marginRight: '6px',
+                                        fontSize: '11px',
+                                        fontWeight: 600,
+                                        padding: '2px 7px',
+                                        borderRadius: '4px',
+                                        background: isWeekend ? 'rgba(167,139,250,0.15)' : 'rgba(255,255,255,0.07)',
+                                        color: isWeekend ? '#a78bfa' : 'rgba(255,255,255,0.5)'
+                                      }}>
+                                        {dayName}
+                                      </span>
+                                      {formattedDate} &middot; {time}
+                                    </>
+                                  );
                                 })()}
-                              </span>
+                              </div>
                             )}
-                            <input
-                              type="date"
-                              value={m.date}
-                              onChange={(e) => handleInlineUpdateMatch(m.id, 'ngay', e.target.value)}
-                              style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #1e293b', fontSize: '13px', outline: 'none', background: '#0E1421', color: '#cbd5e1' }}
-                              title="Nhấp để thay đổi ngày diễn ra trận đấu"
-                            />
-                            <input
-                              type="time"
-                              value={m.time}
-                              onChange={(e) => handleInlineUpdateMatch(m.id, 'gio', e.target.value)}
-                              style={{ padding: '6px 8px', borderRadius: '6px', border: '1px solid #1e293b', fontSize: '13px', outline: 'none', background: '#0E1421', color: '#cbd5e1' }}
-                              title="Nhấp để thay đổi thời gian (giờ) diễn ra trận đấu"
-                            />
-                          </div>
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap' }}>
-                            <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{m.doiNha?.ten || '???'}</span>
-                            <span style={{ color: '#94a3b8', fontSize: '12px', fontWeight: 600 }}>vs</span>
-                            <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{m.doiKhach?.ten || '???'}</span>
-                            {m.doiNha?.bang && (
-                              <span style={{ fontSize: '11px', color: 'var(--color-primary, #a78bfa)', background: 'rgba(167, 139, 250, 0.15)', padding: '2px 8px', borderRadius: '4px', marginLeft: '8px', fontWeight: 700 }}>
-                                Bảng {m.doiNha.bang}
-                              </span>
+                          </td>
+                          <td style={{ padding: '10px 16px', fontSize: '13px', color: '#cbd5e1' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'nowrap' }}>
+                              <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{m.doiNha?.ten || '???'}</span>
+                              <span style={{ color: 'rgba(255,255,255,0.2)', fontSize: '12px', fontWeight: 600 }}>vs</span>
+                              <span style={{ fontWeight: 600, whiteSpace: 'nowrap' }}>{m.doiKhach?.ten || '???'}</span>
+                              {m.doiNha?.bang && (
+                                <span style={{ fontSize: '11px', color: 'var(--color-primary, #a78bfa)', background: 'rgba(167, 139, 250, 0.15)', padding: '2px 6px', borderRadius: '4px', marginLeft: '8px', fontWeight: 700 }}>
+                                  Bảng {m.doiNha.bang}
+                                </span>
+                              )}
+                            </div>
+                          </td>
+                          <td style={{ padding: '10px 16px', fontSize: '13px', color: '#cbd5e1' }}>
+                            {isEditing ? (
+                              <input
+                                type="text"
+                                value={editData.san}
+                                onChange={(e) => setEditData({...editData, san: e.target.value})}
+                                placeholder="Tên sân"
+                                style={{ padding: '4px 6px', borderRadius: '4px', border: '1px solid #1e293b', fontSize: '12px', outline: 'none', width: '100%', background: '#0E1421', color: '#cbd5e1' }}
+                              />
+                            ) : (
+                              isUnknownSan ? (
+                                <span style={{ color: 'rgba(255,255,255,0.2)' }}>–</span>
+                              ) : (
+                                <span style={{ color: '#d8e4ff', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                                  <span style={{ fontSize: '10px' }}>📍</span> <span style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', maxWidth: '120px' }}>{m.san}</span>
+                                </span>
+                              )
                             )}
-                          </div>
-                        </td>
-                        <td>
-                          <input
-                            type="text"
-                            value={m.san || ''}
-                            onChange={(e) => handleInlineUpdateMatch(m.id, 'san', e.target.value)}
-                            placeholder="Tên sân"
-                            style={{ padding: '6px 10px', borderRadius: '6px', border: '1px solid #1e293b', fontSize: '13px', outline: 'none', width: '100%', minWidth: '150px', background: '#0E1421', color: '#cbd5e1' }}
-                            title="Nhấp để thay đổi sân thi đấu"
-                          />
-                        </td>
-                        <td>
-                          {m.trangThai === 'DRAFT' ? (
-                            <span className={`${styles.statusBadge} ${styles.badgeWarning}`} title="Lịch dự thảo - Chỉ quản trị viên nhìn thấy và có thể sửa đổi">Draft</span>
-                          ) : (
-                            <span className={`${styles.statusBadge} ${styles.badgeSuccess}`} title="Đã phát hành chính thức cho người xem">Đã lên lịch</span>
-                          )}
-                        </td>
-                        <td>
-                          <div style={{ display: 'flex', gap: '8px' }}>
-                            <button
-                              className={styles.editBtnCompact}
-                              style={{ padding: '6px', fontSize: '12px', height: 'auto', minHeight: 'auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                              onClick={() => handleEditMatch(m)}
-                              title="Chỉnh sửa chi tiết trận đấu"
-                            >
-                              ✏️
-                            </button>
-                            <button
-                              className={styles.deleteBtnCompact}
-                              style={{ padding: '6px', fontSize: '12px', height: 'auto', minHeight: 'auto', display: 'inline-flex', alignItems: 'center', justifyContent: 'center' }}
-                              onClick={() => handleDeleteMatch(m.id)}
-                              title="Xóa trận đấu này khỏi lịch thi đấu đề xuất"
-                            >
-                              ❌
-                            </button>
-                          </div>
-                        </td>
-                      </tr>
-                    ))}
+                          </td>
+                          <td style={{ padding: '10px 16px', fontSize: '13px', color: '#cbd5e1' }}>
+                            <span style={{
+                              background: statusStyle.bg,
+                              color: statusStyle.color,
+                              fontSize: '11px',
+                              fontWeight: 600,
+                              borderRadius: '5px',
+                              padding: '3px 10px',
+                              whiteSpace: 'nowrap',
+                              display: 'inline-flex',
+                              alignItems: 'center',
+                              gap: '4px'
+                            }}>
+                              {statusStyle.dot && <span className="animate-pulse">●</span>}
+                              {statusStyle.text}
+                            </span>
+                          </td>
+                          <td style={{ padding: '10px 16px', fontSize: '13px', color: '#cbd5e1' }}>
+                            {isEditing ? (
+                              <div style={{ display: 'flex', gap: '4px' }}>
+                                <button
+                                  onClick={() => {
+                                    if (editData.date !== m.date) handleInlineUpdateMatch(m.id, 'ngay', editData.date);
+                                    if (editData.time !== m.time) handleInlineUpdateMatch(m.id, 'gio', editData.time);
+                                    if (editData.san !== m.san) handleInlineUpdateMatch(m.id, 'san', editData.san);
+                                    setEditingMatchId(null);
+                                  }}
+                                  style={{ background: 'rgba(16,217,138,0.12)', color: '#10d98a', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                                >
+                                  Lưu
+                                </button>
+                                <button
+                                  onClick={() => setEditingMatchId(null)}
+                                  style={{ background: 'rgba(255,255,255,0.05)', color: 'rgba(255,255,255,0.5)', padding: '4px 8px', borderRadius: '4px', fontSize: '11px', fontWeight: 600, border: 'none', cursor: 'pointer' }}
+                                >
+                                  Hủy
+                                </button>
+                              </div>
+                            ) : (
+                              <div style={{ display: 'flex', gap: '6px', alignItems: 'center' }}>
+                                <button
+                                  className="action-btn-edit"
+                                  title="Chỉnh sửa"
+                                  onClick={() => {
+                                    setEditingMatchId(m.id);
+                                    setEditData({ date: m.date || '', time: m.time || '', san: m.san || '' });
+                                  }}
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"></path><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"></path></svg>
+                                </button>
+                                <button
+                                  className="action-btn-delete"
+                                  title="Xóa trận"
+                                  onClick={() => {
+                                    if (window.confirm('Bạn có chắc chắn muốn xóa trận đấu này?')) {
+                                      handleDeleteMatch(m.id);
+                                    }
+                                  }}
+                                >
+                                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+                                </button>
+                              </div>
+                            )}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </Fragment>
                 ))
               )}

@@ -498,15 +498,15 @@ export default function AdminMobileView(props: any) {
         alignItems: 'center',
         justifyContent: 'space-between',
         position: 'relative',
-        height: '60px',
+        height: '70px',
         padding: '0 16px'
       }}>
         {/* Left: Sparta Logo */}
-        <div style={{ display: 'flex', alignItems: 'center', width: '50px' }}>
+        <div style={{ display: 'flex', alignItems: 'center', width: '60px' }}>
           <img 
-            src="/logo-football-transparent.png" 
+            src="/logo-sparta-football.png" 
             alt="Sparta Logo" 
-            style={{ width: '48px', height: '48px', objectFit: 'contain' }} 
+            style={{ width: 'auto', height: '64px', objectFit: 'contain' }} 
           />
         </div>
 
