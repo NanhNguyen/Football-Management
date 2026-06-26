@@ -10,7 +10,7 @@ import { getDisplayTime, quickAddPlayer } from '@/lib/api';
 const desktopStyles = {
   wrapper: {
     display: 'grid',
-    gridTemplateColumns: '28fr 44fr 28fr',
+    gridTemplateColumns: '30fr 40fr 30fr',
     gap: '24px',
     padding: '24px',
     background: 'var(--color-bg, #f8fafc)',
@@ -91,9 +91,11 @@ const desktopStyles = {
     gap: '12px',
   },
   playerButton: (isPopoverOpen: boolean, isRedCarded: boolean) => ({
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '6px 10px',
     whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
     width: '100%',
     background: 'var(--color-surface, #ffffff)',
     border: isPopoverOpen ? '2px solid var(--color-primary, #0F766E)' : '1px solid var(--color-border, #e2e8f0)',
@@ -114,9 +116,11 @@ const desktopStyles = {
     transition: 'all 0.15s ease-in-out',
   }),
   benchPlayerBox: {
+    display: 'flex',
+    alignItems: 'center',
+    gap: '6px',
+    padding: '6px 10px',
     whiteSpace: 'nowrap',
-    overflow: 'hidden',
-    textOverflow: 'ellipsis',
     width: '100%',
     background: 'var(--color-surface-container, #f8fafc)',
     border: '1px solid var(--color-border-light, #f1f5f9)',
@@ -629,10 +633,11 @@ export default function RefereeTab({
         fontSize: '10px',
         fontWeight: 600,
         borderRadius: '4px',
-        padding: '1px 6px',
+        padding: '2px 6px',
         background: bg,
         color: color,
-        marginLeft: '6px',
+        marginLeft: 'auto',
+        minWidth: 'fit-content',
         flexShrink: 0
       }}>
         {label}
@@ -666,7 +671,9 @@ export default function RefereeTab({
                     className="desktop-player-btn"
                     style={{ ...desktopStyles.playerButton(isPopoverOpen, isRedCarded), opacity: (isRedCarded || selectedMatch.trangThai === 'KET_THUC') ? 0.5 : 1, cursor: (isRedCarded || selectedMatch.trangThai === 'KET_THUC') ? 'not-allowed' : 'pointer' }}
                   >
-                    #{p.soAo} {p.ten} {getPositionTag(p.viTri)}
+                    <span style={{ fontSize: '11px', color: 'rgba(255,255,255,0.4)', minWidth: '28px', textAlign: 'left' }}>#{p.soAo}</span>
+                    <span style={{ fontSize: '12.5px', flex: 1, overflow: 'hidden', textOverflow: 'ellipsis', textAlign: 'left' }}>{p.ten}</span>
+                    {getPositionTag(p.viTri)}
                   </button>
                   {isPopoverOpen && (
                     <div style={desktopStyles.popover(isHome)} onClick={e => e.stopPropagation()}>
@@ -1155,33 +1162,44 @@ export default function RefereeTab({
                   </div>
                   
                   {/* Scoreboard Teams Row (~20%) */}
-                  <div style={{ ...desktopStyles.scoreboardTeamsRow, marginBottom: '24px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-end', flex: 1 }}>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#d8e4ff' }}>
-                        {selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.toUpperCase()}
-                      </span>
-                      <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px' }}>
+                  <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '24px', width: '100%' }}>
+                    {/* Main Row */}
+                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap', width: '100%' }}>
+                      
+                      {/* Logo + Tên (Nhà) */}
+                      <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px', flexShrink: 0 }}>
                         <TeamLogo logo={selectedMatch.doiNha?.logo} teamName={selectedMatch.doiNha?.ten} />
                       </span>
-                    </div>
-                    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                      <div style={{ fontSize: '52px', fontWeight: 800, color: selectedMatch.trangThai === 'KET_THUC' ? '#10d98a' : (selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'var(--color-text-heading, #0F172A)'), background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : 'none', WebkitBackgroundClip: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'text' : 'border-box', WebkitTextFillColor: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'inherit', letterSpacing: '-2px', padding: '0 16px', lineHeight: 1 }}>
-                        {selectedMatch.tyNha} - {selectedMatch.tyKhach}
-                      </div>
-                      <div style={{ marginTop: '8px' }}>
-                        <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', color: '#fff', background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : (selectedMatch.trangThai === 'KET_THUC' ? 'var(--color-success, #10b981)' : '#64748b') }}>
-                          {selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'LIVE' : (selectedMatch.trangThai === 'KET_THUC' ? 'FT' : 'PRE-MATCH')}
+                      <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '120px', textAlign: 'center', color: '#d8e4ff', margin: '0 16px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                        {selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.toUpperCase()}
+                      </span>
+
+                      {/* Tỉ số */}
+                      <div style={{ display: 'flex', alignItems: 'center' }}>
+                        <span style={{ fontSize: '52px', fontWeight: 800, color: selectedMatch.trangThai === 'KET_THUC' ? '#10d98a' : (selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'var(--color-text-heading, #0F172A)'), background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : 'none', WebkitBackgroundClip: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'text' : 'border-box', WebkitTextFillColor: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'inherit', lineHeight: 1 }}>
+                          {selectedMatch.tyNha}
+                        </span>
+                        
+                        <span style={{ fontSize: '28px', color: 'rgba(255,255,255,0.3)', margin: '0 12px' }}>–</span>
+                        
+                        <span style={{ fontSize: '52px', fontWeight: 800, color: selectedMatch.trangThai === 'KET_THUC' ? '#10d98a' : (selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'var(--color-text-heading, #0F172A)'), background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : 'none', WebkitBackgroundClip: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'text' : 'border-box', WebkitTextFillColor: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'transparent' : 'inherit', lineHeight: 1 }}>
+                          {selectedMatch.tyKhach}
                         </span>
                       </div>
-                    </div>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px', justifyContent: 'flex-start', flex: 1 }}>
-                      <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px' }}>
-                        <TeamLogo logo={selectedMatch.doiKhach?.logo} teamName={selectedMatch.doiKhach?.ten} />
-                      </span>
-                      <span style={{ fontSize: '14px', fontWeight: 600, color: '#d8e4ff' }}>
+
+                      {/* Tên + Logo (Khách) */}
+                      <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '120px', textAlign: 'center', color: '#d8e4ff', margin: '0 16px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
                         {selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.toUpperCase()}
                       </span>
+                      <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px', flexShrink: 0 }}>
+                        <TeamLogo logo={selectedMatch.doiKhach?.logo} teamName={selectedMatch.doiKhach?.ten} />
+                      </span>
                     </div>
+
+                    {/* Badge */}
+                    <span style={{ padding: '4px 12px', borderRadius: '20px', fontSize: '10px', fontWeight: 700, letterSpacing: '0.05em', color: '#fff', background: selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'linear-gradient(135deg, #ef4444, #f43f5e)' : (selectedMatch.trangThai === 'KET_THUC' ? 'var(--color-success, #10b981)' : '#64748b') }}>
+                      {selectedMatch.trangThai === 'DANG_DIEN_RA' ? 'LIVE' : (selectedMatch.trangThai === 'KET_THUC' ? 'FT' : 'PRE-MATCH')}
+                    </span>
                   </div>
 
                   {/* Actions (~15%) */}
