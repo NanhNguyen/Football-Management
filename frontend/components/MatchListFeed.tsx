@@ -4,6 +4,7 @@ import styles from './MatchListFeed.module.css';
 import { calculateMatchMinute, getDisplayTime } from '@/lib/api';
 import TeamLogo from './TeamLogo';
 import { ShieldIcon } from './AppIcons';
+import MatchCard from './MatchCard';
 
 interface MatchListFeedProps {
   data: any;
@@ -216,42 +217,16 @@ export default function MatchListFeed({ data, onMatchClick, tournamentType = 'le
                  }
               }
 
+              const status = isLive ? 'LIVE' : isUpcoming ? 'UPCOMING' : 'FINISHED';
+
               return (
-                <div 
-                  key={match.id} 
-                  className={styles.matchRow}
-                  onClick={() => onMatchClick(match)}
-                >
-                  
-                  {/* Team A */}
-                  <div className={styles.teamA}>
-                    <span className={styles.teamName}>{match.doiNha?.ten || 'TBD'}</span>
-                    <span className={styles.teamLogo}><TeamLogo logo={match.doiNha?.logo} teamName={match.doiNha?.ten} fallback={<ShieldIcon size={16} />} /></span>
-                  </div>
-
-                  {/* Score */}
-                  <div className={styles.scoreCol}>
-                    <div className={styles.scoreBox}>
-                      {isUpcoming ? (
-                        <span className={styles.scoreDash}>-</span>
-                      ) : (
-                        <span className={isLive ? styles.scoreLive : ''}>
-                          {match.tyNha ?? 0} - {match.tyKhach ?? 0}
-                        </span>
-                      )}
-                    </div>
-                    <span className={`${styles.matchStatus} ${isLive ? styles.statusLive : ''}`}>
-                      {matchStatus}
-                    </span>
-                  </div>
-
-                  {/* Team B */}
-                  <div className={styles.teamB}>
-                    <span className={styles.teamLogo}><TeamLogo logo={match.doiKhach?.logo} teamName={match.doiKhach?.ten} fallback={<ShieldIcon size={16} />} /></span>
-                    <span className={styles.teamName}>{match.doiKhach?.ten || 'TBD'}</span>
-                  </div>
-
-                </div>
+                <MatchCard
+                  key={match.id}
+                  match={match}
+                  status={status}
+                  matchStatusText={matchStatus}
+                  onClick={onMatchClick}
+                />
               );
             })}
           </div>

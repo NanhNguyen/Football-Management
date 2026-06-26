@@ -155,7 +155,7 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
         {/* Logo Section */}
         <div className={styles.logoSection}>
           <Link href="/" className={styles.logoLink}>
-            <img src="/logo-football-transparent.png" alt="Sparta Logo" className={styles.logoImg} />
+            <img src="/logo-sparta-football.png" alt="Sparta Logo" className={styles.logoImg} />
             <span className={styles.logoText}>SPARTA</span>
           </Link>
           <button className={styles.closeBtn} onClick={onClose} aria-label="Close sidebar">×</button>

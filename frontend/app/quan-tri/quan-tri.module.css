@@ -38,8 +38,8 @@
 }
 
 .topbarLogoImg {
-  width: 48px;
-  height: 48px;
+  width: auto;
+  height: 76px;
 }
 .topbarLogoText {
   font-weight: 800;

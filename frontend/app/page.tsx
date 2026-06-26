@@ -50,6 +50,7 @@ function TongQuanContent() {
   // Filters state
   const [selectedMatchweek, setSelectedMatchweek] = useState<string>('DEFAULT');
   const [selectedTeamId, setSelectedTeamId] = useState<string>('ALL');
+  const [selectedStatus, setSelectedStatus] = useState<'ALL' | 'DANG_DIEN_RA' | 'SAP_DIEN_RA' | 'KET_THUC'>('ALL');
 
   // Load selectedMatchweek from localStorage when tournament changes
   useEffect(() => {
@@ -61,6 +62,7 @@ function TongQuanContent() {
     }
     // Also reset team selection when tournament changes, as team lists will change
     setSelectedTeamId('ALL');
+    setSelectedStatus('ALL');
   }, [selectedTournamentId]);
 
   // Save selectedMatchweek to localStorage when it changes (excluding 'DEFAULT')
@@ -77,6 +79,35 @@ function TongQuanContent() {
           layTongQuan(selectedTournamentId || undefined),
           layDanhSachDoi(selectedTournamentId || undefined)
         ]);
+
+        // ═══════════════════════════════════════════════════════
+        // MOCK LIVE MATCHES FOR DEMONSTRATION — DELETE BEFORE PROD
+        // ═══════════════════════════════════════════════════════
+        if (tqData && (!tqData.tranLive || tqData.tranLive.length === 0)) {
+          const upcoming = tqData.tranSapDienRa || [];
+          const nowIso = new Date().toISOString();
+          const half1Start = new Date(Date.now() - 23 * 60 * 1000).toISOString(); // 23 min ago → 24'
+          const half2Start = new Date(Date.now() - 18 * 60 * 1000 + 45 * 60 * 1000).toISOString(); // HT+18 min → 63'
+          const mockLive: any[] = [];
+
+          if (upcoming[0]) {
+            // Mock 1: HALF_1 — phút 24'
+            mockLive.push({ ...upcoming[0], trangThai: 'DANG_DIEN_RA', tyNha: 1, tyKhach: 0, dangTamDung: false, matchDurationMinutes: 90, currentPeriod: 'HALF_1', half1StartTime: half1Start });
+          }
+          if (upcoming[1]) {
+            // Mock 2: HALF_2 — phút ~63'
+            mockLive.push({ ...upcoming[1], trangThai: 'DANG_DIEN_RA', tyNha: 2, tyKhach: 2, dangTamDung: false, matchDurationMinutes: 90, currentPeriod: 'HALF_2', half1StartTime: half1Start, half2StartTime: half2Start });
+          }
+          if (upcoming[2]) {
+            // Mock 3: HT (nghỉ giữa giờ)
+            mockLive.push({ ...upcoming[2], trangThai: 'DANG_DIEN_RA', tyNha: 0, tyKhach: 1, dangTamDung: true, matchDurationMinutes: 90, currentPeriod: 'BREAK' });
+          }
+
+          tqData.tranLive = mockLive;
+          tqData.tranSapDienRa = upcoming.slice(mockLive.length);
+        }
+        // ═══════════════════════════════════════════════════════
+
         setData(tqData);
         setTeams(tData);
       } catch (error) {
@@ -274,6 +305,10 @@ function TongQuanContent() {
       filtered = filtered.filter((m: any) => m.doiNha?.id === selectedTeamId || m.doiKhach?.id === selectedTeamId);
     }
 
+    if (selectedStatus !== 'ALL') {
+      filtered = filtered.filter((m: any) => m.trangThai === selectedStatus);
+    }
+
     return {
       tranLive: filtered.filter((m: any) => m.trangThai === 'DANG_DIEN_RA'),
       tranSapDienRa: filtered.filter((m: any) => m.trangThai === 'SAP_DIEN_RA'),
@@ -337,7 +372,7 @@ function TongQuanContent() {
       <div className={styles.header}>
         <div className={styles.headerLeft}>
           <div className={styles.logoTitleWrapper}>
-            <img src="/logo-football-transparent.png" alt="Sparta Logo" className={styles.logoImg} />
+            <img src="/logo-sparta-football.png" alt="Sparta Logo" className={styles.logoImg} />
             <h1 className={styles.appName}>SPARTA</h1>
           </div>
           <p className={styles.slogan}>Hệ thống Quản lý Giải đấu Chuyên nghiệp</p>
@@ -423,11 +458,29 @@ function TongQuanContent() {
               </div>
             </div>
 
+            {/* Status selector */}
+            <div className={styles.filterItem}>
+              <div className={styles.filterSelectWrapper}>
+                <select 
+                  className={styles.filterSelect}
+                  value={selectedStatus}
+                  onChange={(e) => setSelectedStatus(e.target.value as any)}
+                >
+                  <option value="ALL">Tất cả Trạng thái</option>
+                  <option value="DANG_DIEN_RA">Đang diễn ra</option>
+                  <option value="SAP_DIEN_RA">Sắp đá</option>
+                  <option value="KET_THUC">Đã đá</option>
+                </select>
+                <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              </div>
+            </div>
+
             <button 
               className={styles.resetBtn}
               onClick={() => {
                 setSelectedMatchweek(uniqueRounds[0] || 'NONE');
                 setSelectedTeamId('ALL');
+                setSelectedStatus('ALL');
               }}
             >
               ↺

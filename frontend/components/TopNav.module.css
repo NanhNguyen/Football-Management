@@ -3,7 +3,7 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 72px;
+  height: 84px;
   background: rgba(8, 12, 16, 0.88);
   border-bottom: 1px solid rgba(167, 139, 250, 0.15);
   display: flex;
@@ -30,7 +30,7 @@
 }
 
 .logoImg {
-  height: 68px;
+  height: 84px;
   width: auto;
   object-fit: contain;
   transition: transform 0.2s ease;

@@ -261,7 +261,8 @@ export default function RefereeMobileView({ data, actions }: any) {
       background: '#1e293b',
       borderRadius: '10px',
       minWidth: '64px',
-      textAlign: 'center' as const
+      textAlign: 'center' as const,
+      whiteSpace: 'nowrap' as const
     },
     noMatches: {
       textAlign: 'center' as const,

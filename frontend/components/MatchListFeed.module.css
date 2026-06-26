@@ -5,6 +5,14 @@
   margin-bottom: 32px;
 }
 
+@media (min-width: 1024px) {
+  .feedContainer {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(400px, 1fr));
+    align-items: start;
+  }
+}
+
 .matchGroup {
   background-color: transparent;
   overflow: visible;
@@ -29,104 +37,6 @@
   overflow: hidden;
 }
 
-/* Match Row */
-.matchRow {
-  display: flex;
-  align-items: center;
-  padding: 16px 0;
-  background-color: transparent;
-  border-bottom: 1px solid rgba(167, 139, 250, 0.1);
-  cursor: pointer;
-  transition: all 0.2s ease;
-}
-
-.matchRow:hover {
-  background-color: rgba(167, 139, 250, 0.05);
-}
-
-.matchRow:last-child { border-bottom: none; }
-
-/* Team Columns */
-.teamA, .teamB {
-  flex: 1;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.teamA { justify-content: flex-end; }
-.teamB { justify-content: flex-start; }
-
-.teamName {
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 14px;
-  font-weight: 600;
-  color: var(--color-text);
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 120px;
-}
-
-.teamLogo {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  font-size: 20px;
-}
-
-/* Score Column */
-.scoreCol {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  width: 80px;
-  flex-shrink: 0;
-}
-
-.scoreBox {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 6px;
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--color-text);
-  background: rgba(8, 12, 16, 0.6);
-  padding: 4px 12px;
-  border-radius: 8px;
-  border: 1px solid rgba(167, 139, 250, 0.15);
-}
-
-.scoreLive { color: var(--color-live); }
-.scoreDash { color: var(--color-text-muted); }
-
-.matchStatus {
-  font-family: 'JetBrains Mono', monospace;
-  font-size: 10px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  margin-top: 6px;
-  letter-spacing: 0.04em;
-  white-space: nowrap;
-  text-align: center;
-}
-
-.statusLive {
-  color: var(--color-live);
-  animation: pulse-live 1.5s infinite;
-}
-
-@keyframes pulse-live {
-  0% { opacity: 0.8; }
-  50% { opacity: 1; }
-  100% { opacity: 0.8; }
-}
-
 .emptyState {
   padding: 32px;
   text-align: center;
@@ -136,10 +46,3 @@
   border: 1px solid var(--color-border);
   border-radius: 20px;
 }
-
-@media (max-width: 480px) {
-  .teamName { font-size: 13px; max-width: 90px; }
-  .scoreCol { width: 90px; }
-  .teamLogo { width: 24px; height: 24px; font-size: 18px; }
-}
-
