@@ -504,7 +504,7 @@ export default function AdminMobileView(props: any) {
         {/* Left: Sparta Logo */}
         <div style={{ display: 'flex', alignItems: 'center', width: '50px' }}>
           <img 
-            src="/logo-premium-transparent.png" 
+            src="/logo-violet.svg" 
             alt="Sparta Logo" 
             style={{ width: '48px', height: '48px', objectFit: 'contain' }} 
           />
