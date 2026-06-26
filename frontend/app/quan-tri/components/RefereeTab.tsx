@@ -1182,13 +1182,13 @@ export default function RefereeTab({
                   {/* Scoreboard Teams Row (~20%) */}
                   <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '12px', marginBottom: '24px', width: '100%' }}>
                     {/* Main Row */}
-                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', whiteSpace: 'nowrap', width: '100%' }}>
+                    <div style={{ display: 'flex', flexDirection: 'row', alignItems: 'center', justifyContent: 'center', width: '100%' }}>
                       
                       {/* Logo + Tên (Nhà) */}
                       <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px', flexShrink: 0 }}>
                         <TeamLogo logo={selectedMatch.doiNha?.logo} teamName={selectedMatch.doiNha?.ten} />
                       </span>
-                      <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '120px', textAlign: 'center', color: '#d8e4ff', margin: '0 16px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '120px', textAlign: 'center', color: '#d8e4ff', margin: '0 16px', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>
                         {selectedMatch.doiNha?.ma || selectedMatch.doiNha?.ten?.toUpperCase()}
                       </span>
 
@@ -1206,7 +1206,7 @@ export default function RefereeTab({
                       </div>
 
                       {/* Tên + Logo (Khách) */}
-                      <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '120px', textAlign: 'center', color: '#d8e4ff', margin: '0 16px', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+                      <span style={{ fontSize: '13px', fontWeight: 600, maxWidth: '120px', textAlign: 'center', color: '#d8e4ff', margin: '0 16px', whiteSpace: 'normal', wordBreak: 'break-word', lineHeight: 1.2 }}>
                         {selectedMatch.doiKhach?.ma || selectedMatch.doiKhach?.ten?.toUpperCase()}
                       </span>
                       <span style={{ width: '40px', height: '40px', display: 'flex', fontSize: '40px', flexShrink: 0 }}>
