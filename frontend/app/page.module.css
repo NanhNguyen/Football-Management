@@ -8,80 +8,53 @@
   flex-direction: column;
 }
 
-/* Header Section */
-.header {
-  padding: 16px 20px;
+/* ─── Slim Topbar ────────────────────────────────────── */
+.topbar {
+  height: 52px;
+  padding: 0 24px;
   display: flex;
-  flex-direction: row;
   align-items: center;
   justify-content: space-between;
-  border-bottom: 1px solid rgba(167, 139, 250, 0.12);
-  background: transparent;
-  gap: 16px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: #0a0f1a;
+  flex-shrink: 0;
 }
 
-.headerLeft {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.logoTitleWrapper {
+.topbarLeft {
   display: flex;
   align-items: center;
-  gap: 12px;
 }
 
-.logoImg {
-  width: auto;
-  height: 72px;
-  object-fit: contain;
-  filter: drop-shadow(0 2px 8px rgba(167, 139, 250, 0.35));
+.topbarRight {
+  display: flex;
+  align-items: center;
 }
 
-.appName {
-  font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 28px;
-  font-weight: 800;
-  color: var(--color-text);
-  margin: 0;
-  line-height: 1.2;
-  letter-spacing: -0.5px;
-}
-
-.slogan {
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 14px;
-  color: var(--color-text-secondary);
-  margin: 0;
-  font-weight: 500;
-}
-
-/* Tournament Switcher in Header */
-.headerSelectWrapper {
+/* Tournament badge (left side of topbar) */
+.tournamentBadge {
   position: relative;
   display: flex;
   align-items: center;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
+  background: linear-gradient(90deg, rgba(167, 139, 250, 0.12), rgba(129, 140, 248, 0.1));
+  border: 1px solid rgba(167, 139, 250, 0.25);
   border-radius: var(--radius-full);
-  padding: 6px 32px 6px 36px;
-  transition: all 0.2s ease;
-  box-shadow: var(--shadow-sm);
+  padding: 5px 30px 5px 34px;
   cursor: pointer;
+  transition: all 0.2s ease;
 }
 
-.headerSelectWrapper:hover {
-  border-color: var(--color-primary);
-  box-shadow: 0 0 12px rgba(167, 139, 250, 0.15);
+.tournamentBadge:hover {
+  border-color: rgba(167, 139, 250, 0.45);
+  background: linear-gradient(90deg, rgba(167, 139, 250, 0.18), rgba(129, 140, 248, 0.15));
 }
 
 .trophyIcon {
   position: absolute;
-  left: 12px;
+  left: 10px;
   top: 50%;
   transform: translateY(-50%);
   pointer-events: none;
+  color: #c4b5fd;
 }
 
 .headerSelect {
@@ -89,12 +62,12 @@
   background: transparent;
   border: none;
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 700;
-  color: var(--color-primary, #a78bfa);
+  color: #c4b5fd;
   cursor: pointer;
   outline: none;
-  max-width: 280px;
+  max-width: 260px;
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
@@ -102,41 +75,36 @@
 
 .headerSelectChevron {
   position: absolute;
-  right: 12px;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
   pointer-events: none;
-  color: var(--color-primary, #a78bfa);
+  color: #c4b5fd;
   transition: transform 0.2s ease;
 }
 
-@media (max-width: 768px) {
-  .logoImg {
-    width: 36px;
-    height: 36px;
-  }
-  .appName {
-    display: none;
-  }
-  .slogan {
-    display: none;
-  }
-  .header {
-    padding: 12px 16px;
-  }
-  .headerSelect {
-    max-width: 150px;
-    font-size: 14px;
-  }
-  .headerSelectWrapper {
-    padding: 6px 28px 6px 32px;
-  }
-  .trophyIcon {
-    left: 10px;
-    width: 14px;
-    height: 14px;
-  }
-  .headerSelectChevron {
-    right: 10px;
-  }
+/* Login ghost button (right side of topbar) */
+.loginGhostBtn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: var(--radius-full);
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgba(255, 255, 255, 0.55);
+  text-decoration: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.loginGhostBtn:hover {
+  border-color: rgba(167, 139, 250, 0.4);
+  color: #c4b5fd;
+  background: rgba(167, 139, 250, 0.06);
 }
 
 /* Tabs Section */
@@ -145,7 +113,6 @@
   padding: 0 20px;
   gap: 24px;
   border-bottom: 1px solid rgba(167, 139, 250, 0.12);
-  margin-top: 8px;
 }
 
 .tabLink {
@@ -157,6 +124,11 @@
   text-decoration: none;
   border-bottom: 2px solid transparent;
   transition: all 0.2s ease;
+  background: none;
+  border-left: none;
+  border-right: none;
+  border-top: none;
+  cursor: pointer;
 }
 
 .tabLinkActive {
@@ -166,115 +138,36 @@
 
 .tabLink:hover { color: var(--color-text); }
 
-/* Filters Section */
-.filtersContainer {
+/* ─── Unified Filter Bar ─────────────────────────────── */
+.filterBar {
   display: flex;
   align-items: center;
   gap: 10px;
-  padding: 14px 20px;
-  flex-wrap: wrap;
+  padding: 12px 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.01);
+  flex-wrap: nowrap;
 }
 
-.filterItem {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  flex: 1;
-  min-width: 0;
-}
-
-.filterLabel {
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 12px;
-  font-weight: 600;
-  color: var(--color-text-secondary);
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.filterSelectWrapper {
-  position: relative;
-  flex: 1;
-  min-width: 0;
-}
-
-.filterSelect {
-  appearance: none;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  padding: 9px 32px 9px 12px;
-  border-radius: var(--radius-full);
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--color-text);
-  cursor: pointer;
-  width: 100%;
-  transition: border-color 0.2s ease;
-  text-overflow: ellipsis;
-  overflow: hidden;
-  white-space: nowrap;
-}
-
-.filterSelect:focus {
-  outline: none;
-  border-color: var(--color-primary);
-}
-
-.selectChevron {
-  position: absolute;
-  right: 10px;
-  top: 50%;
-  transform: translateY(-50%);
-  pointer-events: none;
-  color: var(--color-text-secondary);
-  flex-shrink: 0;
-}
-
-.resetBtn {
-  flex-shrink: 0;
-  background: var(--color-surface);
-  border: 1px solid var(--color-border);
-  padding: 9px 14px;
-  border-radius: var(--radius-full);
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 15px;
-  color: var(--color-text-secondary);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s ease;
-  line-height: 1;
-}
-
-.resetBtn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
-/* Matchweek Navigator */
+/* Round Navigator (inline in filter bar) */
 .weekNavigator {
   display: flex;
   align-items: center;
-  justify-content: center;
-  padding: 12px 20px 16px;
-  gap: 16px;
-  background: transparent;
+  gap: 8px;
+  flex-shrink: 0;
 }
 
 .navBtn {
   background: rgba(14, 20, 33, 0.8);
   border: 1px solid rgba(167, 139, 250, 0.2);
-  width: 36px;
-  height: 36px;
+  width: 30px;
+  height: 30px;
   border-radius: 50%;
   display: flex;
   align-items: center;
   justify-content: center;
   cursor: pointer;
   color: var(--color-text);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
@@ -284,7 +177,6 @@
   border-color: var(--color-primary);
   color: var(--color-primary);
   transform: scale(1.05);
-  box-shadow: 0 0 12px rgba(167, 139, 250, 0.2);
 }
 
 .navBtn:disabled {
@@ -296,27 +188,104 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  min-width: 140px;
-  flex: 1;
-  max-width: 260px;
+  min-width: 90px;
 }
 
 .weekTitle {
   font-family: 'Plus Jakarta Sans', sans-serif;
-  font-size: 16px;
+  font-size: 13px;
   font-weight: 700;
   color: var(--color-text);
-  letter-spacing: -0.3px;
+  letter-spacing: -0.2px;
   text-align: center;
+  white-space: nowrap;
 }
 
 .weekDate {
   font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 12px;
+  font-size: 10px;
   color: var(--color-text-secondary);
-  margin-top: 2px;
   font-weight: 500;
   text-align: center;
+  white-space: nowrap;
+}
+
+/* Divider between round nav and dropdowns */
+.filterDivider {
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.08);
+  flex-shrink: 0;
+}
+
+/* Dropdown selects in filter bar */
+.filterSelectWrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.filterSelect {
+  appearance: none;
+  background: rgba(255, 255, 255, 0.03);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  padding: 7px 28px 7px 12px;
+  border-radius: 8px;
+  font-family: 'Hanken Grotesk', sans-serif;
+  font-size: 13px;
+  font-weight: 500;
+  color: var(--color-text);
+  cursor: pointer;
+  width: fit-content;
+  min-width: 140px;
+  transition: border-color 0.2s ease;
+  text-overflow: ellipsis;
+  overflow: hidden;
+  white-space: nowrap;
+}
+
+.filterSelect:focus {
+  outline: none;
+  border-color: rgba(167, 139, 250, 0.4);
+}
+
+.filterSelect:hover {
+  border-color: rgba(255, 255, 255, 0.15);
+}
+
+.filterSelectStatus {
+  min-width: 130px;
+}
+
+.selectChevron {
+  position: absolute;
+  right: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  pointer-events: none;
+  color: var(--color-text-secondary);
+}
+
+/* Reset button — icon only */
+.resetBtn {
+  flex-shrink: 0;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: var(--color-text-secondary);
+  transition: all 0.2s ease;
+  margin-left: auto;
+}
+
+.resetBtn:hover {
+  border-color: rgba(167, 139, 250, 0.3);
+  color: var(--color-primary);
+  background: rgba(167, 139, 250, 0.06);
 }
 
 /* Main Feed */
@@ -327,45 +296,58 @@
 
 @media (max-width: 640px) {
   .mainFeedWrapper {
-    padding-bottom: 80px; /* To prevent bottom nav from hiding last card */
+    padding-bottom: 80px;
   }
 }
 
 /* ── Mobile overrides ── */
-@media (max-width: 640px) {
-  .filtersContainer {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 8px;
-    padding: 10px 16px;
-    align-items: center;
+@media (max-width: 768px) {
+  .topbar {
+    padding: 0 16px;
   }
 
-  .filterItem {
-    flex: 1 1 calc(50% - 12px); /* Half width minus gap */
-    min-width: 120px;
-  }
-
-  .resetBtn {
-    flex: 0 0 auto;
-    padding: 9px 14px;
-  }
-
-  .filterLabel {
-    display: none; /* hide "Vòng:" label on small screens */
-  }
-
-  .filterSelect {
+  .headerSelect {
+    max-width: 160px;
     font-size: 12px;
-    padding: 8px 26px 8px 10px;
+  }
+
+  .tournamentBadge {
+    padding: 5px 26px 5px 30px;
+  }
+}
+
+@media (max-width: 640px) {
+  .filterBar {
+    flex-wrap: wrap;
+    padding: 10px 16px;
+    gap: 8px;
   }
 
   .weekNavigator {
-    padding: 8px 16px 12px;
-    gap: 10px;
+    width: 100%;
+    justify-content: center;
+    order: -1;
   }
 
-  .weekTitle { font-size: 15px; }
-  .weekDate { font-size: 11px; }
-}
+  .filterSelectWrapper {
+    flex: 1 1 auto;
+  }
 
+  .filterSelect {
+    width: 100%;
+    min-width: 110px;
+    font-size: 12px;
+    padding: 7px 24px 7px 10px;
+  }
+
+  .resetBtn {
+    margin-left: 0;
+  }
+
+  .filterDivider {
+    display: none;
+  }
+
+  .weekTitle { font-size: 13px; }
+  .weekDate { font-size: 10px; }
+}
