@@ -10,6 +10,7 @@ import MatchListFeed from '@/components/MatchListFeed';
 import StandingsTab from '@/components/StandingsTab';
 import StatsTab from '@/components/StatsTab';
 import { TrophyIcon } from '@/components/AppIcons';
+import Link from 'next/link';
 
 function getGenericRoundKey(roundName: string): string {
   if (!roundName) return '';
@@ -186,11 +187,7 @@ function TongQuanContent() {
     return 'league';
   }, [selectedTournamentId, selectedTournament]);
 
-  // Set default active matchweek based on custom logic sequence:
-  // 1. Matchweek containing matches today
-  // 2. Matchweek containing matches this calendar week (Mon - Sun)
-  // 3. Matchweek containing the nearest upcoming match
-  // 4. Matchweek containing the nearest past match (fallback)
+  // Set default active matchweek based on custom logic sequence
   useEffect(() => {
     if (loading) return;
 
@@ -222,7 +219,7 @@ function TongQuanContent() {
       }
 
       // 2. Matches this week (Mon to Sun)
-      const currentDay = today.getDay(); // 0 is Sunday, 1 is Monday, etc.
+      const currentDay = today.getDay();
       const distanceToMon = currentDay === 0 ? -6 : 1 - currentDay;
       const monday = new Date(today);
       monday.setDate(today.getDate() + distanceToMon);
@@ -242,7 +239,6 @@ function TongQuanContent() {
       });
 
       if (matchesThisWeek.length > 0 && matchesThisWeek[0].vong) {
-        // Sort by closest date to today within this week
         matchesThisWeek.sort((a: any, b: any) => {
           const tA = new Date(a.date || a.batDauLuc).getTime();
           const tB = new Date(b.date || b.batDauLuc).getTime();
@@ -252,13 +248,13 @@ function TongQuanContent() {
         return;
       }
 
-      // 3. Nearest upcoming matches (DANG_DIEN_RA or SAP_DIEN_RA)
+      // 3. Nearest upcoming matches
       const upcomingMatches = allMatchesList.filter((m: any) => m.trangThai === 'DANG_DIEN_RA' || m.trangThai === 'SAP_DIEN_RA');
       if (upcomingMatches.length > 0) {
         upcomingMatches.sort((a: any, b: any) => {
           const tA = new Date(a.batDauLuc || a.date).getTime();
           const tB = new Date(b.batDauLuc || b.date).getTime();
-          return tA - tB; // Earliest upcoming match first
+          return tA - tB;
         });
         if (upcomingMatches[0].vong) {
           setSelectedMatchweek(getGenericRoundKey(upcomingMatches[0].vong));
@@ -272,7 +268,7 @@ function TongQuanContent() {
         finishedMatches.sort((a: any, b: any) => {
           const tA = new Date(a.batDauLuc || a.date).getTime();
           const tB = new Date(b.batDauLuc || b.date).getTime();
-          return tB - tA; // Latest finished match first
+          return tB - tA;
         });
         if (finishedMatches[0].vong) {
           setSelectedMatchweek(getGenericRoundKey(finishedMatches[0].vong));
@@ -368,32 +364,37 @@ function TongQuanContent() {
   return (
     <div className={styles.page}>
       
-      {/* Header */}
-      <div className={styles.header}>
-        <div className={styles.headerLeft}>
-          <div className={styles.logoTitleWrapper}>
-            <img src="/logo-sparta-football.png" alt="Sparta Logo" className={styles.logoImg} />
-            <h1 className={styles.appName}>SPARTA</h1>
+      {/* ─── Slim Topbar (replaces large duplicate header) ─── */}
+      <div className={styles.topbar}>
+        {/* Left: Tournament badge */}
+        <div className={styles.topbarLeft}>
+          <div className={styles.tournamentBadge}>
+            <TrophyIcon size={14} className={styles.trophyIcon} />
+            <select 
+              className={styles.headerSelect}
+              value={selectedTournamentId || ''}
+              onChange={(e) => setSelectedTournamentId(e.target.value)}
+            >
+              {tournaments.map(t => (
+                <option key={t.id} value={t.id}>{t.ten}</option>
+              ))}
+            </select>
+            <svg className={styles.headerSelectChevron} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
           </div>
-          <p className={styles.slogan}>Hệ thống Quản lý Giải đấu Chuyên nghiệp</p>
         </div>
 
-        {/* Tournament Switcher in Header */}
-        <div className={styles.headerSelectWrapper}>
-          <TrophyIcon size={18} className={styles.trophyIcon} />
-          <select 
-            className={styles.headerSelect}
-            value={selectedTournamentId || ''}
-            onChange={(e) => setSelectedTournamentId(e.target.value)}
-          >
-            {tournaments.map(t => (
-              <option key={t.id} value={t.id}>{t.ten}</option>
-            ))}
-          </select>
-          <svg className={styles.headerSelectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+        {/* Right: Login ghost button (anonymous) */}
+        <div className={styles.topbarRight}>
+          <Link href="/login" className={styles.loginGhostBtn}>
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
+              <polyline points="10 17 15 12 10 7" />
+              <line x1="15" y1="12" x2="3" y2="12" />
+            </svg>
+            Đăng nhập
+          </Link>
         </div>
       </div>
-
 
       {/* Tabs */}
       <div className={styles.tabsContainer}>
@@ -419,62 +420,74 @@ function TongQuanContent() {
 
       {activeTab === 'matches' && (
         <>
-          {/* Filters Container */}
-          <div className={styles.filtersContainer}>
+          {/* ─── Unified Filter Bar: [Round Nav] [Team] [Status] [Reset] ─── */}
+          <div className={styles.filterBar}>
 
-            {/* Round selector */}
+            {/* Round Navigator */}
             {uniqueRounds.length > 0 && (
-              <div className={styles.filterItem}>
-                <span className={styles.filterLabel}>Vòng:</span>
-                <div className={styles.filterSelectWrapper}>
-                  <select 
-                    className={styles.filterSelect}
-                    value={selectedMatchweek}
-                    onChange={(e) => setSelectedMatchweek(e.target.value)}
-                  >
-                    {uniqueRounds.map((rn) => (
-                      <option key={rn} value={rn}>{rn}</option>
-                    ))}
-                  </select>
-                  <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+              <div className={styles.weekNavigator}>
+                <button 
+                  className={styles.navBtn} 
+                  onClick={handlePrevWeek}
+                  disabled={currentMatchweekIndex <= 0}
+                  aria-label="Vòng trước"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
+                </button>
+
+                <div className={styles.weekInfo}>
+                  <span className={styles.weekTitle}>
+                    {selectedMatchweek === 'NONE' ? 'Không có trận' : selectedMatchweek}
+                  </span>
+                  <span className={styles.weekDate}>
+                    {selectedMatchweek === 'NONE' ? 'Chưa xếp lịch' : getActiveWeekDate()}
+                  </span>
                 </div>
+
+                <button 
+                  className={styles.navBtn} 
+                  onClick={handleNextWeek}
+                  disabled={currentMatchweekIndex >= navigationSequence.length - 1}
+                  aria-label="Vòng sau"
+                >
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
+                </button>
               </div>
             )}
 
+            <div className={styles.filterDivider} />
+
             {/* Team selector */}
-            <div className={styles.filterItem}>
-              <div className={styles.filterSelectWrapper}>
-                <select 
-                  className={styles.filterSelect}
-                  value={selectedTeamId}
-                  onChange={(e) => setSelectedTeamId(e.target.value)}
-                >
-                  <option value="ALL">Tất cả Đội bóng</option>
-                  {teams.map((team) => (
-                    <option key={team.id} value={team.id}>{team.ten}</option>
-                  ))}
-                </select>
-                <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </div>
+            <div className={styles.filterSelectWrapper}>
+              <select 
+                className={styles.filterSelect}
+                value={selectedTeamId}
+                onChange={(e) => setSelectedTeamId(e.target.value)}
+              >
+                <option value="ALL">Tất cả đội</option>
+                {teams.map((team) => (
+                  <option key={team.id} value={team.id}>{team.ten}</option>
+                ))}
+              </select>
+              <svg className={styles.selectChevron} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
 
             {/* Status selector */}
-            <div className={styles.filterItem}>
-              <div className={styles.filterSelectWrapper}>
-                <select 
-                  className={styles.filterSelect}
-                  value={selectedStatus}
-                  onChange={(e) => setSelectedStatus(e.target.value as any)}
-                >
-                  <option value="ALL">Tất cả Trạng thái</option>
-                  <option value="DANG_DIEN_RA">Đang diễn ra</option>
-                  <option value="SAP_DIEN_RA">Sắp đá</option>
-                  <option value="KET_THUC">Đã đá</option>
-                </select>
-                <svg className={styles.selectChevron} width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
-              </div>
+            <div className={styles.filterSelectWrapper}>
+              <select 
+                className={`${styles.filterSelect} ${styles.filterSelectStatus}`}
+                value={selectedStatus}
+                onChange={(e) => setSelectedStatus(e.target.value as any)}
+              >
+                <option value="ALL">Tất cả</option>
+                <option value="SAP_DIEN_RA">Chưa đá</option>
+                <option value="DANG_DIEN_RA">Đang đá</option>
+                <option value="KET_THUC">Kết thúc</option>
+              </select>
+              <svg className={styles.selectChevron} width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
             </div>
 
+            {/* Reset button — icon only */}
             <button 
               className={styles.resetBtn}
               onClick={() => {
@@ -482,42 +495,15 @@ function TongQuanContent() {
                 setSelectedTeamId('ALL');
                 setSelectedStatus('ALL');
               }}
+              aria-label="Đặt lại bộ lọc"
+              title="Đặt lại bộ lọc"
             >
-              ↺
+              <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="1 4 1 10 7 10"></polyline>
+                <path d="M3.51 15a9 9 0 1 0 .49-3.79"></path>
+              </svg>
             </button>
           </div>
-
-          {/* Matchweek Navigator - Always show Premier League-style navigator on all screens */}
-          {uniqueRounds.length > 0 && (
-            <div className={styles.weekNavigator}>
-              <button 
-                className={styles.navBtn} 
-                onClick={handlePrevWeek}
-                disabled={currentMatchweekIndex <= 0}
-                aria-label="Vòng trước"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg>
-              </button>
-
-              <div className={styles.weekInfo}>
-                <span className={styles.weekTitle}>
-                  {selectedMatchweek === 'NONE' ? 'Không có trận đấu' : selectedMatchweek}
-                </span>
-                <span className={styles.weekDate}>
-                  {selectedMatchweek === 'NONE' ? 'Chưa xếp lịch thi đấu' : getActiveWeekDate()}
-                </span>
-              </div>
-
-              <button 
-                className={styles.navBtn} 
-                onClick={handleNextWeek}
-                disabled={currentMatchweekIndex >= navigationSequence.length - 1}
-                aria-label="Vòng sau"
-              >
-                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><polyline points="9 18 15 12 9 6"></polyline></svg>
-              </button>
-            </div>
-          )}
 
           {/* Main Feed */}
           <div className={styles.mainFeedWrapper}>
@@ -553,4 +539,3 @@ export default function TongQuanPage() {
     </Suspense>
   );
 }
-

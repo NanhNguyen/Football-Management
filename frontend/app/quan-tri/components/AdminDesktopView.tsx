@@ -1,4 +1,5 @@
 import React from 'react';
+import Link from 'next/link';
 import styles from '../quan-tri.module.css';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import dynamic from 'next/dynamic';

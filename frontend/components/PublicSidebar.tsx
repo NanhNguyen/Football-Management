@@ -178,8 +178,18 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
 
             <div className={styles.sectionContent}>
               {!hasFollowedItems ? (
-                <div className={styles.emptyFollowPlaceholder}>
-                  Bạn chưa theo dõi đội bóng nào
+                <div className={styles.emptyFollowState}>
+                  <p className={styles.emptyFollowText}>
+                    Theo dõi đội yêu thích để nhận thông báo
+                  </p>
+                  <span
+                    className={styles.emptyFollowCTA}
+                    onClick={() => router.push('/doi-bong')}
+                    role="button"
+                    tabIndex={0}
+                  >
+                    + Khám phá đội bóng
+                  </span>
                 </div>
               ) : (
                 <div className={styles.followedList}>
@@ -263,9 +273,25 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                 <div className={styles.emptyText}>Không có giải đấu nào</div>
               ) : (
                 <div className={styles.tournamentsList}>
-                  {activeTournaments.map(t => {
+                  {activeTournaments.map((t, idx) => {
                     const isActive = selectedTournament?.id === t.id;
                     const isFollowed = followedTournaments.includes(t.id);
+                    // Color dot heuristic based on tournament name
+                    const getDotStyle = (name: string, index: number): React.CSSProperties => {
+                      const lower = name.toLowerCase();
+                      if (lower.includes('world cup') || lower.includes('wc')) {
+                        return { background: '#f59e0b' }; // amber
+                      }
+                      if (lower.includes('premier') || lower.includes('epl') || lower.includes('ngoại hạng')) {
+                        return { background: '#60a5fa' }; // blue
+                      }
+                      if (lower.includes('thiên khôi') || lower.includes('sparta') || lower.includes('cúp')) {
+                        return { background: 'linear-gradient(135deg, #a78bfa, #818cf8)' }; // purple gradient
+                      }
+                      // Fallback: cycle through colors
+                      const fallbacks = ['#a78bfa', '#60a5fa', '#34d399', '#f59e0b', '#f472b6'];
+                      return { background: fallbacks[index % fallbacks.length] };
+                    };
                     return (
                       <div
                         key={`tourney-${t.id}`}
@@ -279,7 +305,10 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                         className={`${styles.navEntityLink} ${isActive ? styles.navEntityLinkActive : ''}`}
                       >
                         <span className={styles.entityLogo}>
-                          <TrophyIcon size={16} />
+                          <span
+                            className={styles.leagueDot}
+                            style={isActive ? { background: 'rgba(255,255,255,0.7)' } : getDotStyle(t.ten, idx)}
+                          />
                         </span>
                         <div className={styles.entityInfo}>
                           <span className={styles.entityName}>{t.ten}</span>
@@ -331,9 +360,9 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
               </div>
               <div className={styles.profileActions}>
                 {(userRole === 'admin' || userRole === 'ref') && (
-                  <Link href="/quan-tri" className={styles.actionBtn}>
+                  <a href="/quan-tri" className={styles.actionBtn}>
                     Quản trị
-                  </Link>
+                  </a>
                 )}
                 <button onClick={handleLogout} className={`${styles.actionBtn} ${styles.logoutBtn}`}>
                   <LogoutIcon size={14} className={styles.logoutIcon} />

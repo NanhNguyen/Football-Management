@@ -237,7 +237,7 @@ export default function TopNav() {
 
                 {/* Part 2: Admin Shortcut (Only for admin or ref) */}
                 {(userRole === 'admin' || userRole === 'ref') && (
-                  <Link 
+                  <a 
                     href="/quan-tri" 
                     className={styles.dropdownItem}
                     onClick={() => setDropdownOpen(false)}
@@ -249,7 +249,7 @@ export default function TopNav() {
                       </svg>
                     </span>
                     <span>Trang Quản trị</span>
-                  </Link>
+                  </a>
                 )}
 
                 {/* Part 3: Logout */}
