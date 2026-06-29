@@ -360,9 +360,9 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
               </div>
               <div className={styles.profileActions}>
                 {(userRole === 'admin' || userRole === 'ref') && (
-                  <Link href="/quan-tri" className={styles.actionBtn}>
+                  <a href="/quan-tri" className={styles.actionBtn}>
                     Quản trị
-                  </Link>
+                  </a>
                 )}
                 <button onClick={handleLogout} className={`${styles.actionBtn} ${styles.logoutBtn}`}>
                   <LogoutIcon size={14} className={styles.logoutIcon} />

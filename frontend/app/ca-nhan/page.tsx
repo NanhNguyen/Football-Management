@@ -116,7 +116,7 @@ export default function CaNhanPage() {
             {/* Actions list */}
             <div className={styles.actionsList}>
               {(userRole === 'admin' || userRole === 'ref') && (
-                <Link href="/quan-tri" className={styles.actionBtn}>
+                <a href="/quan-tri" className={styles.actionBtn}>
                   <span className={styles.actionIcon} style={{ display: 'inline-flex', alignItems: 'center' }}>
                     <SettingsIcon size={18} />
                   </span>
@@ -125,7 +125,7 @@ export default function CaNhanPage() {
                     <span className={styles.actionDesc}>Quản lý giải đấu, đội bóng, lịch thi đấu</span>
                   </div>
                   <span className={styles.actionArrow}>→</span>
-                </Link>
+                </a>
               )}
 
 
