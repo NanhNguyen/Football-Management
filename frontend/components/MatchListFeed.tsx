@@ -4,7 +4,7 @@ import styles from './MatchListFeed.module.css';
 import { calculateMatchMinute, getDisplayTime } from '@/lib/api';
 import TeamLogo from './TeamLogo';
 import { ShieldIcon } from './AppIcons';
-import MatchCard from './MatchCard';
+import MatchCardPublic from './MatchCardPublic';
 
 interface MatchListFeedProps {
   data: any;
@@ -40,6 +40,19 @@ export default function MatchListFeed({ data, onMatchClick, tournamentType = 'le
     try {
       const dateObj = new Date(dateStr);
       return `${dateObj.getDate()}/${dateObj.getMonth() + 1}`;
+    } catch (e) {
+      return '';
+    }
+  };
+
+  const getShortTime = (dateStr: string, timeStr?: string) => {
+    if (timeStr) return timeStr.substring(0, 5);
+    if (!dateStr) return '';
+    try {
+      const d = new Date(dateStr);
+      const h = d.getHours().toString().padStart(2, '0');
+      const m = d.getMinutes().toString().padStart(2, '0');
+      return `${h}:${m}`;
     } catch (e) {
       return '';
     }
@@ -129,7 +142,7 @@ export default function MatchListFeed({ data, onMatchClick, tournamentType = 'le
     return acc;
   }, {});
 
-  // Sort matches within each group: alphabetically by home team name for tournament, or chronologically for league
+  // Sort matches within each group
   Object.keys(groupedMatches).forEach((groupName) => {
     groupedMatches[groupName].sort((a: any, b: any) => {
       const isLiveA = a.trangThai === 'DANG_DIEN_RA' ? 1 : 0;
@@ -151,7 +164,7 @@ export default function MatchListFeed({ data, onMatchClick, tournamentType = 'le
     });
   });
 
-  // Sort the groups: by knockout order for tournament, or by date for league
+  // Sort the groups
   const sortedGroupNames = Object.keys(groupedMatches).sort((groupA, groupB) => {
     if (isTournament) {
       const pA = getRoundOrderPriority(groupA);
@@ -170,68 +183,81 @@ export default function MatchListFeed({ data, onMatchClick, tournamentType = 'le
     }
   });
 
+  // Format group header label with match count (TASK 5)
+  const formatGroupHeader = (groupName: string, matchCount: number): { label: string; count: number } => {
+    // Uppercase the group name for header display
+    return {
+      label: groupName.toUpperCase(),
+      count: matchCount,
+    };
+  };
+
   return (
     <div className={styles.feedContainer}>
-      {sortedGroupNames.map((groupName) => (
-        <div key={groupName} className={styles.matchGroup}>
-          <div className={styles.groupHeader}>
-            {groupName}
-          </div>
-          
-          <div className={styles.groupContent}>
-            {groupedMatches[groupName].map((match: any) => {
-              const isLive = match.trangThai === 'DANG_DIEN_RA';
-              const isUpcoming = match.trangThai === 'SAP_DIEN_RA';
-              const isFinished = match.trangThai === 'KET_THUC';
-              
-              // Helper to get specific label for knockout match (e.g. "Trận 1", "Chung kết")
-              const getKnockoutLabel = (vongStr: string): string => {
-                if (!vongStr) return '';
-                if (vongStr.includes(' - ')) {
-                  return vongStr.split(' - ')[1];
+      {sortedGroupNames.map((groupName) => {
+        const matches = groupedMatches[groupName];
+        const { label, count } = formatGroupHeader(groupName, matches.length);
+
+        return (
+          <div key={groupName} className={styles.matchGroup}>
+            {/* Group header with match count — TASK 5 */}
+            <div className={styles.groupHeader}>
+              <span className={styles.groupHeaderLabel}>{label}</span>
+              <span className={styles.groupHeaderDot}>·</span>
+              <span className={styles.groupHeaderCount}>{count} trận</span>
+            </div>
+            
+            <div className={styles.groupContent}>
+              {matches.map((match: any) => {
+                const isLive = match.trangThai === 'DANG_DIEN_RA';
+                const isUpcoming = match.trangThai === 'SAP_DIEN_RA';
+                const isFinished = match.trangThai === 'KET_THUC';
+
+                const status: 'LIVE' | 'UPCOMING' | 'FINISHED' = isLive
+                  ? 'LIVE'
+                  : isUpcoming
+                  ? 'UPCOMING'
+                  : 'FINISHED';
+
+                // Build labels for MatchCardPublic
+                let dateTimeLabel: string | undefined;
+                let liveMinuteLabel: string | undefined;
+                let finishedDateLabel: string | undefined;
+
+                if (isUpcoming) {
+                  const dateStr = match.date || match.batDauLuc;
+                  const shortDate = getShortDate(dateStr);
+                  const timeStr = getShortTime(match.batDauLuc, match.time);
+                  dateTimeLabel = shortDate && timeStr
+                    ? `${shortDate} · ${timeStr}`
+                    : timeStr || shortDate || '--:--';
+                } else if (isLive) {
+                  if (match.dangTamDung) {
+                    liveMinuteLabel = 'HT';
+                  } else {
+                    const minute = getDisplayTime(match, match.matchDurationMinutes || 90);
+                    liveMinuteLabel = minute || 'LIVE';
+                  }
+                } else if (isFinished) {
+                  finishedDateLabel = getShortDate(match.date || match.batDauLuc);
                 }
-                return vongStr;
-              };
 
-              const isKnockout = isTournament && !match.vong?.match(/Bảng/i);
-              const koLabel = isKnockout ? getKnockoutLabel(match.vong) : '';
-
-              let matchStatus = '';
-              if (isFinished) {
-                matchStatus = 'FT';
-                if (isTournament) {
-                  const shortDate = getShortDate(match.date || match.batDauLuc);
-                  const datePart = shortDate ? ` • ${shortDate}` : '';
-                  matchStatus = koLabel ? `${koLabel} • FT${datePart}` : `FT${datePart}`;
-                }
-              } else if (isLive) {
-                 if (match.dangTamDung) matchStatus = 'HT';
-                 else matchStatus = getDisplayTime(match, match.matchDurationMinutes || 90);
-              } else if (isUpcoming) {
-                 const timeStr = match.time ? match.time.substring(0, 5) : '--:--';
-                 matchStatus = timeStr;
-                 if (isTournament) {
-                   const shortDate = getShortDate(match.date || match.batDauLuc);
-                   const datePart = shortDate ? `${shortDate} • ` : '';
-                   matchStatus = koLabel ? `${koLabel} • ${datePart}${timeStr}` : `${datePart}${timeStr}`;
-                 }
-              }
-
-              const status = isLive ? 'LIVE' : isUpcoming ? 'UPCOMING' : 'FINISHED';
-
-              return (
-                <MatchCard
-                  key={match.id}
-                  match={match}
-                  status={status}
-                  matchStatusText={matchStatus}
-                  onClick={onMatchClick}
-                />
-              );
-            })}
+                return (
+                  <MatchCardPublic
+                    key={match.id}
+                    match={match}
+                    status={status}
+                    dateTimeLabel={dateTimeLabel}
+                    liveMinuteLabel={liveMinuteLabel}
+                    finishedDateLabel={finishedDateLabel}
+                    onClick={onMatchClick}
+                  />
+                );
+              })}
+            </div>
           </div>
-        </div>
-      ))}
+        );
+      })}
       
       {Object.keys(groupedMatches).length === 0 && (
         <div className={styles.emptyState}>
