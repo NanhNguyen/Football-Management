@@ -573,7 +573,7 @@ export async function deleteMatch(id: string) {
 
 
 // --- THỐNG KÊ ---
-export async function layBangXepHang(giaiDauId?: string) {
+export async function layBangXepHang(giaiDauId?: string, preloadedTeams?: any[], preloadedMatches?: any[]) {
   let customEvents: any[] = [];
   if (typeof window !== 'undefined' && giaiDauId) {
     const configStr = localStorage.getItem(`giai_dau_config_${giaiDauId}`);
@@ -585,10 +585,10 @@ export async function layBangXepHang(giaiDauId?: string) {
     }
   }
 
-  const teams = await layDanhSachDoi(giaiDauId);
-  const matches = await layDanhSachTranDau(giaiDauId);
+  const teams = preloadedTeams || await layDanhSachDoi(giaiDauId);
+  const matches = preloadedMatches || await layDanhSachTranDau(giaiDauId);
   // Count only matches that are finished (strictly following FIFA regulations)
-  const playedMatches = matches.filter(m => m.trangThai === 'KET_THUC');
+  const playedMatches = matches.filter((m: any) => m.trangThai === 'KET_THUC');
 
   const stats: any[] = teams.map(team => {
     const teamMatches = playedMatches.filter(m => 
@@ -672,16 +672,17 @@ export async function layTongQuan(giaiDauId?: string) {
     matchesQuery = matchesQuery.eq('giai_dau_id', giaiDauId);
   }
 
-  const [teamsRes, matchesRes] = await Promise.all([
+  const [teamsRes, matchesRes, allMatches, teamsList] = await Promise.all([
     teamsQuery,
-    matchesQuery
+    matchesQuery,
+    layDanhSachTranDau(giaiDauId),
+    layDanhSachDoi(giaiDauId)
   ]);
 
-  const allMatches = await layDanhSachTranDau(giaiDauId);
   const currentLive = allMatches.filter(m => m.trangThai === 'DANG_DIEN_RA');
   
   // Calculate standings to find leader
-  const standings = await layBangXepHang(giaiDauId);
+  const standings = await layBangXepHang(giaiDauId, teamsList, allMatches);
   const leader = standings.sort((a, b) => b.diem - a.diem || b.hieuSo - a.hieuSo)[0];
 
   return {
@@ -692,6 +693,7 @@ export async function layTongQuan(giaiDauId?: string) {
     tranSapDienRa: allMatches.filter(m => m.trangThai === 'SAP_DIEN_RA').slice(0, 4),
     tranKetThuc: allMatches.filter(m => m.trangThai === 'KET_THUC').slice(0, 4),
     allMatches: allMatches,
+    teamsList: teamsList,
     top3Doi: standings.slice(0, 4),
     doiDanDau: leader?.doi?.ten || 'Chưa có',
     tongBanThang: allMatches.reduce((acc, m) => acc + (m.tyNha || 0) + (m.tyKhach || 0), 0)
