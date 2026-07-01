@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect, useCallback } from 'react';
-import { useTeamSearch } from '@/hooks/useTeamSearch';
+import { useTeamSearch, TeamSearchResult } from '@/hooks/useTeamSearch';
 import { useFollowedTeams } from '@/hooks/useFollowedTeams';
 import styles from './TeamSearchBar.module.css';
 
@@ -10,9 +10,10 @@ interface TeamSearchBarProps {
   mobileListMode?: boolean;
   /** Extra class for the wrapper */
   className?: string;
+  autoFocus?: boolean;
 }
 
-export default function TeamSearchBar({ mobileListMode = false, className }: TeamSearchBarProps) {
+export default function TeamSearchBar({ mobileListMode = false, className, autoFocus = false }: TeamSearchBarProps) {
   const [query, setQuery] = useState('');
   const [dropdownOpen, setDropdownOpen] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
@@ -21,18 +22,14 @@ export default function TeamSearchBar({ mobileListMode = false, className }: Tea
   const { results, isLoading } = useTeamSearch(query);
   const { isFollowed, toggleFollow } = useFollowedTeams();
 
-  const showResults = query.trim().length >= 2;
-  const showDropdown = !mobileListMode && dropdownOpen && showResults;
-  const showListMode = mobileListMode && showResults;
+  const showDropdown = !mobileListMode && dropdownOpen;
+  const showListMode = mobileListMode;
 
-  // Open dropdown when typing
   useEffect(() => {
-    if (query.trim().length >= 2) {
-      setDropdownOpen(true);
-    } else {
-      setDropdownOpen(false);
+    if (autoFocus && inputRef.current) {
+      inputRef.current.focus();
     }
-  }, [query]);
+  }, [autoFocus]);
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -61,7 +58,7 @@ export default function TeamSearchBar({ mobileListMode = false, className }: Tea
 
   const handleClear = useCallback(() => {
     setQuery('');
-    setDropdownOpen(false);
+    // dropdown remains open for popular teams
     inputRef.current?.focus();
   }, []);
 
@@ -87,46 +84,81 @@ export default function TeamSearchBar({ mobileListMode = false, className }: Tea
     </>
   );
 
+  const renderTeamItem = (team: TeamSearchResult) => {
+    const followed = isFollowed(team.id);
+    return (
+      <div
+        key={team.id}
+        className={`${styles.resultItem} ${mobileListMode ? styles.resultItemMobile : ''}`}
+      >
+        <div className={styles.teamInfo}>
+          {team.logo && (team.logo.startsWith('http') || team.logo.startsWith('/')) ? (
+            <img src={team.logo} alt={team.ten} className={styles.teamLogo} />
+          ) : (
+            <div className={styles.teamLogoPlaceholder}>⚽</div>
+          )}
+          <div className={styles.teamNames}>
+            <span className={styles.teamName}>{team.ten}</span>
+            <span className={styles.teamSub}>{team.giaiDauTen || team.vietTat || ''}</span>
+          </div>
+        </div>
+        <button
+          className={`${styles.followBtn} ${followed ? styles.followBtnActive : ''}`}
+          onClick={(e) => handleFollowClick(e, team.id)}
+          title={followed ? 'Bỏ theo dõi' : 'Theo dõi'}
+          aria-label={followed ? 'Bỏ theo dõi' : 'Theo dõi'}
+        >
+          ★
+        </button>
+      </div>
+    );
+  };
+
   const renderResults = () => {
     if (isLoading) return renderSkeletons();
-    if (results.length === 0) {
+    
+    // State B - Not found
+    if (results.length === 0 && query.trim().length > 0) {
       return (
         <div className={styles.emptyState}>
-          Không tìm thấy đội bóng nào
+          <span className={styles.emptySearchIcon}>🔍</span>
+          <div className={styles.emptySearchText}>Không tìm thấy đội bóng nào</div>
+          <div className={styles.emptySearchSub}>Thử tìm với từ khóa khác</div>
         </div>
       );
     }
-    return results.map((team) => {
-      const followed = isFollowed(team.id);
-      return (
-        <div
-          key={team.id}
-          className={`${styles.resultItem} ${mobileListMode ? styles.resultItemMobile : ''}`}
-        >
-          <div className={styles.teamInfo}>
-            {team.logo && (team.logo.startsWith('http') || team.logo.startsWith('/')) ? (
-              <img src={team.logo} alt={team.ten} className={styles.teamLogo} />
-            ) : (
-              <div className={styles.teamLogoPlaceholder}>⚽</div>
-            )}
-            <div className={styles.teamNames}>
-              <span className={styles.teamName}>{team.ten}</span>
-              {team.vietTat && (
-                <span className={styles.teamSub}>{team.vietTat}</span>
-              )}
+
+    const isStateA = query.trim().length === 0;
+
+    let content: React.ReactNode[] = [];
+    if (isStateA) {
+      let currentGroup = '';
+      results.forEach(team => {
+        const groupName = team.giaiDauTen || 'Khác';
+        if (groupName !== currentGroup) {
+          currentGroup = groupName;
+          content.push(
+            <div key={`group-${currentGroup}`} className={`${styles.groupHeader} ${mobileListMode ? styles.groupHeaderMobile : ''}`}>
+              {currentGroup}
             </div>
+          );
+        }
+        content.push(renderTeamItem(team));
+      });
+    } else {
+      content = results.map(team => renderTeamItem(team));
+    }
+
+    return (
+      <>
+        {isStateA && (
+          <div className={`${styles.popularHeader} ${mobileListMode ? styles.popularHeaderMobile : ''}`}>
+            Đội bóng phổ biến
           </div>
-          <button
-            className={`${styles.followBtn} ${followed ? styles.followBtnActive : ''}`}
-            onClick={(e) => handleFollowClick(e, team.id)}
-            title={followed ? 'Bỏ theo dõi' : 'Theo dõi'}
-            aria-label={followed ? 'Bỏ theo dõi' : 'Theo dõi'}
-          >
-            ★
-          </button>
-        </div>
-      );
-    });
+        )}
+        {content}
+      </>
+    );
   };
 
   return (
@@ -140,10 +172,13 @@ export default function TeamSearchBar({ mobileListMode = false, className }: Tea
           ref={inputRef}
           type="text"
           value={query}
-          onChange={(e) => setQuery(e.target.value)}
+          onChange={(e) => {
+            setQuery(e.target.value);
+            setDropdownOpen(true);
+          }}
           placeholder="Tìm đội bóng..."
           className={`${styles.input} ${mobileListMode ? styles.inputMobile : ''}`}
-          onFocus={() => query.trim().length >= 2 && setDropdownOpen(true)}
+          onFocus={() => setDropdownOpen(true)}
         />
         {query && (
           <button
