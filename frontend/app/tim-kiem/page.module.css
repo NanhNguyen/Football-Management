@@ -1,0 +1,16 @@
+/* ── Page wrapper ────────────────────────────── */
+.pageWrapper {
+  display: flex;
+  flex-direction: column;
+  min-height: calc(100vh - 100px);
+  background: var(--color-bg, #0a0f1a);
+}
+
+/* ── Search bar override ─────────────────────── */
+.searchBarInner {
+  position: sticky;
+  top: 0;
+  z-index: 50;
+  margin: 0 !important;
+  width: 100%;
+}

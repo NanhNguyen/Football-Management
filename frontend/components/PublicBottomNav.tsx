@@ -67,21 +67,21 @@ const ProfileIcon = ({ active }: { active: boolean }) => (
   </svg>
 );
 
-const BellIcon = ({ active }: { active: boolean }) => (
+const SearchIcon = ({ active }: { active: boolean }) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
     width="20" 
     height="20" 
     viewBox="0 0 24 24" 
-    fill={active ? "var(--color-primary)" : "none"} 
+    fill="none" 
     stroke={active ? "var(--color-primary)" : "currentColor"} 
-    strokeWidth="2.2" 
+    strokeWidth={active ? "2.5" : "2.2"} 
     strokeLinecap="round" 
     strokeLinejoin="round"
     style={{ transition: 'all 0.2s ease' }}
   >
-    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
-    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+    <circle cx="11" cy="11" r="8" />
+    <line x1="21" y1="21" x2="16.65" y2="16.65" />
   </svg>
 );
 
@@ -107,10 +107,10 @@ function BottomNavContent() {
       onClick: () => setTournamentsSheetOpen(false)
     },
     { 
-      label: 'Thông báo', 
-      href: '/thong-bao', 
-      isActive: pathname === '/thong-bao' && !tournamentsSheetOpen,
-      renderIcon: (active: boolean) => <BellIcon active={active} />,
+      label: 'Tìm kiếm', 
+      href: '/tim-kiem', 
+      isActive: pathname === '/tim-kiem' && !tournamentsSheetOpen,
+      renderIcon: (active: boolean) => <SearchIcon active={active} />,
       onClick: () => setTournamentsSheetOpen(false)
     },
     { 

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from 'react';
 import { usePublicTournament } from '@/components/PublicTournamentContext';
-import TeamSearchBar from '@/components/TeamSearchBar';
 import FollowedTeamsList from '@/components/FollowedTeamsList';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import { supabase } from '@/lib/supabase';
@@ -27,11 +26,6 @@ export default function DangTheoDoiPage() {
 
   return (
     <div className={styles.pageWrapper}>
-      {/* Sticky Search Bar */}
-      <div className={styles.searchBarWrap}>
-        <TeamSearchBar mobileListMode className={styles.searchBarInner} />
-      </div>
-
       {/* Body: followed list or empty state */}
       <div className={styles.bodyWrap}>
         {hasFollowed ? (
