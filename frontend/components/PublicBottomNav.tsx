@@ -67,7 +67,7 @@ const ProfileIcon = ({ active }: { active: boolean }) => (
   </svg>
 );
 
-const StatsIcon = ({ active }: { active: boolean }) => (
+const BellIcon = ({ active }: { active: boolean }) => (
   <svg 
     xmlns="http://www.w3.org/2000/svg" 
     width="20" 
@@ -80,9 +80,8 @@ const StatsIcon = ({ active }: { active: boolean }) => (
     strokeLinejoin="round"
     style={{ transition: 'all 0.2s ease' }}
   >
-    <line x1="18" y1="20" x2="18" y2="10" />
-    <line x1="12" y1="20" x2="12" y2="4" />
-    <line x1="6" y1="20" x2="6" y2="14" />
+    <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+    <path d="M13.73 21a2 2 0 0 1-3.46 0" />
   </svg>
 );
 
@@ -108,10 +107,10 @@ function BottomNavContent() {
       onClick: () => setTournamentsSheetOpen(false)
     },
     { 
-      label: 'Thống kê', 
-      href: '/?tab=standings', 
-      isActive: pathname === '/' && (tab === 'standings' || tab === 'stats') && !tournamentsSheetOpen,
-      renderIcon: (active: boolean) => <StatsIcon active={active} />,
+      label: 'Thông báo', 
+      href: '/thong-bao', 
+      isActive: pathname === '/thong-bao' && !tournamentsSheetOpen,
+      renderIcon: (active: boolean) => <BellIcon active={active} />,
       onClick: () => setTournamentsSheetOpen(false)
     },
     { 
