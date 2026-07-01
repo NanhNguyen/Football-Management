@@ -4,15 +4,15 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
 import { usePublicTournament } from './PublicTournamentContext';
-import { layDanhSachDoi } from '@/lib/api';
 import { supabase } from '@/lib/supabase';
 import { 
   TrophyIcon, 
-  SoccerBallIcon, 
   StarIcon, 
   ChevronRightIcon, 
   LogoutIcon 
 } from '@/components/AppIcons';
+import TeamSearchBar from './TeamSearchBar';
+import FollowedTeamsList from './FollowedTeamsList';
 import styles from './PublicSidebar.module.css';
 
 interface PublicSidebarProps {
@@ -33,8 +33,6 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
     toggleFollowTournament
   } = usePublicTournament();
 
-  const [teams, setTeams] = useState<any[]>([]);
-  const [loadingTeams, setLoadingTeams] = useState(true);
   const [user, setUser] = useState<any>(null);
 
   const [userRole, setUserRole] = useState<string>('user');
@@ -98,21 +96,6 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
     window.location.href = '/login';
   };
 
-  // Fetch all teams for basic data
-  useEffect(() => {
-    const fetchTeams = async () => {
-      try {
-        const list = await layDanhSachDoi();
-        setTeams(list);
-      } catch (error) {
-        console.error('Lỗi lấy danh sách đội bóng cho Sidebar:', error);
-      } finally {
-        setLoadingTeams(false);
-      }
-    };
-    fetchTeams();
-  }, []);
-
   // Close sidebar on path change
   useEffect(() => {
     onClose();
@@ -124,21 +107,14 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
     toggleFollowTournament(id);
   };
 
-  const handleToggleFollowTeam = (id: string, e: React.MouseEvent) => {
-    e.preventDefault();
-    e.stopPropagation();
-    toggleFollowTeam(id);
-  };
-
   // Show all tournaments
   const activeTournaments = tournaments;
 
   // Filter out followed objects to render from the active list
   const followedTourneysList = activeTournaments.filter(t => followedTournaments.includes(t.id));
-  const followedTeamsList = teams.filter(team => favoriteTeams.includes(team.id));
 
   // Determine if Section "⭐ ĐANG THEO DÕI" should be shown or show a muted placeholder
-  const hasFollowedItems = followedTourneysList.length > 0 || followedTeamsList.length > 0;
+  const hasFollowedItems = followedTourneysList.length > 0 || favoriteTeams.length > 0;
 
   const roleDisplayNames: Record<string, string> = {
     'admin': 'Admin',
@@ -177,23 +153,9 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
             </div>
 
             <div className={styles.sectionContent}>
-              {!hasFollowedItems ? (
-                <div className={styles.emptyFollowState}>
-                  <p className={styles.emptyFollowText}>
-                    Theo dõi đội yêu thích để nhận thông báo
-                  </p>
-                  <span
-                    className={styles.emptyFollowCTA}
-                    onClick={() => router.push('/doi-bong')}
-                    role="button"
-                    tabIndex={0}
-                  >
-                    + Khám phá đội bóng
-                  </span>
-                </div>
-              ) : (
+              {/* Followed tournaments */}
+              {followedTourneysList.length > 0 && (
                 <div className={styles.followedList}>
-                  {/* Followed Tournaments */}
                   {followedTourneysList.map(t => {
                     const isActive = selectedTournament?.id === t.id;
                     return (
@@ -225,41 +187,23 @@ export default function PublicSidebar({ isOpen, onClose }: PublicSidebarProps) {
                       </div>
                     );
                   })}
-
-                  {/* Followed Teams (Subscribes to favoriteTeams) */}
-                  {followedTeamsList.map(team => {
-                    const isTeamActive = pathname === `/doi-bong/${team.id}`;
-                    return (
-                      <Link
-                        key={`fav-team-${team.id}`}
-                        href={`/doi-bong/${team.id}`}
-                        className={`${styles.navEntityLink} ${isTeamActive ? styles.navEntityLinkActive : ''}`}
-                      >
-                        <span className={styles.entityLogo}>
-                          {team.logo && (team.logo.startsWith('http') || team.logo.startsWith('/')) ? (
-                            <img src={team.logo} alt={team.ten} className={styles.teamLogoImgMini} />
-                          ) : (
-                            <SoccerBallIcon size={16} />
-                          )}
-                        </span>
-                        <div className={styles.entityInfo}>
-                          <span className={styles.entityName}>{team.ten}</span>
-                          {team.vietTat && <span className={styles.entitySub}>{team.vietTat}</span>}
-                        </div>
-                        <button
-                          className={styles.starBtnActive}
-                          onClick={(e) => handleToggleFollowTeam(team.id, e)}
-                          title="Bỏ theo dõi"
-                        >
-                          <StarIcon size={16} filled color={isTeamActive ? "#FFFFFF" : "var(--color-primary)"} />
-                        </button>
-                      </Link>
-                    );
-                  })}
                 </div>
+              )}
+
+              {/* Followed teams via new component */}
+              <FollowedTeamsList />
+
+              {/* Guide text when nothing is followed */}
+              {!hasFollowedItems && (
+                <p className={styles.emptyFollowGuide}>
+                  Tìm đội bóng bên dưới để thêm vào danh sách theo dõi
+                </p>
               )}
             </div>
           </section>
+
+          {/* Team Search Bar */}
+          <TeamSearchBar />
 
           {/* Section 2: 🏆 CÁC GIẢI ĐẤU */}
           <section className={styles.sectionWrapper}>
