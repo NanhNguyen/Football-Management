@@ -83,28 +83,298 @@
   transition: transform 0.2s ease;
 }
 
-/* Login ghost button (right side of topbar) */
-.loginGhostBtn {
+/* ─── Topbar Right Actions ────────────────────────────── */
+/* (login button removed — auth handled in sidebar) */
+
+/* ─── Live Badge ─────────────────────────────────────── */
+.liveBadge {
   display: flex;
   align-items: center;
   gap: 6px;
-  padding: 6px 14px;
-  background: transparent;
-  border: 1px solid rgba(255, 255, 255, 0.12);
-  border-radius: var(--radius-full);
-  font-family: 'Hanken Grotesk', sans-serif;
-  font-size: 13px;
+  padding: 5px 12px;
+  border-radius: 20px;
+  background: rgba(245, 158, 11, 0.12);
+  border: 1px solid rgba(245, 158, 11, 0.25);
+  color: #fbbf24;
+  font-size: 12px;
   font-weight: 600;
-  color: rgba(255, 255, 255, 0.55);
-  text-decoration: none;
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all 0.15s;
+  white-space: nowrap;
+  position: relative;
 }
 
-.loginGhostBtn:hover {
-  border-color: rgba(167, 139, 250, 0.4);
-  color: #c4b5fd;
-  background: rgba(167, 139, 250, 0.06);
+.liveBadge:hover {
+  background: rgba(245, 158, 11, 0.2);
+  border-color: rgba(245, 158, 11, 0.4);
+}
+
+.liveBadgeActive {
+  background: rgba(245, 158, 11, 0.25);
+  border-color: #f59e0b;
+}
+
+.liveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: livePulse 1s infinite;
+  flex-shrink: 0;
+}
+
+.liveLabelWeb {
+  display: inline; /* shown on desktop */
+}
+
+.liveLabelMobile {
+  display: none; /* hidden on desktop, shown on mobile via media query */
+}
+
+@keyframes livePulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
+
+/* ─── Notification Bell ──────────────────────────────── */
+.notifBell {
+  width: 36px;
+  height: 36px;
+  border-radius: 9px;
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.15s;
+  color: rgba(255, 255, 255, 0.45);
+  font-size: 16px;
+  position: relative;
+  flex-shrink: 0;
+}
+
+.notifBell:hover {
+  background: rgba(167, 139, 250, 0.1);
+  border-color: rgba(167, 139, 250, 0.25);
+  color: #a78bfa;
+}
+
+/* Notification tooltip */
+.notifTooltip {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  background: #1e2535;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 12px;
+  color: rgba(255, 255, 255, 0.6);
+  white-space: nowrap;
+  z-index: 60;
+  pointer-events: none;
+  font-family: 'Hanken Grotesk', sans-serif;
+}
+
+/* ─── Live Panel Wrapper ─────────────────────────────── */
+.livePanelWrapper {
+  position: relative;
+}
+
+/* ─── Dropdown (Web ≥ 768px) ─────────────────────────── */
+.liveDropdown {
+  position: absolute;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 320px;
+  background: #111827;
+  border-radius: 12px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.5);
+  z-index: 50;
+  overflow: hidden;
+  animation: dropdownIn 0.15s ease;
+}
+
+@keyframes dropdownIn {
+  from { opacity: 0; transform: translateY(-6px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Bottom Sheet Backdrop ──────────────────────────── */
+.liveSheetBackdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+  z-index: 48;
+  animation: fadeInBackdrop 0.2s ease;
+}
+
+@keyframes fadeInBackdrop {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Bottom Sheet (Mobile < 768px) ─────────────────── */
+.liveBottomSheet {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: #111827;
+  border-radius: 16px 16px 0 0;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+  padding-bottom: env(safe-area-inset-bottom, 16px);
+  z-index: 50;
+  max-height: 70vh;
+  overflow-y: auto;
+  animation: sheetSlideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to   { transform: translateY(0); }
+}
+
+.sheetDragHandle {
+  width: 36px;
+  height: 4px;
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 2px;
+  margin: 12px auto 16px;
+}
+
+/* ─── Shared Panel Header ────────────────────────────── */
+.livePanelHeader {
+  padding: 16px 20px 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-shrink: 0;
+}
+
+.livePanelTitle {
+  font-size: 14px;
+  font-weight: 600;
+  color: #f0f4ff;
+  font-family: 'Plus Jakarta Sans', sans-serif;
+}
+
+.livePanelClose {
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.4);
+  cursor: pointer;
+  font-size: 20px;
+  line-height: 1;
+  padding: 0;
+  display: none; /* only shown on mobile via media query */
+}
+
+/* ─── Match List in Panel ────────────────────────────── */
+.livePanelItem {
+  padding: 12px 20px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+  cursor: pointer;
+  transition: background 0.12s;
+}
+
+.livePanelItem:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.liveTeamName {
+  font-size: 13px;
+  font-weight: 500;
+  color: #d8e4ff;
+  flex: 1;
+  font-family: 'Hanken Grotesk', sans-serif;
+}
+
+.liveTeamHome {
+  text-align: right;
+}
+
+.liveTeamAway {
+  text-align: left;
+}
+
+.liveScoreBlock {
+  text-align: center;
+  min-width: 80px;
+  flex-shrink: 0;
+}
+
+.liveScore {
+  font-size: 16px;
+  font-weight: 700;
+  background: linear-gradient(90deg, #f59e0b, #ef4444);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+  font-family: 'JetBrains Mono', monospace;
+  display: block;
+}
+
+.liveMinuteRow {
+  font-size: 10px;
+  color: #fbbf24;
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  justify-content: center;
+  margin-top: 2px;
+  font-family: 'Hanken Grotesk', sans-serif;
+}
+
+.liveMinuteDot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: livePulse 1s infinite;
+  flex-shrink: 0;
+}
+
+/* ─── Empty State ────────────────────────────────────── */
+.livePanelEmpty {
+  font-size: 13px;
+  color: rgba(255, 255, 255, 0.3);
+  padding: 24px 20px;
+  text-align: center;
+  font-family: 'Hanken Grotesk', sans-serif;
+}
+
+/* ─── Panel Footer ───────────────────────────────────── */
+.livePanelFooter {
+  padding: 12px 20px;
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+  text-align: center;
+}
+
+.liveViewAllBtn {
+  font-size: 13px;
+  font-weight: 500;
+  color: #a78bfa;
+  cursor: pointer;
+  background: none;
+  border: none;
+  font-family: 'Hanken Grotesk', sans-serif;
+  transition: text-decoration 0.1s;
+}
+
+.liveViewAllBtn:hover {
+  text-decoration: underline;
 }
 
 /* Tabs Section */
@@ -314,7 +584,35 @@
   .tournamentBadge {
     padding: 5px 26px 5px 30px;
   }
+
+  /* On mobile: hide web label, show mobile-only label */
+  .liveLabelWeb {
+    display: none;
+  }
+
+  .liveLabelMobile {
+    display: inline;
+  }
+
+  /* Show close button on mobile bottom sheet */
+  .livePanelClose {
+    display: block;
+  }
+
+  /* Hide dropdown on mobile — use bottom sheet instead */
+  .liveDropdown {
+    display: none;
+  }
 }
+
+/* On desktop: hide bottom sheet, show dropdown */
+@media (min-width: 768px) {
+  .liveBottomSheet,
+  .liveSheetBackdrop {
+    display: none;
+  }
+}
+
 
 @media (max-width: 640px) {
   .filterBar {

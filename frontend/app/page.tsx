@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useMemo, Suspense } from 'react';
+import { useState, useEffect, useMemo, useRef, Suspense } from 'react';
 import GlobalSkeletonLoader from '@/components/GlobalSkeletonLoader';
 import styles from './page.module.css';
 import { layTongQuan, layDanhSachDoi } from '@/lib/api';
@@ -10,7 +10,6 @@ import MatchListFeed from '@/components/MatchListFeed';
 import StandingsTab from '@/components/StandingsTab';
 import StatsTab from '@/components/StatsTab';
 import { TrophyIcon } from '@/components/AppIcons';
-import Link from 'next/link';
 
 function getGenericRoundKey(roundName: string): string {
   if (!roundName) return '';
@@ -24,6 +23,32 @@ function getGenericRoundKey(roundName: string): string {
   return roundName.split(' - ')[0];
 }
 
+// ─── Helper: calculate live match minute ───────────────────────────────────
+function calcLiveMinute(match: any): string {
+  if (match.dangTamDung || match.currentPeriod === 'BREAK') return 'HT';
+
+  const now = Date.now();
+
+  if (match.currentPeriod === 'HALF_2' && match.half2StartTime) {
+    const elapsed = Math.floor((now - new Date(match.half2StartTime).getTime()) / 60000);
+    const minute = 45 + elapsed;
+    return `${Math.min(minute, 90)}'`;
+  }
+
+  if (match.half1StartTime) {
+    const elapsed = Math.floor((now - new Date(match.half1StartTime).getTime()) / 60000);
+    const minute = elapsed + 1;
+    return `${Math.min(minute, 45)}'`;
+  }
+
+  if (match.batDauLuc) {
+    const elapsed = Math.floor((now - new Date(match.batDauLuc).getTime()) / 60000);
+    return `${Math.max(1, Math.min(elapsed, 90))}'`;
+  }
+
+  return 'LIVE';
+}
+
 function TongQuanContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
@@ -35,6 +60,23 @@ function TongQuanContent() {
 
   // Tab State: 'matches' | 'standings' | 'stats'
   const [activeTab, setActiveTab] = useState<'matches' | 'standings' | 'stats'>('matches');
+
+  // ─── Live panel state ───────────────────────────────────────────────────────
+  const [livePanelOpen, setLivePanelOpen] = useState(false);
+  const [showNotifTooltip, setShowNotifTooltip] = useState(false);
+  const livePanelRef = useRef<HTMLDivElement>(null);
+
+  // Close live panel on outside click (web dropdown)
+  useEffect(() => {
+    if (!livePanelOpen) return;
+    const handleOutside = (e: MouseEvent) => {
+      if (livePanelRef.current && !livePanelRef.current.contains(e.target as Node)) {
+        setLivePanelOpen(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutside);
+    return () => document.removeEventListener('mousedown', handleOutside);
+  }, [livePanelOpen]);
 
   // Sync tab from search params
   useEffect(() => {
@@ -363,16 +405,20 @@ function TongQuanContent() {
     return `${formatDateLabel(dates[0])} - ${formatDateLabel(dates[dates.length - 1])}`;
   };
 
+  // ─── Live matches list (from data) ─────────────────────────────────────────
+  const liveMatches: any[] = data?.tranLive || [];
+  const liveCount = liveMatches.length;
+
   return (
     <div className={styles.page}>
-      
-      {/* ─── Slim Topbar (replaces large duplicate header) ─── */}
+
+      {/* ─── Slim Topbar ─── */}
       <div className={styles.topbar}>
         {/* Left: Tournament badge */}
         <div className={styles.topbarLeft}>
           <div className={styles.tournamentBadge}>
             <TrophyIcon size={14} className={styles.trophyIcon} />
-            <select 
+            <select
               className={styles.headerSelect}
               value={selectedTournamentId || ''}
               onChange={(e) => setSelectedTournamentId(e.target.value)}
@@ -385,18 +431,76 @@ function TongQuanContent() {
           </div>
         </div>
 
-        {/* Right: Login ghost button (anonymous) */}
-        <div className={styles.topbarRight}>
-          <Link href="/login" className={styles.loginGhostBtn}>
-            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4" />
-              <polyline points="10 17 15 12 10 7" />
-              <line x1="15" y1="12" x2="3" y2="12" />
-            </svg>
-            Đăng nhập
-          </Link>
+        {/* Right: Live Badge + Notification Bell */}
+        <div className={styles.topbarRight} style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+
+          {/* ── Live Badge (hidden when no live matches) ── */}
+          {liveCount > 0 && (
+            <div className={styles.livePanelWrapper} ref={livePanelRef}>
+              <button
+                className={`${styles.liveBadge} ${livePanelOpen ? styles.liveBadgeActive : ''}`}
+                onClick={() => setLivePanelOpen(prev => !prev)}
+                aria-label={`${liveCount} trận đang diễn ra`}
+              >
+                <span className={styles.liveDot} />
+                {/* Desktop label */}
+                <span className={styles.liveLabelWeb}>● {liveCount} live</span>
+                {/* Mobile label (shorter) */}
+                <span className={styles.liveLabelMobile}>● {liveCount}</span>
+              </button>
+
+              {/* Web: Dropdown */}
+              {livePanelOpen && (
+                <div className={styles.liveDropdown}>
+                  <LivePanel
+                    matches={liveMatches}
+                    onMatchClick={(m) => { router.push(`/tran-dau/${m.id}`); setLivePanelOpen(false); }}
+                    onClose={() => setLivePanelOpen(false)}
+                    onViewAll={() => { setSelectedStatus('DANG_DIEN_RA'); setActiveTab('matches'); setLivePanelOpen(false); }}
+                    showCloseBtn={false}
+                  />
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ── Notification Bell ── */}
+          <div style={{ position: 'relative' }}>
+            <button
+              className={styles.notifBell}
+              onClick={() => setShowNotifTooltip(prev => !prev)}
+              onBlur={() => setTimeout(() => setShowNotifTooltip(false), 150)}
+              aria-label="Thông báo"
+            >
+              {/* Bell icon */}
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9" />
+                <path d="M13.73 21a2 2 0 0 1-3.46 0" />
+              </svg>
+            </button>
+            {showNotifTooltip && (
+              <div className={styles.notifTooltip}>Tính năng thông báo sắp ra mắt</div>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Mobile: Bottom Sheet for live matches */}
+      {livePanelOpen && liveCount > 0 && (
+        <>
+          <div className={styles.liveSheetBackdrop} onClick={() => setLivePanelOpen(false)} />
+          <div className={styles.liveBottomSheet}>
+            <div className={styles.sheetDragHandle} />
+            <LivePanel
+              matches={liveMatches}
+              onMatchClick={(m) => { router.push(`/tran-dau/${m.id}`); setLivePanelOpen(false); }}
+              onClose={() => setLivePanelOpen(false)}
+              onViewAll={() => { setSelectedStatus('DANG_DIEN_RA'); setActiveTab('matches'); setLivePanelOpen(false); }}
+              showCloseBtn={true}
+            />
+          </div>
+        </>
+      )}
 
       {/* Tabs */}
       <div className={styles.tabsContainer}>
@@ -531,6 +635,74 @@ function TongQuanContent() {
       )}
 
     </div>
+  );
+}
+
+
+// ─── LivePanel: shared UI for dropdown + bottom sheet ────────────────────────
+interface LivePanelProps {
+  matches: any[];
+  onMatchClick: (m: any) => void;
+  onClose: () => void;
+  onViewAll: () => void;
+  showCloseBtn: boolean;
+}
+
+function LivePanel({ matches, onMatchClick, onClose, onViewAll, showCloseBtn }: LivePanelProps) {
+  return (
+    <>
+      {/* Header */}
+      <div className={styles.livePanelHeader}>
+        <span className={styles.livePanelTitle}>🔴 Đang diễn ra</span>
+        {showCloseBtn && (
+          <button className={styles.livePanelClose} onClick={onClose} aria-label="Đóng">×</button>
+        )}
+      </div>
+
+      {/* Match list */}
+      {matches.length === 0 ? (
+        <div className={styles.livePanelEmpty}>Hiện không có trận nào đang diễn ra</div>
+      ) : (
+        matches.map((match: any) => {
+          const minute = calcLiveMinute(match);
+          return (
+            <div
+              key={match.id}
+              className={styles.livePanelItem}
+              onClick={() => onMatchClick(match)}
+            >
+              {/* Home team name */}
+              <span className={`${styles.liveTeamName} ${styles.liveTeamHome}`}>
+                {match.doiNha?.ten || match.tenDoiNha || '?'}
+              </span>
+
+              {/* Score + minute */}
+              <div className={styles.liveScoreBlock}>
+                <span className={styles.liveScore}>
+                  {match.tyNha ?? 0} – {match.tyKhach ?? 0}
+                </span>
+                <div className={styles.liveMinuteRow}>
+                  <span className={styles.liveMinuteDot} />
+                  <span>{minute}</span>
+                </div>
+              </div>
+
+              {/* Away team name */}
+              <span className={`${styles.liveTeamName} ${styles.liveTeamAway}`}>
+                {match.doiKhach?.ten || match.tenDoiKhach || '?'}
+              </span>
+            </div>
+          );
+        })
+      )}
+
+      {/* Footer */}
+      <div className={styles.livePanelFooter}>
+        <button className={styles.liveViewAllBtn} onClick={onViewAll}>
+          Xem tất cả trận live →
+        </button>
+      </div>
+    </>
   );
 }
 
