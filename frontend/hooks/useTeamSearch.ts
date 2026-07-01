@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { layDanhSachDoi } from '@/lib/api';
+import { layDanhSachDoi, layDanhSachGiaiDau } from '@/lib/api';
 
 export interface TeamSearchResult {
   id: string;
@@ -26,14 +26,29 @@ async function getAllTeams(): Promise<TeamSearchResult[]> {
   if (allTeamsCache) return allTeamsCache;
   if (cacheFetchPromise) return cacheFetchPromise;
 
-  cacheFetchPromise = layDanhSachDoi().then((teams) => {
+  cacheFetchPromise = Promise.all([
+    layDanhSachDoi(),
+    layDanhSachGiaiDau()
+  ]).then(([teams, tournaments]) => {
+    const tournamentMap = new Map(tournaments.map((t: any) => [t.id, t.ten]));
+    
     const result = teams.map((t: any) => ({
       id: t.id,
       ten: t.ten,
       logo: t.logo,
       vietTat: t.vietTat,
       giai_dau_id: t.giai_dau_id,
+      giaiDauTen: t.giai_dau_id ? tournamentMap.get(t.giai_dau_id) || 'Khác' : 'Khác',
     }));
+    
+    // Sort by tournament name then team name
+    result.sort((a: any, b: any) => {
+      const tA = a.giaiDauTen || '';
+      const tB = b.giaiDauTen || '';
+      if (tA !== tB) return tA.localeCompare(tB);
+      return a.ten.localeCompare(b.ten);
+    });
+
     allTeamsCache = result;
     cacheFetchPromise = null;
     return result;
@@ -49,7 +64,25 @@ export function useTeamSearch(query: string): UseTeamSearchReturn {
   const debounceTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
-    // Clear results if query is too short
+    // If query is empty, show all teams (popular)
+    if (query.trim().length === 0) {
+      if (debounceTimer.current) clearTimeout(debounceTimer.current);
+      setIsLoading(true);
+      setError(null);
+      
+      getAllTeams().then(teams => {
+        setResults(teams);
+        setIsLoading(false);
+      }).catch(err => {
+        console.error('useTeamSearch error:', err);
+        setError('Không thể lấy danh sách đội.');
+        setResults([]);
+        setIsLoading(false);
+      });
+      return;
+    }
+
+    // Only search if length >= 2
     if (query.trim().length < 2) {
       setResults([]);
       setIsLoading(false);
