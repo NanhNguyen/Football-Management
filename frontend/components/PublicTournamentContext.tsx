@@ -89,8 +89,18 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
         const list = await layDanhSachGiaiDau();
         setTournaments(list);
         
-        // Fetch all matches to find the closest one to today
-        const allMatches = await layDanhSachTranDau();
+        // Fetch matches lightly to find the closest one to today
+        const { data: rawMatches } = await supabase
+          .from('tran_dau')
+          .select('giai_dau_id, trang_thai, bat_dau_luc, ngay');
+          
+        const allMatches = (rawMatches || []).map((m: any) => ({
+          giaiDauId: m.giai_dau_id,
+          trangThai: m.trang_thai,
+          batDauLuc: m.bat_dau_luc,
+          date: m.ngay
+        }));
+
         let defaultId = null;
 
         if (allMatches && allMatches.length > 0) {
@@ -106,7 +116,7 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
               return Math.abs(tA - now) - Math.abs(tB - now);
             });
             // Get the tournament of the closest upcoming match
-            const matchTourneyId = upcoming[0].giaiDauId || list.find((t: any) => t.ten === upcoming[0].giaiDauTen)?.id;
+            const matchTourneyId = upcoming[0].giaiDauId;
             if (matchTourneyId && list.some((t: Tournament) => t.id === matchTourneyId)) {
               defaultId = matchTourneyId;
             }
@@ -121,7 +131,7 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
                 const tB = new Date(b.date || b.batDauLuc).getTime();
                 return Math.abs(tA - now) - Math.abs(tB - now);
               });
-              const matchTourneyId = finished[0].giaiDauId || list.find((t: any) => t.ten === finished[0].giaiDauTen)?.id;
+              const matchTourneyId = finished[0].giaiDauId;
               if (matchTourneyId && list.some((t: Tournament) => t.id === matchTourneyId)) {
                 defaultId = matchTourneyId;
               }
@@ -138,9 +148,8 @@ export function PublicTournamentProvider({ children }: { children: React.ReactNo
             setSelectedTournamentIdState(savedId);
           } else if (defaultId) {
             setSelectedTournamentIdState(defaultId);
-            localStorage.setItem('public_selected_tournament_id', defaultId);
-          } else {
-            setSelectedTournamentIdState(savedId);
+          } else if (list.length > 0) {
+            setSelectedTournamentIdState(list[0].id);
           }
         } else {
           const finalId = defaultId || (list.find((t: Tournament) => t.ten.includes('Thiên Khôi'))?.id) || list[0]?.id;

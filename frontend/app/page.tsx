@@ -120,41 +120,12 @@ function TongQuanContent() {
 
     const loadData = async () => {
       try {
-        const [tqData, tData] = await Promise.all([
-          layTongQuan(selectedTournamentId || undefined),
-          layDanhSachDoi(selectedTournamentId || undefined)
-        ]);
+        const tqData = await layTongQuan(selectedTournamentId || undefined);
 
-        // ═══════════════════════════════════════════════════════
-        // MOCK LIVE MATCHES FOR DEMONSTRATION — DELETE BEFORE PROD
-        // ═══════════════════════════════════════════════════════
-        if (tqData && (!tqData.tranLive || tqData.tranLive.length === 0)) {
-          const upcoming = tqData.tranSapDienRa || [];
-          const nowIso = new Date().toISOString();
-          const half1Start = new Date(Date.now() - 23 * 60 * 1000).toISOString(); // 23 min ago → 24'
-          const half2Start = new Date(Date.now() - 18 * 60 * 1000 + 45 * 60 * 1000).toISOString(); // HT+18 min → 63'
-          const mockLive: any[] = [];
 
-          if (upcoming[0]) {
-            // Mock 1: HALF_1 — phút 24'
-            mockLive.push({ ...upcoming[0], trangThai: 'DANG_DIEN_RA', tyNha: 1, tyKhach: 0, dangTamDung: false, matchDurationMinutes: 90, currentPeriod: 'HALF_1', half1StartTime: half1Start });
-          }
-          if (upcoming[1]) {
-            // Mock 2: HALF_2 — phút ~63'
-            mockLive.push({ ...upcoming[1], trangThai: 'DANG_DIEN_RA', tyNha: 2, tyKhach: 2, dangTamDung: false, matchDurationMinutes: 90, currentPeriod: 'HALF_2', half1StartTime: half1Start, half2StartTime: half2Start });
-          }
-          if (upcoming[2]) {
-            // Mock 3: HT (nghỉ giữa giờ)
-            mockLive.push({ ...upcoming[2], trangThai: 'DANG_DIEN_RA', tyNha: 0, tyKhach: 1, dangTamDung: true, matchDurationMinutes: 90, currentPeriod: 'BREAK' });
-          }
-
-          tqData.tranLive = mockLive;
-          tqData.tranSapDienRa = upcoming.slice(mockLive.length);
-        }
-        // ═══════════════════════════════════════════════════════
 
         setData(tqData);
-        setTeams(tData);
+        setTeams(tqData.teamsList || []);
       } catch (error) {
         console.error("Lỗi lấy dữ liệu tổng quan:", error);
       } finally {
