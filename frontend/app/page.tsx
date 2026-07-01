@@ -28,7 +28,7 @@ function TongQuanContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab');
-  const { selectedTournamentId, selectedTournament, tournaments, setSelectedTournamentId } = usePublicTournament();
+  const { selectedTournamentId, selectedTournament, tournaments, setSelectedTournamentId, loading: contextLoading } = usePublicTournament();
   const [data, setData] = useState<any>(null);
   const [teams, setTeams] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -74,6 +74,8 @@ function TongQuanContent() {
   }, [selectedMatchweek, selectedTournamentId]);
 
   useEffect(() => {
+    if (contextLoading) return;
+
     const loadData = async () => {
       try {
         const [tqData, tData] = await Promise.all([
@@ -121,7 +123,7 @@ function TongQuanContent() {
     loadData();
     const interval = setInterval(loadData, 5000); // 5 seconds polling
     return () => clearInterval(interval);
-  }, [selectedTournamentId]);
+  }, [selectedTournamentId, contextLoading]);
 
   const allMatchesList = data?.allMatches || [
     ...(data?.tranLive || []),
