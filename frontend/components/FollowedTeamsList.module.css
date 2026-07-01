@@ -1,0 +1,138 @@
+/* ── List container ──────────────────────────── */
+.list {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.listMobile {
+  gap: 0;
+}
+
+/* ── Item ────────────────────────────────────── */
+.item {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 6px 8px;
+  border-radius: 7px;
+  cursor: pointer;
+  transition: background 0.12s ease;
+  position: relative;
+}
+
+.item:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.itemMobile {
+  padding: 10px 16px;
+  border-radius: 0;
+  min-height: 52px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.04);
+}
+
+.itemMobile:hover {
+  background: rgba(255, 255, 255, 0.04);
+}
+
+/* ── Logo ────────────────────────────────────── */
+.logoWrap {
+  flex-shrink: 0;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  overflow: hidden;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.logo {
+  width: 24px;
+  height: 24px;
+  object-fit: cover;
+  border-radius: 50%;
+}
+
+.logoPlaceholder {
+  font-size: 13px;
+  opacity: 0.5;
+}
+
+/* ── Name ────────────────────────────────────── */
+.name {
+  font-size: 12.5px;
+  font-weight: 500;
+  color: #d8e4ff;
+  flex: 1;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-family: 'Hanken Grotesk', sans-serif;
+}
+
+/* ── Status badges ───────────────────────────── */
+.status {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+}
+
+.liveBadge {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 10px;
+  color: #fbbf24;
+  font-weight: 600;
+}
+
+.liveDot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: #f59e0b;
+  animation: pulse 1.4s ease-in-out infinite;
+  flex-shrink: 0;
+}
+
+.scoreBadge {
+  font-size: 11px;
+  color: #10d98a;
+  font-weight: 600;
+  font-family: 'JetBrains Mono', monospace;
+}
+
+.dateBadge {
+  font-size: 10px;
+  color: rgba(255, 255, 255, 0.3);
+  font-family: 'JetBrains Mono', monospace;
+  white-space: nowrap;
+}
+
+/* ── Unfollow button ─────────────────────────── */
+.unfollowBtn {
+  flex-shrink: 0;
+  background: none;
+  border: none;
+  color: rgba(255, 255, 255, 0.3);
+  cursor: pointer;
+  font-size: 16px;
+  line-height: 1;
+  padding: 0 2px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: color 0.15s ease;
+}
+
+.unfollowBtn:hover {
+  color: #f87171;
+}
+
+/* ── Animations ──────────────────────────────── */
+@keyframes pulse {
+  0%, 100% { opacity: 1; transform: scale(1); }
+  50%       { opacity: 0.5; transform: scale(0.85); }
+}
