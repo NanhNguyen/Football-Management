@@ -20,25 +20,66 @@ export function useMatchLifecycle(
   const handleAutoFinishMatchRef = useRef<any>(null);
   const handleAutoStartHalf2Ref = useRef<any>(null);
   const handleAutoEndHalf1Ref = useRef<any>(null);
-
-  // Real-time timer
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setLiveMatches(prev => prev.map(match => {
-        if (match.trangThai === 'DANG_DIEN_RA' && !match.dangTamDung) {
-          const currentPhut = calculateMatchMinute(match, schedulerConfig?.matchDurationMinutes || 90);
-          return { ...match, phut: currentPhut };
-        }
-        return match;
-      }));
-    }, 1000);
-    return () => clearInterval(interval);
-  }, [schedulerConfig]);
+  const transitionInProgressRef = useRef<Record<string, boolean>>({});
 
   // Sync refs
   useEffect(() => {
     liveMatchesRef.current = liveMatches;
   }, [liveMatches]);
+
+  useEffect(() => {
+    handleStartMatchRef.current = handleStartMatch;
+    handleAutoFinishMatchRef.current = handleAutoFinishMatch;
+    handleAutoStartHalf2Ref.current = handleAutoStartHalf2;
+    handleAutoEndHalf1Ref.current = handleAutoEndHalf1;
+  });
+
+  // Real-time timer
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setLiveMatches(prev => {
+        let changed = false;
+        const newMatches = prev.map(match => {
+          if (match.trangThai === 'SAP_DIEN_RA' && match.date && match.time) {
+            const scheduledTime = new Date(`${match.date}T${match.time}:00`);
+            if (Date.now() >= scheduledTime.getTime() && !transitionInProgressRef.current[`${match.id}_start`]) {
+              transitionInProgressRef.current[`${match.id}_start`] = true;
+              if (handleStartMatchRef.current) handleStartMatchRef.current(match.id);
+            }
+          }
+
+          if (match.trangThai === 'DANG_DIEN_RA' && !match.dangTamDung) {
+            const currentPhut = calculateMatchMinute(match, schedulerConfig?.matchDurationMinutes || 90);
+            const matchDuration = schedulerConfig?.matchDurationMinutes || 90;
+            const halfDuration = matchDuration / 2;
+            const breakDuration = schedulerConfig?.breakTimeMinutes || 15;
+
+            if (match.currentPeriod === 'HALF_1' && currentPhut > halfDuration && !transitionInProgressRef.current[`${match.id}_end_half1`]) {
+                transitionInProgressRef.current[`${match.id}_end_half1`] = true;
+                if (handleAutoEndHalf1Ref.current) handleAutoEndHalf1Ref.current(match.id);
+            } else if (match.currentPeriod === 'BREAK' && match.half1EndTime && !transitionInProgressRef.current[`${match.id}_start_half2`]) {
+                const breakEnd = new Date(match.half1EndTime).getTime() + breakDuration * 60000;
+                if (Date.now() >= breakEnd) {
+                    transitionInProgressRef.current[`${match.id}_start_half2`] = true;
+                    if (handleAutoStartHalf2Ref.current) handleAutoStartHalf2Ref.current(match.id);
+                }
+            } else if (match.currentPeriod === 'HALF_2' && currentPhut > matchDuration && !transitionInProgressRef.current[`${match.id}_finish`]) {
+                transitionInProgressRef.current[`${match.id}_finish`] = true;
+                if (handleAutoFinishMatchRef.current) handleAutoFinishMatchRef.current(match.id);
+            }
+
+            if (match.phut !== currentPhut) {
+                changed = true;
+                return { ...match, phut: currentPhut };
+            }
+          }
+          return match;
+        });
+        return changed ? newMatches : prev;
+      });
+    }, 1000);
+    return () => clearInterval(interval);
+  }, [schedulerConfig, setLiveMatches]);
 
   const calculateCurrentRoster = (team: any, events: any[], limit: number) => {
     if (!team || !team.cauThu) return { starters: [], bench: [] };
